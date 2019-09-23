@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   rtv1.h                                             :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: dwalda-r <dwalda-r@student.42.fr>          +#+  +:+       +#+        */
+/*   By: dmelessa <dmelessa@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2019/08/22 15:26:15 by dwalda-r          #+#    #+#             */
-/*   Updated: 2019/09/17 15:24:30 by dwalda-r         ###   ########.fr       */
+/*   Updated: 2019/09/23 18:23:42 by dmelessa         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -93,6 +93,14 @@ typedef struct	s_image
 	int			size_line;
 	int			endian;
 }				t_image;
+
+typedef struct	s_window
+{
+	void	*mlx_ptr;
+	void	*win_ptr;
+	int		width;
+	int		height;
+}				t_window;
 
 typedef enum	e_objs
 {
