@@ -21,40 +21,29 @@ CFLAGS = -O3\
 		 -I$(INCDIR)\
 		 -I$(LIBFTINC)\
 		 -I$(RTMATHINC)\
-		 -I$(MLXINC)\
-		 -Wall\
-		 -Werror\
-		 -Wextra
+		 -I$(SDL2INC)
 
 LDLIBS = -lm\
 		-lft\
-		-lmlx\
 		-lrtmath
 
-ifeq ($(UNAME_S),Linux)
-	LDLIBS += -L/usr/X11/lib -lXext -lX11
-endif
-ifeq ($(UNAME_S), Darwin)
-	LDLIBS += -framework OpenGL -framework AppKit
-endif
-
 LDFLAGS	=	-L$(LIBFTDIR)\
-			-L$(RTMATHDIR)\
-			-L$(MLXDIR)
+			-L$(RTMATHDIR)
 
 LIBFT = libft.a
 LIBFTDIR = ./libft/
 LIBFTINC = $(LIBFTDIR)/includes
 
-MLXDIR = ./minilibx/
-MLXINC = ./minilibx/include
-
 RTMATH = librtmath.a
 RTMATHDIR = ./rtmath/
 RTMATHINC = $(RTMATHDIR)/includes
 
+SDL2 = libSDL2-2.0.0.dylib
+SDL2DIR = ./SDL2/
+SDL2INC = $(SDL2DIR)/include/SDL2/
+
 INCDIR = ./includes/
-INCS = rtv1.h
+INCS = rt.h
 INCS := $(addprefix $(INCDIR), $(INCS))
 
 SRCSDIR = ./src/
@@ -67,19 +56,18 @@ SRCS = main.c draw.c control.c sphere.c reader.c saver.c camera_movement.c\
 OBJSDIR	=	./objs/
 OBJS	=	$(addprefix $(OBJSDIR), $(SRCS:.c=.o))
 
-NAME = ./RTv1
+NAME = ./RT
 
 .PHONY: all
 all: $(LIBFT) $(RTMATH) $(NAME)
 
 $(NAME): $(OBJS) 
 	@echo 'making executable'
-	$(CC) $(LDLIBS) $(LDFLAGS) -o $@ $(OBJS) 
+	$(CC) $(LDLIBS) $(LDFLAGS) -o $@ $(OBJS) ./SDL2/lib/libSDL2.dylib
 	@echo DONE!
 
 $(LIBFT):
 	@make -C $(LIBFTDIR)
-	@make -C $(MLXDIR)
 
 $(RTMATH):
 	@make -C $(RTMATHDIR)
@@ -98,7 +86,6 @@ clean:
 	@$(RM) $(OBJS)
 	@make -C $(LIBFTDIR) clean
 	@make -C $(RTMATHDIR) clean
-	@make -C $(MLXDIR) clean
 
 .PHONY: fclean
 fclean: clean
@@ -106,7 +93,7 @@ fclean: clean
 	@$(RM) $(NAME)
 	@make -C $(LIBFTDIR) fclean
 	@make -C $(RTMATHDIR) fclean
-	@make -C $(MLXDIR) fclean
+
 
 .PHONY: re
 re:	fclean all

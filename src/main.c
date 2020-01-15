@@ -6,7 +6,7 @@
 /*   By: dwalda-r <dwalda-r@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2020/01/14 11:27:45 by dwalda-r          #+#    #+#             */
-/*   Updated: 2020/01/14 17:44:20 by dwalda-r         ###   ########.fr       */
+/*   Updated: 2020/01/15 15:00:13 by dwalda-r         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -76,6 +76,8 @@ void	point_at(t_ray r, float d, t_vec3 result)
 	vec3_sum(r.point, tmp, result);
 }
 
+
+
 void	get_color(t_ray r, t_vec3 result)
 {
 	float	mag;
@@ -85,10 +87,9 @@ void	get_color(t_ray r, t_vec3 result)
 	result[ox] = (1 - mag) + mag * 0.5;
 	result[oy] = (1 - mag) + mag * 0.7;
 	result[oz] = (1 - mag) + mag * 1;
-	//printf("%f %f %f\n", result[ox], result[oy], result[oz]);
 }
 
-SDL_Texture	*gradientTexture(t_windata *windata)
+SDL_Texture	*gradientTexture(t_windata windata)
 {
 	SDL_Texture	*tex;
 	Uint32	*pixels;
@@ -108,9 +109,10 @@ SDL_Texture	*gradientTexture(t_windata *windata)
 
 	t_vec3	tmp1;
 	t_vec3	tmp2;
+	t_vec3	tmp3;
 
-	tex = SDL_CreateTexture(windata->ren, SDL_PIXELFORMAT_ARGB8888,
-	SDL_TEXTUREACCESS_STATIC, SCREEN_WIDTH, SCREEN_HEIGHT);
+	tex = SDL_CreateTexture(windata.ren, SDL_PIXELFORMAT_ARGB8888,
+	SDL_TEXTUREACCESS_STREAMING, SCREEN_WIDTH, SCREEN_HEIGHT);
 	pixels = (Uint32 *)malloc(sizeof(Uint32) * SCREEN_WIDTH * SCREEN_HEIGHT);
 	xy[oy] = SCREEN_HEIGHT - 1;
 	while(xy[oy] >= 0)
@@ -122,8 +124,8 @@ SDL_Texture	*gradientTexture(t_windata *windata)
 			uv[oy] = 1 - (xy[oy] / SCREEN_HEIGHT);
 			vec3_scale(horizontal, uv[ox], tmp1);
 			vec3_scale(vertical, uv[oy], tmp2);
-			vec3_sum(tmp1, tmp2, tmp1);
-			vec3_sum(tmp1, ll_corner, tmp1);
+			vec3_sum(tmp1, tmp2, tmp3);
+			vec3_sum(tmp3, ll_corner, tmp1);
 			r = ray_init(origin, tmp1);
 			get_color(r, color);
 			color[0] = (int)(color[0] * 255) << 16;
@@ -139,37 +141,20 @@ SDL_Texture	*gradientTexture(t_windata *windata)
 	return tex;
 }
 
-int main(void)
+void rtCycle(t_param *p)
 {
-	t_windata windata;
-
-	if (SDL_Init(SDL_INIT_EVERYTHING) == -1)
-	{
-		printf("ERROR");
-		return 0;
-	}
-	windata.win = SDL_CreateWindow("<3", SDL_WINDOWPOS_CENTERED,
-	SDL_WINDOWPOS_CENTERED, SCREEN_WIDTH, SCREEN_HEIGHT, SDL_WINDOW_SHOWN);
-	if (windata.win == NULL)
-	{
-		printf("ERROR");
-		return 0;
-	}
-	windata.ren = SDL_CreateRenderer(windata.win, -1, SDL_RENDERER_ACCELERATED
-	| SDL_RENDERER_PRESENTVSYNC);
-	if (windata.ren == NULL)
-	{
-		printf("ERROR");
-		return 0;
-	}
-	SDL_Texture	*tex;
-	tex = gradientTexture(&windata);
-	SDL_RenderClear(windata.ren);
-	SDL_RenderCopy(windata.ren, tex, NULL, NULL);
-	SDL_RenderPresent(windata.ren);
-	
 	SDL_Event	e;
-	int quit = 0;
+	t_bool quit;
+	SDL_Texture	*tex;
+
+	tex = SDL_CreateTexture(p->windata.ren, SDL_PIXELFORMAT_ARGB8888,
+	SDL_TEXTUREACCESS_STREAMING, SCREEN_WIDTH, SCREEN_HEIGHT);	
+	quit = FALSE;
+	render(p);
+	SDL_UpdateTexture(tex, NULL, p->img, sizeof(Uint32) * SCREEN_WIDTH);
+	SDL_RenderClear(p->windata.ren);
+	SDL_RenderCopy(p->windata.ren, tex, NULL, NULL);
+	SDL_RenderPresent(p->windata.ren);
 	while (!quit)
 	{
 		while(SDL_PollEvent(&e))
@@ -178,5 +163,51 @@ int main(void)
 				quit = 1;
 		}
 	}
+}
+
+void	init_param(t_param *p)
+{
+	p->world.nobjs = 0;
+	p->world.nlights = 0;
+	p->windata.win = SDL_CreateWindow("<3", SDL_WINDOWPOS_CENTERED,
+	SDL_WINDOWPOS_CENTERED, SCREEN_WIDTH, SCREEN_HEIGHT, SDL_WINDOW_SHOWN);
+	p->windata.ren = SDL_CreateRenderer(p->windata.win, -1, SDL_RENDERER_ACCELERATED);
+	p->img = (Uint32 *)malloc(sizeof(Uint32) * SCREEN_WIDTH * SCREEN_HEIGHT);
+}
+
+int		catch_errors(t_param *p, char **arg, int ac)
+{
+	int fd;
+
+	fd = open(arg[1], O_RDONLY);
+	if (ac != 2)
+	{
+		ft_putendl_fd("usage: ./RTv1 file_name", 1);
+		return (0);
+	}
+	if (fd < 0)
+	{
+		ft_putendl_fd("error: file does not exist", 2);
+		return (0);
+	}
+	if (!read_all(fd, p))
+	{
+		ft_putendl_fd("error: bad data", 2);
+		return (0);
+	}
+	return (1);
+}
+
+int main(int ac, char **arg)
+{
+	t_param p;
+	SDL_Init(SDL_INIT_EVERYTHING);
+	init_param(&p);
+	if (!catch_errors(&p, arg, ac))
+		return (1);
+	// output_obj(p.world.objs[0], 1)
+	world_to_camera(&p);
+	rotate_camera(&p);
+	rtCycle(&p);
 	SDL_Quit();
 }
