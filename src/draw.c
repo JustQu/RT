@@ -6,7 +6,7 @@
 /*   By: dwalda-r <dwalda-r@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2019/08/22 16:44:14 by dwalda-r          #+#    #+#             */
-/*   Updated: 2020/01/15 14:10:56 by dwalda-r         ###   ########.fr       */
+/*   Updated: 2020/01/15 18:02:30 by dwalda-r         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -19,7 +19,6 @@ void			put_pixel(Uint32 *img, int x, int y, int color)
 	if (x < 0 || y < 0 || x >= SCREEN_WIDTH || y >= SCREEN_HEIGHT)
 		return ;
 	pixpos = y * SCREEN_WIDTH + x;
-	// printf("%d %d\n", x, y);
 	img[pixpos] = color;
 }
 

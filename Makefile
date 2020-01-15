@@ -51,7 +51,7 @@ SRCS = main.c draw.c control.c sphere.c reader.c saver.c camera_movement.c\
 		convert_to_16.c ft_itoaf.c list_funcs.c object_initiation.c\
 		other_initiation.c other_out.c out_objects.c out_params.c\
 		param_reading.c utils.c cone.c cylinder.c normals.c\
-		plane.c intersection.c rays.c
+		plane.c intersection.c rays.c read_kernel.c
 
 OBJSDIR	=	./objs/
 OBJS	=	$(addprefix $(OBJSDIR), $(SRCS:.c=.o))
@@ -63,7 +63,7 @@ all: $(LIBFT) $(RTMATH) $(NAME)
 
 $(NAME): $(OBJS) 
 	@echo 'making executable'
-	$(CC) $(LDLIBS) $(LDFLAGS) -o $@ $(OBJS) ./SDL2/lib/libSDL2.dylib
+	$(CC) $(LDLIBS) $(LDFLAGS) -o $@ $(OBJS) ./SDL2/lib/libSDL2.dylib -framework OpenCL
 	@echo DONE!
 
 $(LIBFT):

@@ -6,7 +6,7 @@
 /*   By: dwalda-r <dwalda-r@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2020/01/14 11:27:45 by dwalda-r          #+#    #+#             */
-/*   Updated: 2020/01/15 15:00:13 by dwalda-r         ###   ########.fr       */
+/*   Updated: 2020/01/15 19:11:04 by dwalda-r         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -20,17 +20,6 @@ void		ApplySurface(int x, int y, SDL_Texture *tex, SDL_Renderer *rend)
 	SDL_QueryTexture(tex, NULL, NULL, &pos.w, &pos.h);
 	SDL_RenderCopy(rend, tex, NULL, &pos);
 	printf("%d, %d, %d, %d\n", x, y, pos.w, pos.h);
-}
-
-t_ray ray_init(t_vec3 origin, t_vec3 dir)
-{
-	t_ray	r;
-
-	vec4_zero(r.point);
-	vec4_zero(r.vec);
-	vec3_copy(origin, r.point);
-	vec3_copy(dir, r.vec);
-	return r;
 }
 
 SDL_Texture	*LoadImage(const char* filename, t_windata* windata)
@@ -51,94 +40,38 @@ SDL_Texture	*LoadImage(const char* filename, t_windata* windata)
 	return tex;
 }
 
-void		loadpicsAndDraw(t_windata *windata)
+void gpurender(t_param *p)
 {
-	SDL_Texture *back;
-	SDL_Texture *image;
-	int x,y,x1,y1;
+	char		*source;
+	size_t		len;
+	cl_program	pr;
+	cl_kernel	kernel;
+	cl_mem		img;
 
-	back = LoadImage("./background.bmp", windata);
-	image = LoadImage("./image.bmp", windata);
-	SDL_RenderClear(windata->ren);
-	SDL_QueryTexture(back, NULL, NULL, &x, &y);
-	ApplySurface(0,0, back, windata->ren);
-	SDL_QueryTexture(image, NULL, NULL, &x1, &y1);
-	x1 = SCREEN_WIDTH / 2 - x1 / 2;
-	y1 = SCREEN_HEIGHT / 2 - y1 / 2;
-	ApplySurface(x1, y1, image, windata->ren);
-}
-
-
-void	point_at(t_ray r, float d, t_vec3 result)
-{
-	t_vec3	tmp;
-	vec3_scale(r.vec, d, tmp);
-	vec3_sum(r.point, tmp, result);
-}
-
-
-
-void	get_color(t_ray r, t_vec3 result)
-{
-	float	mag;
-
-	vec3_normalize(r.vec);
-	mag = 0.5 * (r.vec[oy] + 1);
-	result[ox] = (1 - mag) + mag * 0.5;
-	result[oy] = (1 - mag) + mag * 0.7;
-	result[oz] = (1 - mag) + mag * 1;
-}
-
-SDL_Texture	*gradientTexture(t_windata windata)
-{
-	SDL_Texture	*tex;
-	Uint32	*pixels;
-	t_vec3	color;
-	t_vec3	xy;
-	t_vec3	uv;
-	t_ray	r;
-
-	t_vec3	ll_corner;
-	vec3_copy((t_vec3){-2, -1, -1}, ll_corner);
-	t_vec3	horizontal;
-	vec3_copy((t_vec3){4, 0, 0}, horizontal);
-	t_vec3	vertical;
-	vec3_copy((t_vec3){0, 2, 0}, vertical);
-	t_vec3	origin;
-	vec3_zero(origin);
-
-	t_vec3	tmp1;
-	t_vec3	tmp2;
-	t_vec3	tmp3;
-
-	tex = SDL_CreateTexture(windata.ren, SDL_PIXELFORMAT_ARGB8888,
-	SDL_TEXTUREACCESS_STREAMING, SCREEN_WIDTH, SCREEN_HEIGHT);
-	pixels = (Uint32 *)malloc(sizeof(Uint32) * SCREEN_WIDTH * SCREEN_HEIGHT);
-	xy[oy] = SCREEN_HEIGHT - 1;
-	while(xy[oy] >= 0)
+	len = read_kernel("uvmap.cl", &source);
+	img = clCreateBuffer(p->clprm->context, CL_MEM_WRITE_ONLY,
+	SCREEN_WIDTH * SCREEN_HEIGHT * sizeof(cl_float3), NULL, &(p->clprm->ret));
+	pr = clCreateProgramWithSource(p->clprm->context, 1,
+	(const char **)&source, (const size_t *)&len, &(p->clprm->ret));
+	p->clprm->ret = clBuildProgram(pr, 1, &(p->clprm->de_id), NULL, NULL, NULL);
+	kernel = clCreateKernel(pr, "uvmap", &(p->clprm->ret));
+	p->clprm->ret = clSetKernelArg(kernel, 0, sizeof(cl_mem), (void *)&img);
+	size_t global_item_size = GLOBAL_SIZE;
+	size_t local_item_size = LOCAL_SIZE;
+	p->clprm->ret = clEnqueueNDRangeKernel(p->clprm->queue, kernel, 1, NULL,
+	&global_item_size, &local_item_size, 0, NULL, NULL);
+	cl_float3 *popka = (cl_float3 *)malloc(sizeof(cl_float3) * SCREEN_WIDTH * SCREEN_HEIGHT);
+	p->clprm->ret = clEnqueueReadBuffer(p->clprm->queue, img, CL_TRUE, 0,
+	SCREEN_WIDTH * SCREEN_HEIGHT * sizeof(cl_float3), popka, 0, NULL, NULL);
+	for (int j = 0; j < SCREEN_HEIGHT; j++)
 	{
-		xy[ox] = 0;
-		while (xy[ox] < SCREEN_WIDTH)
+		for (int i = 0; i < SCREEN_WIDTH; i++)
 		{
-			uv[ox] = xy[ox] / SCREEN_WIDTH;
-			uv[oy] = 1 - (xy[oy] / SCREEN_HEIGHT);
-			vec3_scale(horizontal, uv[ox], tmp1);
-			vec3_scale(vertical, uv[oy], tmp2);
-			vec3_sum(tmp1, tmp2, tmp3);
-			vec3_sum(tmp3, ll_corner, tmp1);
-			r = ray_init(origin, tmp1);
-			get_color(r, color);
-			color[0] = (int)(color[0] * 255) << 16;
-			color[1] = (int)(color[1] * 255) << 8;
-			color[2] = (int)(color[2] * 255);
-			pixels[SCREEN_WIDTH * (int)xy[oy] + (int)xy[ox]] = (int)color[0] | (int)color[1] |
-			(int)color[2];
-			xy[ox]++;
+			int color = (int)(popka[j * SCREEN_WIDTH + i]).s[0] << 16 | (int)(popka[j * SCREEN_WIDTH + i]).s[1] << 8 | (int)(popka[j * SCREEN_WIDTH + i]).s[2];
+			printf("%f, %f, %f\n", popka[j * SCREEN_WIDTH + i].s[0], popka[j * SCREEN_WIDTH + i].s[1], popka[j * SCREEN_WIDTH + i].s[2]);
+			p->img[j * SCREEN_WIDTH + i] = color;
 		}
-		xy[oy]--;
 	}
-	SDL_UpdateTexture(tex, NULL, pixels, sizeof(Uint32) * SCREEN_WIDTH);
-	return tex;
 }
 
 void rtCycle(t_param *p)
@@ -148,9 +81,10 @@ void rtCycle(t_param *p)
 	SDL_Texture	*tex;
 
 	tex = SDL_CreateTexture(p->windata.ren, SDL_PIXELFORMAT_ARGB8888,
-	SDL_TEXTUREACCESS_STREAMING, SCREEN_WIDTH, SCREEN_HEIGHT);	
+	SDL_TEXTUREACCESS_STREAMING, SCREEN_WIDTH, SCREEN_HEIGHT);
 	quit = FALSE;
-	render(p);
+	// render(p);
+	gpurender(p);
 	SDL_UpdateTexture(tex, NULL, p->img, sizeof(Uint32) * SCREEN_WIDTH);
 	SDL_RenderClear(p->windata.ren);
 	SDL_RenderCopy(p->windata.ren, tex, NULL, NULL);
@@ -165,7 +99,22 @@ void rtCycle(t_param *p)
 	}
 }
 
-void	init_param(t_param *p)
+t_clp	*initOpenCl()
+{
+	t_clp	*clp;
+
+	clp = (t_clp *)malloc(sizeof(t_clp));
+	clp->pl_id = NULL;
+	clp->de_id = NULL;
+	clp->ret = clGetPlatformIDs(1, &(clp->pl_id), &(clp->ret_num_platforms));
+	clp->ret = clGetDeviceIDs(clp->pl_id, CL_DEVICE_TYPE_GPU, 1, &(clp->de_id),
+	&(clp->ret_num_devices));
+	clp->context = clCreateContext(NULL, 1, &(clp->de_id), NULL, NULL, &(clp->ret));
+	clp->queue = clCreateCommandQueue(clp->context, clp->de_id, 0, &(clp->ret));
+	return clp;
+}
+
+void	initParam(t_param *p)
 {
 	p->world.nobjs = 0;
 	p->world.nlights = 0;
@@ -173,6 +122,8 @@ void	init_param(t_param *p)
 	SDL_WINDOWPOS_CENTERED, SCREEN_WIDTH, SCREEN_HEIGHT, SDL_WINDOW_SHOWN);
 	p->windata.ren = SDL_CreateRenderer(p->windata.win, -1, SDL_RENDERER_ACCELERATED);
 	p->img = (Uint32 *)malloc(sizeof(Uint32) * SCREEN_WIDTH * SCREEN_HEIGHT);
+	ft_memset(p->img, 55, sizeof(Uint32) * SCREEN_WIDTH * SCREEN_HEIGHT);
+	p->clprm = initOpenCl();
 }
 
 int		catch_errors(t_param *p, char **arg, int ac)
@@ -198,14 +149,15 @@ int		catch_errors(t_param *p, char **arg, int ac)
 	return (1);
 }
 
+
+
 int main(int ac, char **arg)
 {
 	t_param p;
 	SDL_Init(SDL_INIT_EVERYTHING);
-	init_param(&p);
+	initParam(&p);
 	if (!catch_errors(&p, arg, ac))
 		return (1);
-	// output_obj(p.world.objs[0], 1)
 	world_to_camera(&p);
 	rotate_camera(&p);
 	rtCycle(&p);

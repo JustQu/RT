@@ -6,12 +6,11 @@
 /*   By: dwalda-r <dwalda-r@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2020/01/13 11:08:20 by dwalda-r          #+#    #+#             */
-/*   Updated: 2020/01/13 13:12:03 by dwalda-r         ###   ########.fr       */
+/*   Updated: 2020/01/15 17:34:15 by dwalda-r         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "../libft/includes/libft.h"
-#include <fcntl.h>
+#include "rt.h"
 
 size_t read_kernel(char *file_name, char **str)
 {

@@ -6,7 +6,7 @@
 /*   By: dwalda-r <dwalda-r@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2020/01/14 10:56:36 by dwalda-r          #+#    #+#             */
-/*   Updated: 2020/01/15 16:12:24 by dwalda-r         ###   ########.fr       */
+/*   Updated: 2020/01/15 18:02:02 by dwalda-r         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -24,6 +24,8 @@
 # define SCREEN_WIDTH 1920
 # define SCREEN_HEIGHT 1080
 
+# define LOCAL_SIZE 64
+# define GLOBAL_SIZE SCREEN_HEIGHT * SCREEN_WIDTH
 
 typedef struct	s_windata
 {
@@ -137,6 +139,17 @@ typedef struct	s_camera
 	float		angle;
 }				t_camera;
 
+typedef struct	s_clp
+{
+	cl_platform_id		pl_id;
+	cl_device_id		de_id;
+	cl_uint				ret_num_devices;
+	cl_uint				ret_num_platforms;
+	cl_int				ret;
+	cl_context			context;
+	cl_command_queue	queue;
+}				t_clp;
+
 typedef struct	s_param
 {
 	t_world		world;
@@ -144,6 +157,7 @@ typedef struct	s_param
 	t_obj		*cntrld_obj;
 	t_windata	windata;
 	Uint32		*img;
+	t_clp		*clprm;
 	int			fd;
 }				t_param;
 
@@ -205,5 +219,7 @@ void			out_camera(t_camera cam, int fd);
 void			output_obj(t_obj obj, int fd);
 void			output_light(t_light_source l, int fd);
 void			output_data(t_param *p);
+
+size_t read_kernel(char *file_name, char **str);
 
 #endif
