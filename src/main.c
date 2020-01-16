@@ -6,7 +6,7 @@
 /*   By: dwalda-r <dwalda-r@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2020/01/14 11:27:45 by dwalda-r          #+#    #+#             */
-/*   Updated: 2020/01/15 19:11:04 by dwalda-r         ###   ########.fr       */
+/*   Updated: 2020/01/16 12:16:37 by dwalda-r         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -42,36 +42,23 @@ SDL_Texture	*LoadImage(const char* filename, t_windata* windata)
 
 void gpurender(t_param *p)
 {
-	char		*source;
-	size_t		len;
-	cl_program	pr;
-	cl_kernel	kernel;
-	cl_mem		img;
+	
+}
 
-	len = read_kernel("uvmap.cl", &source);
-	img = clCreateBuffer(p->clprm->context, CL_MEM_WRITE_ONLY,
-	SCREEN_WIDTH * SCREEN_HEIGHT * sizeof(cl_float3), NULL, &(p->clprm->ret));
-	pr = clCreateProgramWithSource(p->clprm->context, 1,
-	(const char **)&source, (const size_t *)&len, &(p->clprm->ret));
-	p->clprm->ret = clBuildProgram(pr, 1, &(p->clprm->de_id), NULL, NULL, NULL);
-	kernel = clCreateKernel(pr, "uvmap", &(p->clprm->ret));
-	p->clprm->ret = clSetKernelArg(kernel, 0, sizeof(cl_mem), (void *)&img);
+void gradient(t_clp *clp, Uint32 *img)
+{
+	int i = 0;
+	char *source_str;
+	size_t source_size = read_kernel("render_kernel.cl", &source_str);
+	cl_mem c_mem_obj = clCreateBuffer(clp->context, CL_MEM_WRITE_ONLY, GLOBAL_SIZE * sizeof(int), NULL, &clp->ret);
+	cl_program program = clCreateProgramWithSource(clp->context, 1, (const char **)&source_str, (const size_t *)&source_size, &clp->ret);
+	clp->ret = clBuildProgram(program, 1, &clp->de_id, "-I./includes", NULL, NULL);
+	cl_kernel kernel = clCreateKernel(program, "render", &clp->ret);
+	clp->ret = clSetKernelArg(kernel, 0, sizeof(cl_mem), (void *)&c_mem_obj);
 	size_t global_item_size = GLOBAL_SIZE;
-	size_t local_item_size = LOCAL_SIZE;
-	p->clprm->ret = clEnqueueNDRangeKernel(p->clprm->queue, kernel, 1, NULL,
-	&global_item_size, &local_item_size, 0, NULL, NULL);
-	cl_float3 *popka = (cl_float3 *)malloc(sizeof(cl_float3) * SCREEN_WIDTH * SCREEN_HEIGHT);
-	p->clprm->ret = clEnqueueReadBuffer(p->clprm->queue, img, CL_TRUE, 0,
-	SCREEN_WIDTH * SCREEN_HEIGHT * sizeof(cl_float3), popka, 0, NULL, NULL);
-	for (int j = 0; j < SCREEN_HEIGHT; j++)
-	{
-		for (int i = 0; i < SCREEN_WIDTH; i++)
-		{
-			int color = (int)(popka[j * SCREEN_WIDTH + i]).s[0] << 16 | (int)(popka[j * SCREEN_WIDTH + i]).s[1] << 8 | (int)(popka[j * SCREEN_WIDTH + i]).s[2];
-			printf("%f, %f, %f\n", popka[j * SCREEN_WIDTH + i].s[0], popka[j * SCREEN_WIDTH + i].s[1], popka[j * SCREEN_WIDTH + i].s[2]);
-			p->img[j * SCREEN_WIDTH + i] = color;
-		}
-	}
+	size_t local_item_size = 64;
+	clp->ret = clEnqueueNDRangeKernel(clp->queue, kernel, 1, NULL, &global_item_size, &local_item_size, 0, NULL, NULL);
+	clp->ret = clEnqueueReadBuffer(clp->queue, c_mem_obj, CL_TRUE, 0, GLOBAL_SIZE * sizeof(int), img, 0, NULL, NULL);
 }
 
 void rtCycle(t_param *p)
@@ -84,7 +71,8 @@ void rtCycle(t_param *p)
 	SDL_TEXTUREACCESS_STREAMING, SCREEN_WIDTH, SCREEN_HEIGHT);
 	quit = FALSE;
 	// render(p);
-	gpurender(p);
+	// gpurender(p);
+	gradient(p->clprm, p->img);
 	SDL_UpdateTexture(tex, NULL, p->img, sizeof(Uint32) * SCREEN_WIDTH);
 	SDL_RenderClear(p->windata.ren);
 	SDL_RenderCopy(p->windata.ren, tex, NULL, NULL);

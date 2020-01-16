@@ -6,7 +6,7 @@
 /*   By: dwalda-r <dwalda-r@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2020/01/14 10:56:36 by dwalda-r          #+#    #+#             */
-/*   Updated: 2020/01/15 18:02:02 by dwalda-r         ###   ########.fr       */
+/*   Updated: 2020/01/16 12:16:16 by dwalda-r         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -20,12 +20,7 @@
 # include "rtmath.h"
 # include <fcntl.h>
 #include <OpenCL/opencl.h>
-
-# define SCREEN_WIDTH 1920
-# define SCREEN_HEIGHT 1080
-
-# define LOCAL_SIZE 64
-# define GLOBAL_SIZE SCREEN_HEIGHT * SCREEN_WIDTH
+# include "defines.h"
 
 typedef struct	s_windata
 {

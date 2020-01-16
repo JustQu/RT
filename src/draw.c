@@ -6,7 +6,7 @@
 /*   By: dwalda-r <dwalda-r@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2019/08/22 16:44:14 by dwalda-r          #+#    #+#             */
-/*   Updated: 2020/01/15 18:02:30 by dwalda-r         ###   ########.fr       */
+/*   Updated: 2020/01/16 11:34:07 by dwalda-r         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -89,7 +89,6 @@ void			render(t_param *p)
 		iters[ox] = -1;
 		while (++iters[ox] < SCREEN_WIDTH)
 		{
-			// printf("%f, %f\n", iters[ox], iters[oy]);
 			vec4_copy((t_vec4){1, 1, 1, 1}, ray.vec);
 			ray.vec[oy] = (1 - 2 * ((iters[oy] + 0.5) * p->camera.inv_h))
 			* p->camera.angle;
@@ -97,8 +96,6 @@ void			render(t_param *p)
 			* p->camera.angle * p->camera.ratio;
 			normalize(ray.vec);
 			color = trace_ray(p, &ray);
-			// printf("%d\n", color.color);
-			// printf("%f, %f, %f\n", ray.vec[0], ray.vec[1], ray.vec[2]);
 			put_pixel(p->img, iters[ox], iters[oy], color.color);
 		}
 	}
