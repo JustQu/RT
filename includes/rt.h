@@ -6,7 +6,7 @@
 /*   By: dwalda-r <dwalda-r@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2020/01/14 10:56:36 by dwalda-r          #+#    #+#             */
-/*   Updated: 2020/01/16 12:16:16 by dwalda-r         ###   ########.fr       */
+/*   Updated: 2020/01/17 16:26:04 by dwalda-r         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -155,6 +155,79 @@ typedef struct	s_param
 	t_clp		*clprm;
 	int			fd;
 }				t_param;
+// ui
+
+typedef struct	s_rectangle
+{
+	int	x;
+	int	y;
+	int	w;
+	int	h;
+}				t_rectangle;
+
+// типы данных для передачи в видео память
+
+typedef struct	s_spheret
+{
+	cl_float	radius;
+	cl_float	radius2;
+}				t_spheret;
+
+typedef struct	s_planet
+{
+	cl_float4	nv;
+}				t_planet;
+
+typedef struct	s_conet
+{
+	cl_float4	dir;
+	cl_float	angle;
+	cl_float	k;
+	cl_float	k2;
+}				t_conet;
+
+typedef struct	s_cylindert
+{
+	cl_float4	dir;
+	cl_float	radius;
+}				t_cylindert;
+
+typedef struct	s_materialt
+{
+	cl_int3		diff_color;
+	cl_float	kd;
+	cl_float	ks;
+	cl_float	n;
+}				t_materialt;
+
+typedef struct	s_objt
+{
+	t_obj_type	type;
+	cl_float4	c_s;
+	cl_float4	origin;
+	cl_float4	hit_point;
+	cl_float4	surf_normal;
+	t_materialt	mat;
+	cl_float	t;
+	void		*data;
+}				t_objt ;
+
+typedef struct	s_light_sourcet
+{
+	cl_float4		origin;
+	cl_float		intensity;
+	cl_float4		c_s;
+}				t_light_sourcet;
+
+typedef	struct	s_worldt
+{
+	t_objt			*objs;
+	cl_int			nobjs;
+	t_light_sourcet	*lights;
+	cl_int			nlights;
+}				t_worldt;
+
+
 
 void			render(t_param *p);
 t_color			trace_ray(t_param *p, t_ray *ray);
