@@ -17,12 +17,6 @@ typedef struct	s_ray
 	float4	dir;
 }				t_ray;
 
-typedef struct	s_sphere
-{
-	float	radius;
-	float	radius2;
-}				t_sphere;
-
 typedef struct	s_material
 {
 	int3	color;
@@ -30,25 +24,6 @@ typedef struct	s_material
 	float	ks;
 	float	n;
 }				t_material;
-
-typedef struct	s_plane
-{
-	float4		nv;
-}				t_plane;
-
-typedef struct	s_cone
-{
-	float4		dir;
-	float		angle;
-	float		k;
-	float		k2;
-}				t_cone;
-
-typedef struct	s_cylinder
-{
-	float4		dir;
-	float		radius;
-}				t_cylinder;
 
 typedef struct	s_obj
 {
@@ -59,7 +34,11 @@ typedef struct	s_obj
 	float4		surf_normal;
 	t_material	mat;
 	float		t;
-	void		*data;
+	float4		dir;
+	float		r;
+	float		r2;
+	float		angle;
+	
 }				t_obj;
 
 typedef	struct	s_light_source
@@ -94,23 +73,22 @@ t_ray	createCamRay(const float x, const float y)
 	return ray;
 }
 
-bool	sphere_intersection(t_ray *ray, float *t, t_obj *obj)
+bool	sphere_intersection(t_ray *ray, t_obj *sp)
 {
-	t_sphere *sp = obj->data;
-	float4 rayToCenter = obj->origin - ray->origin;
+	float4 rayToCenter = sp->origin - ray->origin;
 
 	float b = dot(rayToCenter, ray->dir);
-	float c = dot(rayToCenter, rayToCenter) - sp->radius2;
+	float c = dot(rayToCenter, rayToCenter) - sp->r2;
 	float disc = b * b - c; 
 
 	if (disc < 0.0f)
 		return false;
 	else
-		*t = b - sqrt(disc);
-	if (*t < 0.0f)
+		sp->t = b - sqrt(disc);
+	if (sp->t < 0.0f)
 	{
-		*t = b + sqrt(disc);
-		if (*t < 0.0f)
+		sp->t = b + sqrt(disc);
+		if (sp->t < 0.0f)
 			return false; 
 	}
 	else return true;
@@ -122,24 +100,26 @@ float	noise(float x, float y, float z)
 	return fract(sin(x*112.9898f + y*179.233f + z*237.212f) * 43758.5453f, &num);
 }
 
-__kernel void render(__global int *C) {
+__kernel void render(__global int *C, __global t_obj *jojo, const int nobjs) {
 	int i = get_global_id(0);
 	int x = i % SCREEN_WIDTH;
 	int y = i / SCREEN_WIDTH;
-	// t_ray ray;
-	// t_sphere *sp = (t_sphere *)(w[0].data);
-	// sp.radius = 0.3f;
-	// float t = 1e20;
-	float3 color = float3(0.0f, 0.0f, 0.0f);
-	// ray = createCamRay(x, y);
-	// sphere_intersection(&sp, &ray, &t);
-	// if (t <= 1e19)
-	// 	color = sp.color;
-	// else
-	// {
+	t_ray ray;
+	t_obj sp = jojo[0];
+	sp.t = 1e20;
+	int3 color = int3(0.0f, 0.0f, 0.0f);
+	ray = createCamRay(x, y);
+	sphere_intersection(&ray, &sp);
+	if (sp.t <= 1e19)
+		color = sp.mat.color;
+	else
+	{
 		int fx = (float)(x) / (float)SCREEN_WIDTH * 255;
 		int fy = (float)(y) / (float)SCREEN_HEIGHT * 255;
-		color = (float3)((int)(fx) , (int)(fy) , (int)(200));
-	// }
+		color = (int3)(fx, fy, 200);
+	}
 	C[i] = (int)color.x << 16 | (int)color.y << 8 | (int)color.z;
+	// if (i == 0)
+		// printf("%f, %d\n", jojo[0].r, nobjs);
+	// C[i] = jojo[0].r;
 }

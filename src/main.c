@@ -6,7 +6,7 @@
 /*   By: dwalda-r <dwalda-r@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2020/01/14 11:27:45 by dwalda-r          #+#    #+#             */
-/*   Updated: 2020/01/23 13:37:21 by dwalda-r         ###   ########.fr       */
+/*   Updated: 2020/01/23 14:51:14 by dwalda-r         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -40,11 +40,6 @@ SDL_Texture	*LoadImage(const char* filename, t_windata* windata)
 	return tex;
 }
 
-void gpurender(t_param *p)
-{
-	
-}
-
 cl_float4	copyVec4(t_vec4 src)
 {
 	cl_float4	res;
@@ -69,45 +64,41 @@ t_materialt	newMaterialt(t_material mat)
 	return nmat;
 }
 
-t_spheret	*newSpt(t_sphere *oldsp)
+t_objt	newSpt(t_sphere *oldsp)
 {
-	t_spheret *sp;
+	t_objt	sp;
 
-	sp = (t_spheret *)malloc(sizeof(t_spheret));
-	sp->radius = oldsp->radius;
-	sp->radius2 = oldsp->radius2;
+	sp.r = oldsp->radius;
+	sp.r2 = oldsp->radius2;
 	return sp;
 }
 
-t_planet	*newPlanet(t_plane *old)
+t_objt	newPlanet(t_plane *old)
 {
-	t_planet	*pl;
+	t_objt	pl;
 
-	pl = (t_planet *)malloc(sizeof(t_planet));
-	pl->nv = copyVec4(old->nv);
+	pl.dir = copyVec4(old->nv);
 	return pl;
 }
 
-t_conet		*newConet(t_cone *old)
+t_objt	newConet(t_cone *old)
 {
-	t_conet	*cn;
+	t_objt	cn;
 
-	cn = (t_conet *)malloc(sizeof(t_conet));
-	cn->dir = copyVec4(old->dir);
-	cn->angle = old->angle;
-	cn->k = old->k;
-	cn->k2 = old->k2;
+	cn.dir = copyVec4(old->dir);
+	cn.angle = old->angle;
+	cn.r = old->k;
+	cn.r2 = old->k2;
 
 	return cn;
 }
 
-t_cylindert	*newCylindert(t_cylinder *old)
+t_objt	newCylindert(t_cylinder *old)
 {
-	t_cylindert	*cl;
+	t_objt	cl;
 
-	cl = (t_cylindert *)malloc(sizeof(t_cylindert));
-	cl->dir = copyVec4(old->dir);
-	cl->radius = old->radius;
+	cl.dir = copyVec4(old->dir);
+	cl.r = old->radius;
 
 	return cl;
 }
@@ -120,13 +111,13 @@ t_objt	newObjt(t_obj src)
 	newobj.origin = copyVec4(src.origin);
 	newobj.mat = newMaterialt(src.mat);
 	if (newobj.type == sphere)
-		newobj.data = newSpt(src.data);
+		newobj = newSpt(src.data);
 	else if (newobj.type == plane)
-		newobj.data = newPlanet(src.data);
+		newobj = newPlanet(src.data);
 	else if (newobj.type == cone)
-		newobj.data = newConet(src.data);
+		newobj = newConet(src.data);
 	else if (newobj.type == cylinder)
-		newobj.data = newCylindert(src.data);
+		newobj = newCylindert(src.data);
 	return newobj;
 }
 
@@ -183,12 +174,14 @@ t_worldt	*convertData(t_param *p)
 
 void gradient(t_clp *clp, Uint32 *img, t_param *p)
 {
+	t_worldt	*newWorld;
 
-	int i = 0;
+	newWorld = convertData(p);
 	char *source_str;
 
 	size_t source_size = read_kernel("render_kernel.cl", &source_str);
 	cl_mem c_mem_obj = clCreateBuffer(clp->context, CL_MEM_WRITE_ONLY, GLOBAL_SIZE * sizeof(int), NULL, &clp->ret);
+	cl_mem w_mem_obj = clCreateBuffer(clp->context, CL_MEM_USE_HOST_PTR, sizeof(t_objt) * newWorld->nobjs, newWorld->objs, &clp->ret);
 	cl_program program = clCreateProgramWithSource(clp->context, 1, (const char **)&source_str, (const size_t *)&source_size, &clp->ret);
 	clp->ret = clBuildProgram(program, 1, &clp->de_id, "-I./includes", NULL, NULL);
 	size_t len = 0;
@@ -199,7 +192,8 @@ void gradient(t_clp *clp, Uint32 *img, t_param *p)
 	printf("%s\n",buffer);
 	cl_kernel kernel = clCreateKernel(program, "render", &clp->ret);
 	clp->ret = clSetKernelArg(kernel, 0, sizeof(cl_mem), (void *)&c_mem_obj);
-
+	clp->ret = clSetKernelArg(kernel, 1, sizeof(cl_mem), (void *)&w_mem_obj);
+	clp->ret = clSetKernelArg(kernel, 2, sizeof(int), (void *)&(newWorld->nobjs));
 	size_t global_item_size = GLOBAL_SIZE;
 	size_t local_item_size = 64;
 	clp->ret = clEnqueueNDRangeKernel(clp->queue, kernel, 1, NULL, &global_item_size, &local_item_size, 0, NULL, NULL);
@@ -271,11 +265,9 @@ void rtCycle(t_param *p)
 	tex = SDL_CreateTexture(p->windata.ren, SDL_PIXELFORMAT_ARGB8888,
 	SDL_TEXTUREACCESS_STREAMING, SCREEN_WIDTH, SCREEN_HEIGHT);
 	quit = FALSE;
-	drawRectangle(p->img, (t_color)255, newRectangle(0, 0, SCREEN_WIDTH, 50));
-	drawRectangle(p->img, (t_color)0, newRectangle(10, 15, BUTW, BUTH));
+	// drawRectangle(p->img, (t_color)255, newRectangle(0, 0, SCREEN_WIDTH, 50));
+	// drawRectangle(p->img, (t_color)0, newRectangle(10, 15, BUTW, BUTH));
 
-	// render(p);
-	// gpurender(p);
 	gradient(p->clprm, p->img, p);
 	SDL_UpdateTexture(tex, NULL, p->img, sizeof(Uint32) * SCREEN_WIDTH);
 	SDL_RenderClear(p->windata.ren);
@@ -340,8 +332,6 @@ int		catch_errors(t_param *p, char **arg, int ac)
 	}
 	return (1);
 }
-
-
 
 int main(int ac, char **arg)
 {

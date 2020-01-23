@@ -6,7 +6,7 @@
 /*   By: dwalda-r <dwalda-r@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2020/01/14 10:56:36 by dwalda-r          #+#    #+#             */
-/*   Updated: 2020/01/23 13:25:09 by dwalda-r         ###   ########.fr       */
+/*   Updated: 2020/01/23 13:55:51 by dwalda-r         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -212,7 +212,10 @@ typedef struct	s_objt
 	cl_float4	surf_normal;
 	t_materialt	mat;
 	cl_float	t;
-	void		*data;
+	cl_float4	dir;
+	cl_float	r;
+	cl_float	r2;
+	cl_float	angle;
 }				t_objt ;
 
 typedef struct	s_light_sourcet
