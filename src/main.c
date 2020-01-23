@@ -6,7 +6,7 @@
 /*   By: dwalda-r <dwalda-r@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2020/01/14 11:27:45 by dwalda-r          #+#    #+#             */
-/*   Updated: 2020/01/17 16:46:09 by dwalda-r         ###   ########.fr       */
+/*   Updated: 2020/01/23 12:24:07 by dwalda-r         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -242,6 +242,36 @@ void	drawRectangle(Uint32 *img, t_color color, t_rectangle rect)
 	}
 }
 
+float	distance(int x, int y, int x1 , int y1)
+{
+	return sqrt(pow(x1 - x, 2) + pow(y1 - y, 2));
+}
+
+void	drawRectangleRounded(Uint32 *img, t_color color,
+		t_rectangle rect, float round)
+{
+	int	i;
+	int	j;
+	int	cmp1;
+	int	cmp2;
+
+	cmp1 = rect.h + rect.y;
+	cmp2 = rect.w + rect.x;
+	i = rect.y;
+	round = (sqrtf(rect.w * rect.w + rect.h * rect.h) / 2) * ((100 - round) * 0.01);
+	while (i < SCREEN_HEIGHT && i < cmp1)
+	{
+		j = rect.x;
+		while (j < SCREEN_WIDTH && j < cmp2)
+		{
+			if (distance(rect.w / 2 + rect.x, rect.h / 2 + rect.y, j, i) < round)
+				img[i * SCREEN_WIDTH + j] = color.color;
+			j++;
+		}
+		i++;
+	}
+}
+
 void rtCycle(t_param *p)
 {
 	SDL_Event	e;
@@ -252,6 +282,8 @@ void rtCycle(t_param *p)
 	SDL_TEXTUREACCESS_STREAMING, SCREEN_WIDTH, SCREEN_HEIGHT);
 	quit = FALSE;
 	drawRectangle(p->img, (t_color)255, newRectangle(0, 0, SCREEN_WIDTH, 50));
+	drawRectangle(p->img, (t_color)0, newRectangle(10, 15, BUTW, BUTH));
+
 	// render(p);
 	// gpurender(p);
 	// gradient(p->clprm, p->img, p);

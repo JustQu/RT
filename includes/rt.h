@@ -6,7 +6,7 @@
 /*   By: dwalda-r <dwalda-r@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2020/01/14 10:56:36 by dwalda-r          #+#    #+#             */
-/*   Updated: 2020/01/17 16:26:04 by dwalda-r         ###   ########.fr       */
+/*   Updated: 2020/01/17 18:24:53 by dwalda-r         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -21,6 +21,9 @@
 # include <fcntl.h>
 #include <OpenCL/opencl.h>
 # include "defines.h"
+
+# define BUTH SCREEN_HEIGHT / 30
+# define BUTW SCREEN_WIDTH / 20
 
 typedef struct	s_windata
 {
