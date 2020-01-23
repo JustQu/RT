@@ -6,7 +6,7 @@
 /*   By: dwalda-r <dwalda-r@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2020/01/14 11:27:45 by dwalda-r          #+#    #+#             */
-/*   Updated: 2020/01/23 12:24:07 by dwalda-r         ###   ########.fr       */
+/*   Updated: 2020/01/23 13:37:21 by dwalda-r         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -183,20 +183,12 @@ t_worldt	*convertData(t_param *p)
 
 void gradient(t_clp *clp, Uint32 *img, t_param *p)
 {
-	t_worldt	*newWorld;
 
-	newWorld = convertData(p);
 	int i = 0;
-	printf("%lu, %lu, %lu\n", sizeof(t_worldt), sizeof(int), sizeof(t_light_sourcet *));
 	char *source_str;
-
-	const t_worldt jojo = *(convertData(p));
-
 
 	size_t source_size = read_kernel("render_kernel.cl", &source_str);
 	cl_mem c_mem_obj = clCreateBuffer(clp->context, CL_MEM_WRITE_ONLY, GLOBAL_SIZE * sizeof(int), NULL, &clp->ret);
-	cl_mem w_mem_obj = clCreateBuffer(clp->context, CL_MEM_USE_HOST_PTR, sizeof(t_worldt), newWorld, &clp->ret);
-	// clEnqueueWriteBuffer(clp->queue, w_mem_obj, CL_TRUE, 0, sizeof(t_worldt), newWorld, 0, NULL, NULL);
 	cl_program program = clCreateProgramWithSource(clp->context, 1, (const char **)&source_str, (const size_t *)&source_size, &clp->ret);
 	clp->ret = clBuildProgram(program, 1, &clp->de_id, "-I./includes", NULL, NULL);
 	size_t len = 0;
@@ -207,8 +199,6 @@ void gradient(t_clp *clp, Uint32 *img, t_param *p)
 	printf("%s\n",buffer);
 	cl_kernel kernel = clCreateKernel(program, "render", &clp->ret);
 	clp->ret = clSetKernelArg(kernel, 0, sizeof(cl_mem), (void *)&c_mem_obj);
-	clp->ret = clSetKernelArg(kernel, 1, sizeof(cl_mem), (void *)&w_mem_obj);
-	clp->ret = clSetKernelArg(kernel, 2, sizeof(t_worldt), (void *)&jojo);
 
 	size_t global_item_size = GLOBAL_SIZE;
 	size_t local_item_size = 64;
@@ -286,7 +276,7 @@ void rtCycle(t_param *p)
 
 	// render(p);
 	// gpurender(p);
-	// gradient(p->clprm, p->img, p);
+	gradient(p->clprm, p->img, p);
 	SDL_UpdateTexture(tex, NULL, p->img, sizeof(Uint32) * SCREEN_WIDTH);
 	SDL_RenderClear(p->windata.ren);
 	SDL_RenderCopy(p->windata.ren, tex, NULL, NULL);
