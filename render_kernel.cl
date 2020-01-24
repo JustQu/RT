@@ -19,7 +19,7 @@ typedef struct	s_ray
 
 typedef struct	s_material
 {
-	int3	color;
+	int4	color;
 	float	kd;
 	float	ks;
 	float	n;
@@ -30,16 +30,26 @@ typedef struct	s_obj
 	t_obj_type	type;
 	float4		c_s;
 	float4		origin;
-	float4		hit_point;
-	float4		surf_normal;
 	t_material	mat;
-	float		t;
 	float4		dir;
 	float		r;
 	float		r2;
 	float		angle;
 	
 }				t_obj;
+
+typedef struct	s_camera
+{
+	float4		origin;
+	float4		orient;
+	int			fov;
+	float		near_z;
+	float		far_z;
+	float		inv_w;
+	float		inv_h;
+	float		ratio;
+	float		angle;
+}				t_camera;
 
 typedef	struct	s_light_source
 {
@@ -56,24 +66,41 @@ typedef struct		s_world
 	int				nlights;
 }					t_world;
 
-t_ray	createCamRay(const float x, const float y)
+typedef struct	s_hit_info
+{
+	float4		hit_point;
+	float4		surf_normal;
+	float		t;
+}				t_hit_info;
+
+float	noise(float x, float y, float z)
+{
+	float num = 0.0f;
+	return fract(sin(x * 112.9898f + y * 179.233f + z * 237.212f) * 43758.5453f, &num);
+}
+
+t_ray	create_cam_ray(const float x, const float y, t_camera cam)
 {
 	t_ray	ray;
+	float3	tmp;
 
-	float	fx = (float)x / (float)SCREEN_WIDTH;
-	float	fy = (float)y / (float)SCREEN_HEIGHT;
-	float	ratio = (float)SCREEN_WIDTH / (float)SCREEN_HEIGHT;
-	float	fx2 = (fx - 0.5) * ratio;
-	float	fy2 = fy - 0.5;
-	float4	pix_pos = (float4)(fx2, -fy2, 0, 0);
-
-	ray.origin = (float4)(0, 0, 40, 0);
-	ray.dir = normalize(pix_pos - ray.origin);
-
+	ray.dir = 1.0f;
+	ray.dir.y = (1 - 2 * ((y + 0.5) * cam.inv_h)) * cam.angle;
+	ray.dir.x = (2 * ((x + 0.5) * cam.inv_w) - 1) * cam.angle * cam.ratio;
+	tmp = normalize((float3)(ray.dir.x, ray.dir.y, ray.dir.z));
+	ray.dir.x = tmp.x;
+	ray.dir.y = tmp.y;
+	ray.dir.z = tmp.z;
 	return ray;
 }
 
-bool	sphere_intersection(t_ray *ray, t_obj *sp)
+void	get_hit_point(__global t_obj *obj, t_ray *ray, t_hit_info *info)
+{
+	info->hit_point = ray->dir * info->t;
+	info->hit_point = ray->origin + info->hit_point;
+}
+
+bool	sphere_intersection(__global t_obj *sp, t_ray *ray, float *t)
 {
 	float4 rayToCenter = sp->origin - ray->origin;
 
@@ -84,42 +111,305 @@ bool	sphere_intersection(t_ray *ray, t_obj *sp)
 	if (disc < 0.0f)
 		return false;
 	else
-		sp->t = b - sqrt(disc);
-	if (sp->t < 0.0f)
+		*t = b - sqrt(disc);
+	if (*t < 0.0f)
 	{
-		sp->t = b + sqrt(disc);
-		if (sp->t < 0.0f)
+		*t = b + sqrt(disc);
+		if (*t < 0.0f)
 			return false; 
 	}
 	else return true;
 }
 
-float	noise(float x, float y, float z)
+bool	plane_intersection(__global t_obj *pl, t_ray *ray, float *t)
 {
-	float num = 0.0f;
-	return fract(sin(x*112.9898f + y*179.233f + z*237.212f) * 43758.5453f, &num);
+	float4	tmp;
+	float2	coefs;
+	float	denom;
+
+	tmp = pl->c_s - ray->origin;
+	denom = dot(pl->dir, ray->dir);
+	coefs.x = -dot(pl->dir, tmp);
+	coefs.y = dot(pl->dir, ray->dir);
+	if (denom > 1e-6f)
+	{
+		tmp = pl->c_s - ray->origin;
+		*t = dot(tmp, pl->dir) / denom;
+		return (*t >= 0.0f);
+		if ((*t = coefs.x / coefs.y) >= 0.0f)
+			return (true);
+		if (coefs.y < 0.0f)
+		{
+			*t = -*t;
+			return (true);
+		}
+		return (false);
+	}
+	return (false);
 }
 
-__kernel void render(__global int *C, __global t_obj *jojo, const int nobjs) {
-	int i = get_global_id(0);
-	int x = i % SCREEN_WIDTH;
-	int y = i / SCREEN_WIDTH;
-	t_ray ray;
-	t_obj sp = jojo[0];
-	sp.t = 1e20;
-	int3 color = int3(0.0f, 0.0f, 0.0f);
-	ray = createCamRay(x, y);
-	sphere_intersection(&ray, &sp);
-	if (sp.t <= 1e19)
-		color = sp.mat.color;
-	else
+bool	cone_intersection(__global t_obj *cn, t_ray *ray, float *t)
+{
+	float4	tmp;
+	float4	coefs;
+
+	tmp = ray->origin - cn->c_s;
+	coefs.x = dot(ray->dir, ray->dir) - cn->r2 * pow(dot(ray->dir, cn->dir), 2);
+	coefs.y = dot(ray->dir, tmp) - cn->r2 * dot(ray->dir, cn->dir) * dot(tmp, cn->dir);
+	coefs.y *= 2.0f;
+	coefs.z = dot(tmp, tmp) - cn->r2 * (pow(dot(tmp, cn->dir), 2));
+	coefs.w = pow(coefs.y, 2) - 4.0f * coefs.x * coefs.z;
+	if (coefs.w >= 0.0f)
 	{
-		int fx = (float)(x) / (float)SCREEN_WIDTH * 255;
-		int fy = (float)(y) / (float)SCREEN_HEIGHT * 255;
-		color = (int3)(fx, fy, 200);
+		*t = (-coefs.y - sqrt(coefs.w)) * 0.5f / coefs.x;
+		if (*t <= 0.0f)
+			*t = (-coefs.y - sqrt(coefs.w)) * 0.5f / coefs.x;
+		return (*t >= 0.0f);
 	}
-	C[i] = (int)color.x << 16 | (int)color.y << 8 | (int)color.z;
-	// if (i == 0)
-		// printf("%f, %d\n", jojo[0].r, nobjs);
-	// C[i] = jojo[0].r;
+	return (false);
+}
+
+bool	cylinder_intersection(__global t_obj *cl, t_ray *ray, float *t)
+{
+	float4		tmp;
+	float4		coefs;
+
+	tmp = ray->origin - cl->c_s;
+	coefs.x = dot(ray->dir, ray->dir) - pow(dot(ray->dir, cl->dir), 2);
+	coefs.y = dot(ray->dir, tmp) - dot(ray->dir, cl->dir) * dot(tmp, cl->dir);
+	coefs.y *= 2.0f;
+	coefs.z = dot(tmp, tmp) - pow(dot(tmp, cl->dir), 2) - cl->r2;
+	coefs.w = pow(coefs.y, 2) - 4.0f * coefs.x * coefs.z;
+	if (coefs.w >= 0.0f)
+	{
+		coefs.x *= 2.0f;
+		coefs.w = sqrt(coefs.w);
+		*t = (-coefs.y - coefs.w) / coefs.x;
+		if (*t >= 0.0f)
+			return (true);
+	}
+	return (false);
+}
+
+bool		is_intersect(__global t_obj *obj, t_ray *ray, float *t)
+{
+	bool	is_hit;
+
+	is_hit = false;
+	if (obj->type == sphere)
+		is_hit = sphere_intersection(obj, ray, t);
+	else if (obj->type == plane)
+		is_hit = plane_intersection(obj, ray, t);
+	else if (obj->type == cone)
+		is_hit = cone_intersection(obj, ray, t);
+	else if (obj->type == cylinder)
+		is_hit = cylinder_intersection(obj, ray, t);
+	return (is_hit);
+}
+
+void		get_sphere_normal(__global t_obj *obj, t_hit_info *info)
+{
+	float3 tmp;
+
+	info->surf_normal = info->hit_point - obj->c_s;
+	tmp = (float3)(info->surf_normal.x, info->surf_normal.y, info->surf_normal.z);
+	tmp = normalize(tmp);
+	info->surf_normal.x = tmp.x;
+	info->surf_normal.y = tmp.y;
+	info->surf_normal.z = tmp.z;
+}
+
+void		get_plane_normal(__global t_obj *obj, t_hit_info *info)
+{
+	info->surf_normal = -obj->dir;
+}
+
+void		get_cone_normal(__global t_obj *obj, t_hit_info *info)
+{
+	float	m;
+	float3 tmp;
+
+	info->surf_normal = info->hit_point - obj->c_s;
+	m = dot(info->surf_normal, obj->dir);
+	info->surf_normal = obj->dir * m * obj->r2;
+	info->surf_normal = info->hit_point - info->surf_normal;
+	info->surf_normal = info->surf_normal - obj->c_s;
+	tmp = (float3)(info->surf_normal.x, info->surf_normal.y, info->surf_normal.z);
+	tmp = normalize(tmp);
+	info->surf_normal.x = tmp.x;
+	info->surf_normal.y = tmp.y;
+	info->surf_normal.z = tmp.z;
+}
+
+void		get_cylinder_normal(__global t_obj *obj, t_hit_info *info)
+{
+	float	m;
+	float3 tmp;
+
+	info->surf_normal = info->hit_point - obj->c_s;
+	m = dot(info->surf_normal, obj->dir);
+	info->surf_normal = obj->dir * m;
+	info->surf_normal = info->hit_point - info->surf_normal;
+	info->surf_normal = info->surf_normal - obj->c_s;
+	tmp = (float3)(info->surf_normal.x, info->surf_normal.y, info->surf_normal.z);
+	tmp = normalize(tmp);
+	info->surf_normal.x = tmp.x;
+	info->surf_normal.y = tmp.y;
+	info->surf_normal.z = tmp.z;
+}
+
+void		get_surface_normal(__global t_obj *obj, t_hit_info *info)
+{
+	if (obj->type == sphere)
+		get_sphere_normal(obj, info);
+	else if (obj->type == plane)
+		get_plane_normal(obj, info);
+	else if (obj->type == cone)
+		get_cone_normal(obj, info);
+	else if (obj->type == cylinder)
+		get_cylinder_normal(obj, info);
+}
+
+__global t_obj	*get_intersection(__global t_obj *objs, int nobjs, t_ray *ray, t_hit_info *info)
+{
+	int		i = -1;
+	int		hit_id = -1;
+	float	hit_distance = MAXFLOAT;
+	info->t = 0.0f;
+	
+	while (++i < nobjs)
+	{
+		if (is_intersect(objs + i, ray, &info->t) && info->t < hit_distance)
+		{
+			if (hit_id != -1)
+				info->t = INFINITY;
+			hit_distance = info->t;
+			hit_id = i;
+		}
+
+	}
+	if (hit_id != -1)
+	{
+		get_hit_point(objs + hit_id, ray, info);
+		get_surface_normal(objs + hit_id, info);
+		info->t = INFINITY;
+	}
+	return ((hit_id != -1 && hit_distance < 1000.0f) ? objs + hit_id : 0);
+}
+
+t_ray		cast_shadow_ray(float4 start, __global t_light_source *light)
+{
+	t_ray	shadow_ray;
+	float3	tmp;
+	shadow_ray.origin = start;
+	shadow_ray.dir = light->c_s - start;
+	tmp = (float3)(shadow_ray.dir.x, shadow_ray.dir.y, shadow_ray.dir.z);
+	tmp = normalize(tmp);
+	shadow_ray.dir.x = tmp.x;
+	shadow_ray.dir.y = tmp.y;
+	shadow_ray.dir.z = tmp.z;
+	return (shadow_ray);
+}
+
+int4	calc_color(__global t_obj *obj, float diff_light, float spec_light)
+{
+	int4	color;
+
+	color.x = clamp(obj->mat.color.x * (diff_light * obj->mat.kd + spec_light * obj->mat.ks), 0.0f, 255.0f);
+	color.y = clamp(obj->mat.color.y * (diff_light * obj->mat.kd + spec_light * obj->mat.ks), 0.0f, 255.0f);
+	color.z = clamp(obj->mat.color.z * (diff_light * obj->mat.kd + spec_light * obj->mat.ks), 0.0f, 255.0f);
+	color.w = clamp(obj->mat.color.w * (diff_light * obj->mat.kd + spec_light * obj->mat.ks), 0.0f, 255.0f);
+	return (color);
+}
+
+float4		reflect(float4 i, float4 n)
+{
+	float	k;
+	float4	tmp;
+
+	k = dot(i, n);
+	tmp = n * 2 * k;
+	return (i - tmp);
+}
+
+int4	get_point_color(__global t_obj *objs, const int nobjs,
+				__global t_light_source *lights, const int nlights,
+				__global t_obj *obj, t_ray *ray, int i, t_hit_info *info)
+{
+	float3	ds_light = 0.0f;
+	__global t_obj	*shadow_obj;
+	t_hit_info	sinfo;
+	float4	r;
+	float4	light_dir;
+	t_ray	shadow_ray;
+	float3	tmp;
+
+	while (++i < nlights)
+	{
+		shadow_ray = cast_shadow_ray(info->hit_point, lights + i);
+		if ((shadow_obj = get_intersection(objs, nobjs, &shadow_ray, &sinfo)) != 0)
+			if (shadow_obj != obj && distance(info->hit_point, (lights + i)->c_s) >
+				distance(info->hit_point, sinfo.hit_point))
+				continue;
+		light_dir = (lights + i)->c_s - info->hit_point;
+		tmp = (float3)(light_dir.x, light_dir.y, light_dir.z);
+		tmp = normalize(tmp);
+		light_dir.x = tmp.x;
+		light_dir.y = tmp.y;
+		light_dir.z = tmp.z;
+		ds_light.x += (lights + i)->intensity *
+								max(0.0f, dot(light_dir, info->surf_normal));
+		r = reflect(light_dir, info->surf_normal);
+		ds_light.y += (lights + i)->intensity *
+								pow(max(0.0f, dot(r, ray->dir)), obj->mat.n);
+	}
+	return (calc_color(obj, ds_light.x, ds_light.y));
+}
+
+int4	trace_ray(t_ray *ray, __global t_obj *objs, const int nobjs,
+				__global t_light_source *lights, const int nlights)
+{
+	int4	color = 255;
+	int		i = -1;
+	__global t_obj	*obj;
+	t_hit_info	info;
+
+	obj = get_intersection(objs, nobjs, ray, &info);
+	if (obj != 0)
+	{
+		return (color = get_point_color(objs,
+		nobjs, lights, nlights, obj, ray, i, &info));
+	}
+	return color;
+}
+
+t_world	new_world(t_obj objs, const int nobjs, t_light_source lights, const int nlights)
+{
+	t_world	world;
+
+	world.objs = &objs;
+	world.lights = &lights;
+	world.nobjs = nobjs;
+	world.nlights = nlights;
+	return world;
+}
+
+__kernel void	render(__global int *C, __global t_obj *jojo, const int nobjs,
+				__global t_light_source *lights, const int nlights, const t_camera cam)
+{
+	int		i = get_global_id(0);
+	int		x = i % SCREEN_WIDTH;
+	int		y = i / SCREEN_WIDTH;
+	int4	color = 20;
+	t_ray	ray = create_cam_ray(x, y, cam);
+	// t_world	world = new_world(*jojo, nobjs, *lights, nlights);
+	// if (x==1 && y==1)
+		color = trace_ray(&ray, jojo, nobjs, lights, nlights);
+
+	// int fx = (float)(x) / (float)SCREEN_WIDTH * 255;
+	// int fy = (float)(y) / (float)SCREEN_HEIGHT * 255;
+	// color = (int3)(fx << 16, fy << 8, 180);
+	C[i] = color.x << 16| color.y << 8| color.z;
+	// if (i ==0)
+	// 	printf("%d\n", nlights);
 }

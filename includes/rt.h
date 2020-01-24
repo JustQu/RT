@@ -6,7 +6,7 @@
 /*   By: dwalda-r <dwalda-r@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2020/01/14 10:56:36 by dwalda-r          #+#    #+#             */
-/*   Updated: 2020/01/23 13:55:51 by dwalda-r         ###   ########.fr       */
+/*   Updated: 2020/01/24 17:15:09 by dwalda-r         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -197,7 +197,7 @@ typedef struct	s_cylindert
 
 typedef struct	s_materialt
 {
-	cl_int3		diff_color;
+	cl_int4		diff_color;
 	cl_float	kd;
 	cl_float	ks;
 	cl_float	n;
@@ -205,13 +205,10 @@ typedef struct	s_materialt
 
 typedef struct	s_objt
 {
-	t_obj_type	type;
+	cl_int		type;
 	cl_float4	c_s;
 	cl_float4	origin;
-	cl_float4	hit_point;
-	cl_float4	surf_normal;
 	t_materialt	mat;
-	cl_float	t;
 	cl_float4	dir;
 	cl_float	r;
 	cl_float	r2;
@@ -233,7 +230,18 @@ typedef	struct	s_worldt
 	cl_int			nlights;
 }				t_worldt;
 
-
+typedef struct	s_camerat
+{
+	cl_float4	origin;
+	cl_float4	orient;
+	cl_int		fov;
+	cl_float	near_z;
+	cl_float	far_z;
+	cl_float	inv_w;
+	cl_float	inv_h;
+	cl_float	ratio;
+	cl_float	angle;
+}				t_camerat;
 
 void			render(t_param *p);
 t_color			trace_ray(t_param *p, t_ray *ray);

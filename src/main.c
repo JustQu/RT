@@ -6,7 +6,7 @@
 /*   By: dwalda-r <dwalda-r@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2020/01/14 11:27:45 by dwalda-r          #+#    #+#             */
-/*   Updated: 2020/01/23 14:51:14 by dwalda-r         ###   ########.fr       */
+/*   Updated: 2020/01/24 17:10:50 by dwalda-r         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -99,6 +99,7 @@ t_objt	newCylindert(t_cylinder *old)
 
 	cl.dir = copyVec4(old->dir);
 	cl.r = old->radius;
+	cl.r2 = cl.r * cl.r;
 
 	return cl;
 }
@@ -172,18 +173,38 @@ t_worldt	*convertData(t_param *p)
 	return newWorld;
 }
 
+t_camerat	newCam(t_param *p)
+{
+	t_camerat cam;
+
+	cam.angle = p->camera.angle;
+	cam.fov = p->camera.fov;
+	cam.near_z = p->camera.near_z;
+	cam.far_z = p->camera.far_z;
+	cam.inv_h = p->camera.inv_h;
+	cam.inv_w = p->camera.inv_w;
+	cam.ratio = p->camera.ratio;
+	cam.origin = copyVec4(p->camera.origin);
+	cam.orient = copyVec4(p->camera.orient);
+	return cam;
+}
+
 void gradient(t_clp *clp, Uint32 *img, t_param *p)
 {
 	t_worldt	*newWorld;
-
+	t_camerat	new_cam = newCam(p);
 	newWorld = convertData(p);
+	printf("%d\n", newWorld->objs[0].type);
+
 	char *source_str;
 
 	size_t source_size = read_kernel("render_kernel.cl", &source_str);
 	cl_mem c_mem_obj = clCreateBuffer(clp->context, CL_MEM_WRITE_ONLY, GLOBAL_SIZE * sizeof(int), NULL, &clp->ret);
 	cl_mem w_mem_obj = clCreateBuffer(clp->context, CL_MEM_USE_HOST_PTR, sizeof(t_objt) * newWorld->nobjs, newWorld->objs, &clp->ret);
+	cl_mem l_mem_obj = clCreateBuffer(clp->context, CL_MEM_USE_HOST_PTR, sizeof(t_light_sourcet) * newWorld->nlights, newWorld->lights, &clp->ret);
+	
 	cl_program program = clCreateProgramWithSource(clp->context, 1, (const char **)&source_str, (const size_t *)&source_size, &clp->ret);
-	clp->ret = clBuildProgram(program, 1, &clp->de_id, "-I./includes", NULL, NULL);
+	clp->ret = clBuildProgram(program, 1, &clp->de_id, "-I./clincludes -I./includes", NULL, NULL);
 	size_t len = 0;
 	cl_int ret = CL_SUCCESS;
 	ret = clGetProgramBuildInfo(program, clp->de_id, CL_PROGRAM_BUILD_LOG, 0, NULL, &len);
@@ -194,6 +215,10 @@ void gradient(t_clp *clp, Uint32 *img, t_param *p)
 	clp->ret = clSetKernelArg(kernel, 0, sizeof(cl_mem), (void *)&c_mem_obj);
 	clp->ret = clSetKernelArg(kernel, 1, sizeof(cl_mem), (void *)&w_mem_obj);
 	clp->ret = clSetKernelArg(kernel, 2, sizeof(int), (void *)&(newWorld->nobjs));
+	clp->ret = clSetKernelArg(kernel, 3, sizeof(cl_mem), (void *)&l_mem_obj);
+	clp->ret = clSetKernelArg(kernel, 4, sizeof(int), (void *)&(newWorld->nlights));
+	clp->ret = clSetKernelArg(kernel, 5, sizeof(t_camerat), (void *)&(new_cam));
+
 	size_t global_item_size = GLOBAL_SIZE;
 	size_t local_item_size = 64;
 	clp->ret = clEnqueueNDRangeKernel(clp->queue, kernel, 1, NULL, &global_item_size, &local_item_size, 0, NULL, NULL);
