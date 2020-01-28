@@ -24,11 +24,15 @@ CFLAGS = -O3\
 		 -I$(SDL2INC)
 
 LDLIBS = -lm\
-		-lft\
-		-lrtmath
+		 -lft\
+		 -lrtmath\
+		 -framework SDL2\
+		 -framework OpenCL
 
 LDFLAGS	=	-L$(LIBFTDIR)\
-			-L$(RTMATHDIR)
+			-L$(RTMATHDIR)\
+			-F ./frameworks/\
+			-rpath ./frameworks/
 
 LIBFT = libft.a
 LIBFTDIR = ./libft/
@@ -38,7 +42,7 @@ RTMATH = librtmath.a
 RTMATHDIR = ./rtmath/
 RTMATHINC = $(RTMATHDIR)/includes
 
-SDL2 = libSDL2-2.0.0.dylib
+SDL2 = libS
 SDL2DIR = ./SDL2/
 SDL2INC = $(SDL2DIR)/include/SDL2/
 
@@ -63,7 +67,7 @@ all: $(LIBFT) $(RTMATH) $(NAME)
 
 $(NAME): $(OBJS) 
 	@echo 'making executable'
-	$(CC) $(LDLIBS) $(LDFLAGS) -o $@ $(OBJS) ./SDL2/lib/libSDL2.dylib -framework OpenCL
+	$(CC) $(LDLIBS) $(LDFLAGS) -o $@ $(OBJS) -framework OpenCL
 	@echo DONE!
 
 $(LIBFT):
