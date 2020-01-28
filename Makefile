@@ -31,20 +31,20 @@ LDLIBS = -lm\
 
 LDFLAGS	=	-L$(LIBFTDIR)\
 			-L$(RTMATHDIR)\
-			-F ./frameworks/\
-			-rpath ./frameworks/
+			-F ./frameworks\
+			-rpath ./frameworks
 
 LIBFT = libft.a
-LIBFTDIR = ./libft/
+LIBFTDIR = ./libft
 LIBFTINC = $(LIBFTDIR)/includes
 
 RTMATH = librtmath.a
-RTMATHDIR = ./rtmath/
+RTMATHDIR = ./rtmath
 RTMATHINC = $(RTMATHDIR)/includes
 
 SDL2 = libS
-SDL2DIR = ./SDL2/
-SDL2INC = $(SDL2DIR)/include/SDL2/
+SDL2DIR = ./frameworks/SDL2.framework
+SDL2INC = $(SDL2DIR)/Headers
 
 INCDIR = ./includes/
 INCS = rt.h
