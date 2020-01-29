@@ -1,0 +1,4 @@
+sphere: origin(0.000, 0.000, 12.000) radius(3.198)
+sphere: origin(0.000, -5.000, 12.000) radius(3.198)
+lightsource: intensity(1)
+camera: origin(0.000, 0.000, 0.000) orientation(0.000, 0.0, 0.0) fov(45.000)

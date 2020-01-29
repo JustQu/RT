@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   main.c                                             :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: dmelessa <dmelessa@student.42.fr>          +#+  +:+       +#+        */
+/*   By: dwalda-r <dwalda-r@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2020/01/14 11:27:45 by dwalda-r          #+#    #+#             */
-/*   Updated: 2020/01/28 15:17:59 by dmelessa         ###   ########.fr       */
+/*   Updated: 2020/01/29 18:41:44 by dwalda-r         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -19,7 +19,7 @@ cl_float4	copyVec4(t_vec4 src)
 	res.s[0] = src[0];
 	res.s[1] = src[1];
 	res.s[2] = src[2];
-	res.s[3] = src[3];
+	res.s[3] = 0.0f;
 	return res;
 }
 
@@ -27,9 +27,9 @@ t_materialt	newMaterialt(t_material mat)
 {
 	t_materialt	nmat;
 
-	nmat.diff_color.s[0] = mat.diff_color.bgra[0];
+	nmat.diff_color.s[0] = mat.diff_color.bgra[2];
 	nmat.diff_color.s[1] = mat.diff_color.bgra[1];
-	nmat.diff_color.s[2] = mat.diff_color.bgra[2];
+	nmat.diff_color.s[2] = mat.diff_color.bgra[0];
 	nmat.kd = mat.kd;
 	nmat.ks = mat.ks;
 	nmat.n = mat.n;
@@ -71,8 +71,6 @@ t_objt	newCylindert(t_cylinder *old)
 
 	cl.dir = copyVec4(old->dir);
 	cl.r = old->radius;
-	cl.r2 = cl.r * cl.r;
-
 	return cl;
 }
 
@@ -83,6 +81,8 @@ t_objt	newObjt(t_obj src)
 	newobj.type = src.type;
 	newobj.origin = copyVec4(src.origin);
 	newobj.mat = newMaterialt(src.mat);
+	newobj.c_s = copyVec4(src.c_s);
+	newobj.c_s.s[3] = 0.0f;
 	if (newobj.type == sphere)
 		newobj = newSpt(src.data);
 	else if (newobj.type == plane)
@@ -115,6 +115,7 @@ t_light_sourcet	newLightSourcet(t_light_source old)
 
 	ls.origin = copyVec4(old.origin);
 	ls.intensity = old.intensity;
+	ls.c_s = copyVec4(old.c_s);
 	return ls;
 }
 
@@ -166,15 +167,19 @@ void gradient(t_clp *clp, Uint32 *img, t_param *p)
 	t_worldt	*newWorld;
 	t_camerat	new_cam = newCam(p);
 	newWorld = convertData(p);
-	printf("%d\n", newWorld->objs[0].type);
-
+	t_objt	*tmpo = newWorld->objs;
+	printf("%f\n", newWorld->objs[0].r2);
 	char *source_str;
 
 	size_t source_size = read_kernel("render_kernel.cl", &source_str);
 	cl_mem c_mem_obj = clCreateBuffer(clp->context, CL_MEM_WRITE_ONLY, GLOBAL_SIZE * sizeof(int), NULL, &clp->ret);
-	cl_mem w_mem_obj = clCreateBuffer(clp->context, CL_MEM_USE_HOST_PTR, sizeof(t_objt) * newWorld->nobjs, newWorld->objs, &clp->ret);
-	cl_mem l_mem_obj = clCreateBuffer(clp->context, CL_MEM_USE_HOST_PTR, sizeof(t_light_sourcet) * newWorld->nlights, newWorld->lights, &clp->ret);
+	cl_mem w_mem_obj = clCreateBuffer(clp->context, CL_MEM_READ_ONLY, sizeof(t_objt) * newWorld->nobjs, NULL, &clp->ret);
+	cl_mem l_mem_obj = clCreateBuffer(clp->context, CL_MEM_READ_ONLY, sizeof(t_light_sourcet) * newWorld->nlights, NULL, &clp->ret);
 	
+	clEnqueueWriteBuffer(clp->queue, w_mem_obj, CL_TRUE, 0, sizeof(t_objt) * newWorld->nobjs, newWorld->objs, 0, NULL, NULL);
+	clEnqueueWriteBuffer(clp->queue, l_mem_obj, CL_TRUE, 0, sizeof(t_light_sourcet) * newWorld->nlights, newWorld->lights, 0, NULL, NULL);
+
+
 	cl_program program = clCreateProgramWithSource(clp->context, 1, (const char **)&source_str, (const size_t *)&source_size, &clp->ret);
 	clp->ret = clBuildProgram(program, 1, &clp->de_id, "-I./clincludes -I./includes", NULL, NULL);
 	size_t len = 0;
