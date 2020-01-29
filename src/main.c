@@ -3,42 +3,14 @@
 /*                                                        :::      ::::::::   */
 /*   main.c                                             :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: dwalda-r <dwalda-r@student.42.fr>          +#+  +:+       +#+        */
+/*   By: dmelessa <dmelessa@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2020/01/14 11:27:45 by dwalda-r          #+#    #+#             */
-/*   Updated: 2020/01/24 17:10:50 by dwalda-r         ###   ########.fr       */
+/*   Updated: 2020/01/28 15:17:59 by dmelessa         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "rt.h"
-
-void		ApplySurface(int x, int y, SDL_Texture *tex, SDL_Renderer *rend)
-{
-	SDL_Rect pos;
-	pos.x = x;
-	pos.y = y;
-	SDL_QueryTexture(tex, NULL, NULL, &pos.w, &pos.h);
-	SDL_RenderCopy(rend, tex, NULL, &pos);
-	printf("%d, %d, %d, %d\n", x, y, pos.w, pos.h);
-}
-
-SDL_Texture	*LoadImage(const char* filename, t_windata* windata)
-{
-	SDL_Surface *loadedImage;
-	SDL_Texture *tex;
-
-	loadedImage = NULL;
-	tex = NULL;
-	loadedImage = SDL_LoadBMP(filename);
-	if (loadedImage)
-	{
-		tex = SDL_CreateTextureFromSurface(windata->ren, loadedImage);
-		SDL_FreeSurface(loadedImage);
-	}
-	else
-		printf("TEXTURE LOADING ERROR");
-	return tex;
-}
 
 cl_float4	copyVec4(t_vec4 src)
 {
