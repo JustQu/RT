@@ -73,32 +73,6 @@ typedef struct	s_hit_info
 	float		t;
 }				t_hit_info;
 
-int4	trace_ray(t_ray *ray, __constant t_obj *objs, const int nobjs,
-				__constant t_light_source *lights, const int nlights);
-float	noise(float x, float y, float z);
-t_ray	create_cam_ray(const float x, const float y, t_camera cam);
-void	get_hit_point(t_obj *obj, t_ray *ray, t_hit_info *info);
-bool	sphere_intersection(t_obj *sp, t_ray *ray, float *t);
-bool	plane_intersection(t_obj *pl, t_ray *ray, float *t);
-bool	cone_intersection(t_obj *cn, t_ray *ray, float *t);
-bool	cylinder_intersection(t_obj *cl, t_ray *ray, float *t);
-bool	is_intersect(t_obj *obj, t_ray *ray, float *t);
-void	get_sphere_normal(t_obj *obj, t_hit_info *info);
-void	get_plane_normal(t_obj *obj, t_hit_info *info);
-void	get_cone_normal(t_obj *obj, t_hit_info *info);
-void	get_cylinder_normal(t_obj *obj, t_hit_info *info);
-void	get_surface_normal(t_obj *obj, t_hit_info *info);
-void	*get_intersection(__constant t_obj *objs, int nobjs, t_ray *ray, t_hit_info *info, t_obj *obj);
-t_ray	cast_shadow_ray(float4 start, __constant t_light_source *light);
-int4	calc_color(t_obj *obj, float diff_light, float spec_light);
-float4	reflect(float4 i, float4 n);
-int4	get_point_color(__constant t_obj *objs, const int nobjs,
-				__constant t_light_source *lights, const int nlights,
-				t_obj *obj, t_ray *ray, int i, t_hit_info *info);
-int4	trace_ray(t_ray *ray, __constant t_obj *objs, const int nobjs,
-				__constant t_light_source *lights, const int nlights);
-t_world	new_world(t_obj objs, const int nobjs, t_light_source lights, const int nlights);
-
 float	noise(float x, float y, float z)
 {
 	float num = 0.0f;
@@ -120,13 +94,13 @@ t_ray	create_cam_ray(const float x, const float y, t_camera cam)
 	return ray;
 }
 
-void	get_hit_point(t_obj *obj, t_ray *ray, t_hit_info *info)
+void	get_hit_point(__global t_obj *obj, t_ray *ray, t_hit_info *info)
 {
 	info->hit_point = ray->dir * info->t;
 	info->hit_point = ray->origin + info->hit_point;
 }
 
-bool	sphere_intersection(t_obj *sp, t_ray *ray, float *t)
+bool	sphere_intersection(__global t_obj *sp, t_ray *ray, float *t)
 {
 	float4 rayToCenter = sp->origin - ray->origin;
 
@@ -144,10 +118,10 @@ bool	sphere_intersection(t_obj *sp, t_ray *ray, float *t)
 		if (*t < 0.0f)
 			return false; 
 	}
-	return true;
+	else return true;
 }
 
-bool	plane_intersection(t_obj *pl, t_ray *ray, float *t)
+bool	plane_intersection(__global t_obj *pl, t_ray *ray, float *t)
 {
 	float4	tmp;
 	float2	coefs;
@@ -174,7 +148,7 @@ bool	plane_intersection(t_obj *pl, t_ray *ray, float *t)
 	return (false);
 }
 
-bool	cone_intersection(t_obj *cn, t_ray *ray, float *t)
+bool	cone_intersection(__global t_obj *cn, t_ray *ray, float *t)
 {
 	float4	tmp;
 	float4	coefs;
@@ -195,7 +169,7 @@ bool	cone_intersection(t_obj *cn, t_ray *ray, float *t)
 	return (false);
 }
 
-bool	cylinder_intersection(t_obj *cl, t_ray *ray, float *t)
+bool	cylinder_intersection(__global t_obj *cl, t_ray *ray, float *t)
 {
 	float4		tmp;
 	float4		coefs;
@@ -217,7 +191,7 @@ bool	cylinder_intersection(t_obj *cl, t_ray *ray, float *t)
 	return (false);
 }
 
-bool		is_intersect(t_obj *obj, t_ray *ray, float *t)
+bool		is_intersect(__global t_obj *obj, t_ray *ray, float *t)
 {
 	bool	is_hit;
 
@@ -233,7 +207,7 @@ bool		is_intersect(t_obj *obj, t_ray *ray, float *t)
 	return (is_hit);
 }
 
-void		get_sphere_normal(t_obj *obj, t_hit_info *info)
+void		get_sphere_normal(__global t_obj *obj, t_hit_info *info)
 {
 	float3 tmp;
 
@@ -245,12 +219,12 @@ void		get_sphere_normal(t_obj *obj, t_hit_info *info)
 	info->surf_normal.z = tmp.z;
 }
 
-void		get_plane_normal(t_obj *obj, t_hit_info *info)
+void		get_plane_normal(__global t_obj *obj, t_hit_info *info)
 {
 	info->surf_normal = -obj->dir;
 }
 
-void		get_cone_normal(t_obj *obj, t_hit_info *info)
+void		get_cone_normal(__global t_obj *obj, t_hit_info *info)
 {
 	float	m;
 	float3 tmp;
@@ -267,7 +241,7 @@ void		get_cone_normal(t_obj *obj, t_hit_info *info)
 	info->surf_normal.z = tmp.z;
 }
 
-void		get_cylinder_normal(t_obj *obj, t_hit_info *info)
+void		get_cylinder_normal(__global t_obj *obj, t_hit_info *info)
 {
 	float	m;
 	float3 tmp;
@@ -284,7 +258,7 @@ void		get_cylinder_normal(t_obj *obj, t_hit_info *info)
 	info->surf_normal.z = tmp.z;
 }
 
-void		get_surface_normal(t_obj *obj, t_hit_info *info)
+void		get_surface_normal(__global t_obj *obj, t_hit_info *info)
 {
 	if (obj->type == sphere)
 		get_sphere_normal(obj, info);
@@ -296,34 +270,34 @@ void		get_surface_normal(t_obj *obj, t_hit_info *info)
 		get_cylinder_normal(obj, info);
 }
 
-void	*get_intersection(__constant t_obj *objs, int nobjs, t_ray *ray, t_hit_info *info, t_obj *obj)
+__global t_obj	*get_intersection(__global t_obj *objs, int nobjs, t_ray *ray, t_hit_info *info)
 {
 	int		i = -1;
 	int		hit_id = -1;
 	float	hit_distance = MAXFLOAT;
-	info->t = INFINITY;
-	t_obj tmp;
+	info->t = 0.0f;
+	
 	while (++i < nobjs)
 	{
-		obj = objs + i;
-		if (is_intersect(obj, ray, &info->t) && info->t < hit_distance)
+		if (is_intersect(objs + i, ray, &info->t) && info->t < hit_distance)
 		{
 			if (hit_id != -1)
 				info->t = INFINITY;
 			hit_distance = info->t;
 			hit_id = i;
 		}
+
 	}
 	if (hit_id != -1)
 	{
-		obj = objs + hit_id;
-		get_hit_point(obj, ray, info);
-		get_surface_normal(obj, info);
+		get_hit_point(objs + hit_id, ray, info);
+		get_surface_normal(objs + hit_id, info);
+		info->t = INFINITY;
 	}
-	obj = ((hit_id != -1 && hit_distance < 1000.0f) ? objs + hit_id : 0);
+	return ((hit_id != -1 && hit_distance < 1000.0f) ? objs + hit_id : 0);
 }
 
-t_ray		cast_shadow_ray(float4 start, __constant t_light_source *light)
+t_ray		cast_shadow_ray(float4 start, __global t_light_source *light)
 {
 	t_ray	shadow_ray;
 	float3	tmp;
@@ -337,7 +311,7 @@ t_ray		cast_shadow_ray(float4 start, __constant t_light_source *light)
 	return (shadow_ray);
 }
 
-int4	calc_color(t_obj *obj, float diff_light, float spec_light)
+int4	calc_color(__global t_obj *obj, float diff_light, float spec_light)
 {
 	int4	color;
 
@@ -358,12 +332,12 @@ float4		reflect(float4 i, float4 n)
 	return (i - tmp);
 }
 
-int4	get_point_color(__constant t_obj *objs, const int nobjs,
-				__constant t_light_source *lights, const int nlights,
-				t_obj *obj, t_ray *ray, int i, t_hit_info *info)
+int4	get_point_color(__global t_obj *objs, const int nobjs,
+				__global t_light_source *lights, const int nlights,
+				__global t_obj *obj, t_ray *ray, int i, t_hit_info *info)
 {
 	float3	ds_light = 0.0f;
-	t_obj	*shadow_obj;
+	__global t_obj	*shadow_obj;
 	t_hit_info	sinfo;
 	float4	r;
 	float4	light_dir;
@@ -373,8 +347,7 @@ int4	get_point_color(__constant t_obj *objs, const int nobjs,
 	while (++i < nlights)
 	{
 		shadow_ray = cast_shadow_ray(info->hit_point, lights + i);
-		get_intersection(objs, nobjs, &shadow_ray, &sinfo, shadow_obj);
-		if (shadow_obj != 0)
+		if ((shadow_obj = get_intersection(objs, nobjs, &shadow_ray, &sinfo)) != 0)
 			if (shadow_obj != obj && distance(info->hit_point, (lights + i)->c_s) >
 				distance(info->hit_point, sinfo.hit_point))
 				continue;
@@ -390,23 +363,22 @@ int4	get_point_color(__constant t_obj *objs, const int nobjs,
 		ds_light.y += (lights + i)->intensity *
 								pow(max(0.0f, dot(r, ray->dir)), obj->mat.n);
 	}
-	// return (calc_color(obj, ds_light.x, ds_light.y));
-	return (obj->mat.color);
+	return (calc_color(obj, ds_light.x, ds_light.y));
 }
 
-int4	trace_ray(t_ray *ray, __constant t_obj *objs, const int nobjs,
-				__constant t_light_source *lights, const int nlights)
+int4	trace_ray(t_ray *ray, __global t_obj *objs, const int nobjs,
+				__global t_light_source *lights, const int nlights)
 {
 	int4	color = 255;
 	int		i = -1;
-	t_obj	obj;
+	__global t_obj	*obj;
 	t_hit_info	info;
 
-	get_intersection(objs, nobjs, ray, &info, &obj);
-	if (info.t != INFINITY)
+	obj = get_intersection(objs, nobjs, ray, &info);
+	if (obj != 0)
 	{
 		return (color = get_point_color(objs,
-		nobjs, lights, nlights, &obj, ray, i, &info));
+		nobjs, lights, nlights, obj, ray, i, &info));
 	}
 	return color;
 }
@@ -422,8 +394,8 @@ t_world	new_world(t_obj objs, const int nobjs, t_light_source lights, const int 
 	return world;
 }
 
-__kernel void	render(__global int *C, __constant t_obj *jojo, const int nobjs,
-				__constant t_light_source *lights, const int nlights, const t_camera cam)
+__kernel void	render(__global int *C, __global t_obj *jojo, const int nobjs,
+				__global t_light_source *lights, const int nlights, const t_camera cam)
 {
 	int		i = get_global_id(0);
 	int		x = i % SCREEN_WIDTH;
@@ -431,17 +403,13 @@ __kernel void	render(__global int *C, __constant t_obj *jojo, const int nobjs,
 	int4	color = 20;
 	t_ray	ray = create_cam_ray(x, y, cam);
 	// t_world	world = new_world(*jojo, nobjs, *lights, nlights);
-	color = trace_ray(&ray, jojo, nobjs, lights, nlights);
-	
+	// if (x==1 && y==1)
+		color = trace_ray(&ray, jojo, nobjs, lights, nlights);
+
 	// int fx = (float)(x) / (float)SCREEN_WIDTH * 255;
 	// int fy = (float)(y) / (float)SCREEN_HEIGHT * 255;
 	// color = (int3)(fx << 16, fy << 8, 180);
-	// C[i] = color.x << 16| color.y << 8| color.z;
-	if (i ==0)
-	{
-		printf("%d\n", nobjs);
-		for (int k = 0; k < nobjs; k++)
-			printf("%d ", jojo[k].type);
-	}
+	C[i] = color.x << 16| color.y << 8| color.z;
+	// if (i ==0)
 	// 	printf("%d\n", nlights);
 }
