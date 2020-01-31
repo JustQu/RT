@@ -6,7 +6,7 @@
 /*   By: dwalda-r <dwalda-r@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2020/01/14 11:27:45 by dwalda-r          #+#    #+#             */
-/*   Updated: 2020/01/29 18:41:44 by dwalda-r         ###   ########.fr       */
+/*   Updated: 2020/01/30 16:04:08 by dwalda-r         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -80,6 +80,7 @@ t_objt	newObjt(t_obj src)
 
 	newobj.type = src.type;
 	newobj.origin = copyVec4(src.origin);
+	newobj.origin.s[3] = 0;
 	newobj.mat = newMaterialt(src.mat);
 	newobj.c_s = copyVec4(src.c_s);
 	newobj.c_s.s[3] = 0.0f;
