@@ -1,0 +1,15 @@
+name	point		direction		radius		color		diffuse	reflective(0-1)
+
+cam		0,0,0		3,-1,0
+
+pln		20,0,0		1,0,0			-			0xff33ff	0		1
+pln		-10,0,0		1,0,0			-			0x00ffff	0		0.1
+pln		0,-20,0		0,1,0			-			0x80ff00	0		0.4
+pln		0,10,0		0,1,0			-			0xffff33	0		0.4
+pln		0,0,15		0,0,1			-			0xff0000	0		0.4
+pln		0,0,-15		0,0,1			-			0x0080ff	0		0.4
+
+sph		10,-8,-2	-    			1			0xffffff	100		0.3
+crl		15,-5,0		1,0,0  			3			0xff0000	600		1
+
+lgt		5,-5,0		-    			-			0xffffff	-		-
