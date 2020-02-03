@@ -6,7 +6,7 @@
 /*   By: dwalda-r <dwalda-r@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2020/01/14 11:27:45 by dwalda-r          #+#    #+#             */
-/*   Updated: 2020/01/30 16:04:08 by dwalda-r         ###   ########.fr       */
+/*   Updated: 2020/02/03 15:32:41 by dwalda-r         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -169,7 +169,6 @@ void gradient(t_clp *clp, Uint32 *img, t_param *p)
 	t_camerat	new_cam = newCam(p);
 	newWorld = convertData(p);
 	t_objt	*tmpo = newWorld->objs;
-	printf("%f\n", newWorld->objs[0].r2);
 	char *source_str;
 
 	size_t source_size = read_kernel("render_kernel.cl", &source_str);

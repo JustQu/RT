@@ -1,5 +1,4 @@
+sphere: origin(-0.250, 0.650, 6.000) radius(0.500)
 sphere: origin(0.000, 0.000, 12.000) radius(6.198)
-cylinder: origin(2.500, 1.000, 4.000) direction(0.000, 1.000, 0.000) radius(0.300)
-plane: origin(0.000, 3.000, 0.000) nv(0.000, 1.000, 0.000)
-lightsource: origin(0.000, 2.000, 0.000) intensity(0.5)
+lightsource: origin(1.000, 0.000, 5.000) intensity(1)
 camera: origin(-2.000, 0.000, 0.000) orientation(0.000, 0.3, 0.0) fov(45.000)
