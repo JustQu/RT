@@ -6,7 +6,7 @@
 /*   By: dwalda-r <dwalda-r@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2020/01/14 11:27:45 by dwalda-r          #+#    #+#             */
-/*   Updated: 2020/02/03 15:32:41 by dwalda-r         ###   ########.fr       */
+/*   Updated: 2020/02/03 16:44:00 by dwalda-r         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -267,9 +267,6 @@ void rtCycle(t_param *p)
 	tex = SDL_CreateTexture(p->windata.ren, SDL_PIXELFORMAT_ARGB8888,
 	SDL_TEXTUREACCESS_STREAMING, SCREEN_WIDTH, SCREEN_HEIGHT);
 	quit = FALSE;
-	// drawRectangle(p->img, (t_color)255, newRectangle(0, 0, SCREEN_WIDTH, 50));
-	// drawRectangle(p->img, (t_color)0, newRectangle(10, 15, BUTW, BUTH));
-
 	gradient(p->clprm, p->img, p);
 	SDL_UpdateTexture(tex, NULL, p->img, sizeof(Uint32) * SCREEN_WIDTH);
 	SDL_RenderClear(p->windata.ren);

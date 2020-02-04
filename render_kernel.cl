@@ -1,5 +1,7 @@
 #include "defines.h"
 
+# define REFLECTIONS 4
+
 typedef enum	e_objs
 {
 	none,
@@ -432,14 +434,41 @@ t_world	new_world(t_obj objs, const int nobjs, t_light_source lights, const int 
 	return world;
 }
 
+
+
+
 __kernel void	render(__global int *C, __constant t_obj *jojo, const int nobjs,
 				__constant t_light_source *lights, const int nlights, const t_camera cam)
 {
 	int		i = get_global_id(0);
 	int		x = i % SCREEN_WIDTH;
 	int		y = i / SCREEN_WIDTH;
-	int4	color = 255;
-	t_ray	ray = create_cam_ray(x, y, cam);
-		color = trace_ray(&ray, jojo, nobjs, lights, nlights);
+	int4	color = 0;
+	float jitterMatrix[4 * 2] = {
+	-1.0/4.0,  3.0/4.0,
+	 3.0/4.0,  1.0/3.0,
+	-3.0/4.0, -1.0/4.0,
+	 1.0/4.0, -3.0/4.0,
+	};
+	bool ao = false;
+	if (ao)
+	{
+		for (int sample = 0; sample < 4; ++sample)
+		{
+			float dx = (x + jitterMatrix[2 * sample]);
+			float dy = (y + jitterMatrix[2 * sample + 1]);
+			t_ray	ray = create_cam_ray(dx, dy, cam);
+			color += trace_ray(&ray, jojo, nobjs, lights, nlights);
+		}
+		color /= 4;
+	}
+	else
+	{
+		t_ray	ray = create_cam_ray(x, y, cam);
+		color += trace_ray(&ray, jojo, nobjs, lights, nlights);
+	}
+	// int rescol = color.x * 0.2126f + color.y * 0.7152f + color.z * 0.0722;
+	// C[i] = rescol << 16 | rescol << 8 | rescol;
+
 	C[i] = color.x << 16| color.y << 8| color.z;
 }
