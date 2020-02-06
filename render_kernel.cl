@@ -1,6 +1,6 @@
 #include "defines.h"
 
-# define REFLECTIONS 4
+# define REFLECTIONS 2
 
 typedef enum	e_objs
 {
@@ -122,8 +122,7 @@ t_ray	create_cam_ray(const float x, const float y, t_camera cam)
 
 void	get_hit_point(__constant t_obj *obj, t_ray *ray, t_hit_info *info)
 {
-	info->hit_point = ray->dir * info->t;
-	info->hit_point = ray->origin + info->hit_point;
+	info->hit_point = ray->origin + ray->dir * info->t;
 }
 
 bool	sphere_intersection(__constant t_obj *sp, t_ray *ray, t_hit_info *info)
@@ -404,22 +403,55 @@ int4	get_point_color(__constant t_obj *objs, const int nobjs,
 	return (calc_color(obj, ds_light.x, ds_light.y));
 }
 
+int4	fresh_color(int4 nclr, int4 ccolor, float ref)
+{
+	int4	r;
+
+	if (ref > 1)
+		ref = 1;
+	r.x = (int)(nclr.x * (1 - ref) + ccolor.x * ref);
+	r.y = (int)(nclr.y * (1 - ref) + ccolor.y * ref);
+	r.z = (int)(nclr.z * (1 - ref) + ccolor.z * ref);
+	return r;
+}
+
 int4	trace_ray(t_ray *ray, __constant t_obj *objs, const int nobjs,
 				__constant t_light_source *lights, const int nlights)
 {
-	int4	color = (int4)(50, 50, 50, 0);
+	int4	color = 50;
 	int		i = -1;
+	int		j = 0;
 	__constant t_obj	*obj;
 	t_hit_info	info;
+	t_ray	nray;
+	int4 mclr[REFLECTIONS + 1];
+	float mref[REFLECTIONS + 1];
 
-
-	obj = get_intersection(objs, nobjs, ray, &info);
-	if (obj != 0)
+	while(j <= REFLECTIONS)
 	{
-		return (color = get_point_color(objs,
-		nobjs, lights, nlights, obj, ray, i, &info));
+		if (j == 0)
+			obj = get_intersection(objs, nobjs, ray, &info);
+		else
+			obj = get_intersection(objs, nobjs, &nray, &info);
+		if (info.surf_normal.x == 0.0f && info.surf_normal.y == 0.0f && info.surf_normal.z == 0.0f)
+			break;
+		if (obj == 0)
+			break ;
+		mclr[j] = get_point_color(objs, nobjs, lights, nlights, obj, ray, i, &info);
+		mref[j] = obj->type == sphere ? 0.08f : 0.0f;
+		nray.origin = info.hit_point;
+		if (j == 0)
+			nray.dir = ray->dir;
+		nray.dir = nray.dir - info.surf_normal * 2 * dot(info.surf_normal, nray.dir);
+		j++;
+		if (mref[j - 1] <= 0.0f)
+			break;
 	}
-
+	while (j > 0)
+	{
+		color = fresh_color(mclr[j - 1], color, mref[j - 1]);
+		j--;
+	}
 	return color;
 }
 
@@ -450,7 +482,7 @@ __kernel void	render(__global int *C, __constant t_obj *jojo, const int nobjs,
 	-3.0/4.0, -1.0/4.0,
 	 1.0/4.0, -3.0/4.0,
 	};
-	bool ao = false;
+	bool ao = true;
 	if (ao)
 	{
 		for (int sample = 0; sample < 4; ++sample)
