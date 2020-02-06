@@ -98,6 +98,7 @@ int4	get_point_color(__constant t_obj *objs, const int nobjs,
 				__constant t_obj *obj, t_ray *ray, int i, t_hit_info *info);
 int4	trace_ray(t_ray *ray, __constant t_obj *objs, const int nobjs,
 				__constant t_light_source *lights, const int nlights);
+int4	fresh_color(int4 nclr, int4 ccolor, float ref);
 
 float	noise(float x, float y, float z)
 {

@@ -1,7 +1,0 @@
-name	point		direction		radius		color		diffuse	reflective(0-1)
-
-cam		20,0,0		-3,0,0
-
-sph		0,0,0		-    			4			0xff0000	100		0.4
-
-lgt		10,5,0		-    			-			0xffffff	-		-

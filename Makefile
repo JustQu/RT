@@ -51,11 +51,9 @@ INCS = rt.h
 INCS := $(addprefix $(INCDIR), $(INCS))
 
 SRCSDIR = ./src/
-SRCS = main.c draw.c control.c sphere.c reader.c saver.c camera_movement.c\
-		convert_to_16.c ft_itoaf.c list_funcs.c object_initiation.c\
-		other_initiation.c other_out.c out_objects.c out_params.c\
-		param_reading.c utils.c cone.c cylinder.c normals.c\
-		plane.c intersection.c rays.c read_kernel.c
+SRCS = main.c reader.c camera_movement.c\
+		ft_itoaf.c list_funcs.c object_initiation.c other_initiation.c\
+		param_reading.c utils.c read_kernel.c
 
 OBJSDIR	=	./objs/
 OBJS	=	$(addprefix $(OBJSDIR), $(SRCS:.c=.o))
