@@ -10,11 +10,42 @@
 #                                                                              #
 # **************************************************************************** #
 
+NAME = ./RT
 CC = gcc
 
 RM = rm -f
 
 UNAME_S := $(shell uname -s)
+
+#SYSTEM:
+SYSTEM = $(shell uname)
+MACOS = Darwin
+LINYX = Linux
+
+#FLAGS:
+WWW = 
+#WWW = -Wall -Wextra -Werror
+ifeq ($(SYSTEM), $(MACOS))
+	LDLIBS = -lm\
+		 -lft\
+		 -lrtmath\
+		 -framework SDL2\
+		 -framework OpenCL
+
+	LDFLAGS	=	-L$(LIBFTDIR)\
+			-L$(RTMATHDIR)\
+			-F ./frameworks\
+			-rpath ./frameworks
+else ifeq ($(SYSTEM), $(LINYX))
+	LDLIBS = -lm\
+		 -lft\
+		 -lrtmath\
+		 -l SDL2\
+		 -l OpenCL
+
+	LDFLAGS	=	-L$(LIBFTDIR)\
+			-L$(RTMATHDIR)
+endif
 
 CFLAGS = -O3\
 		 -I.\
@@ -23,16 +54,6 @@ CFLAGS = -O3\
 		 -I$(RTMATHINC)\
 		 -I$(SDL2INC)
 
-LDLIBS = -lm\
-		 -lft\
-		 -lrtmath\
-		 -framework SDL2\
-		 -framework OpenCL
-
-LDFLAGS	=	-L$(LIBFTDIR)\
-			-L$(RTMATHDIR)\
-			-F ./frameworks\
-			-rpath ./frameworks
 
 LIBFT = libft.a
 LIBFTDIR = ./libft
@@ -58,14 +79,12 @@ SRCS = main.c reader.c camera_movement.c\
 OBJSDIR	=	./objs/
 OBJS	=	$(addprefix $(OBJSDIR), $(SRCS:.c=.o))
 
-NAME = ./RT
 
-.PHONY: all
 all: $(LIBFT) $(RTMATH) $(NAME)
 
 $(NAME): $(OBJS) 
 	@echo 'making executable'
-	$(CC) $(LDLIBS) $(LDFLAGS) -o $@ $(OBJS) -framework OpenCL
+	$(CC) -o $@ $(OBJS) $(LDLIBS) $(LDFLAGS)
 	@echo DONE!
 
 $(LIBFT):
@@ -82,14 +101,12 @@ $(OBJS): $(INCS)
 $(OBJSDIR):
 	mkdir $@
 
-.PHONY: clean
 clean:
 	@echo deliting object files
 	@$(RM) $(OBJS)
 	@make -C $(LIBFTDIR) clean
 	@make -C $(RTMATHDIR) clean
 
-.PHONY: fclean
 fclean: clean
 	@echo deliting executable file
 	@$(RM) $(NAME)
@@ -97,5 +114,5 @@ fclean: clean
 	@make -C $(RTMATHDIR) fclean
 
 
-.PHONY: re
+.PHONY: all clean fclean re
 re:	fclean all

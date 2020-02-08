@@ -13,13 +13,19 @@
 #ifndef RT_H
 # define RT_H
 
+#ifdef __APPLE__
+#include <OpenCL/opencl.h>
 #include <SDL.h>
+#else
+#include <CL/cl.h>
+#include <SDL2/SDL.h>
+#endif
+
 #include <stdio.h>
 #include "libft.h"
 # include <math.h>
 # include "rtmath.h"
 # include <fcntl.h>
-#include <OpenCL/opencl.h>
 # include "defines.h"
 
 # define BUTH SCREEN_HEIGHT / 30

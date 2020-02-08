@@ -18,9 +18,9 @@ RM	=	rm -f
 
 #compiler flags
 CFLAGS	=	-I$(INCSDIR)\
-			-Wall\
+#			-Wall\
 			-Werror\
-			-Wextra\
+			-Wextra
 			-std=c99\
 			-pedantic\
 			-O3
@@ -63,7 +63,6 @@ OBJS	=	$(addprefix $(OBJSDIR), $(SRCS:.c=.o))
 #-------------------------------------------------------------------------------
 NAME	=	libft.a
 
-.PHONY: all
 all: $(NAME)
 
 $(NAME): $(OBJS)
@@ -78,15 +77,14 @@ $(OBJS): $(INCS)
 $(OBJSDIR):
 	-@mkdir $@
 
-.PHONY: clean
 clean:
 	-@echo 'deliting $(NAME) object files'
 	-@$(RM) $(OBJS)
 
-.PHONY: fclean
 fclean: clean
 	-@echo 'deliting $(NAME)'
 	-@$(RM) $(NAME)
 
-.PHONY: re
 re: fclean all
+
+.PHONY: all clean fclean re
