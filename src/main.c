@@ -10,7 +10,7 @@
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "rt.h"
+#include "includes/rt.h"
 
 cl_float4	copyVec4(t_vec4 src)
 {
@@ -202,62 +202,6 @@ void gradient(t_clp *clp, Uint32 *img, t_param *p)
 	clp->ret = clEnqueueReadBuffer(clp->queue, c_mem_obj, CL_TRUE, 0, GLOBAL_SIZE * sizeof(int), img, 0, NULL, NULL);
 }
 
-t_rectangle	newRectangle(int x, int y, int w, int h)
-{
-	t_rectangle r;
-
-	r.x = x;
-	r.y = y;
-	r.w = w;
-	r.h = h;
-	return r;
-}
-
-void	drawRectangle(Uint32 *img, t_color color, t_rectangle rect)
-{
-	int	i;
-	int	j;
-
-	i = rect.y;
-	while (i < SCREEN_HEIGHT && i < rect.h + rect.y)
-	{
-		j = rect.x;
-		while (j < SCREEN_WIDTH && j < rect.w + rect.x)
-			img[i * SCREEN_WIDTH + j++] = color.color;
-		i++;
-	}
-}
-
-float	distance(int x, int y, int x1 , int y1)
-{
-	return sqrt(pow(x1 - x, 2) + pow(y1 - y, 2));
-}
-
-void	drawRectangleRounded(Uint32 *img, t_color color,
-		t_rectangle rect, float round)
-{
-	int	i;
-	int	j;
-	int	cmp1;
-	int	cmp2;
-
-	cmp1 = rect.h + rect.y;
-	cmp2 = rect.w + rect.x;
-	i = rect.y;
-	round = (sqrtf(rect.w * rect.w + rect.h * rect.h) / 2) * ((100 - round) * 0.01);
-	while (i < SCREEN_HEIGHT && i < cmp1)
-	{
-		j = rect.x;
-		while (j < SCREEN_WIDTH && j < cmp2)
-		{
-			if (distance(rect.w / 2 + rect.x, rect.h / 2 + rect.y, j, i) < round)
-				img[i * SCREEN_WIDTH + j] = color.color;
-			j++;
-		}
-		i++;
-	}
-}
-
 void rtCycle(t_param *p)
 {
 	SDL_Event	e;
@@ -340,7 +284,6 @@ int main(int ac, char **arg)
 	if (!catch_errors(&p, arg, ac))
 		return (1);
 	world_to_camera(&p);
-	rotate_camera(&p);
 	rtCycle(&p);
 	SDL_Quit();
 }

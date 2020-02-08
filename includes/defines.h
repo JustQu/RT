@@ -13,9 +13,10 @@
 #ifndef DEFINES_H
 # define DEFINES_H
 
-# define SCREEN_WIDTH 1920
-# define SCREEN_HEIGHT 1080
-# define LOCAL_SIZE 64
+# define SCREEN_WIDTH 1080
+# define SCREEN_HEIGHT 720
 # define GLOBAL_SIZE SCREEN_HEIGHT * SCREEN_WIDTH
+
+# define LOCAL_SIZE 64
 
 #endif

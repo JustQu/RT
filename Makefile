@@ -68,7 +68,7 @@ SDL2DIR = ./frameworks/SDL2.framework
 SDL2INC = $(SDL2DIR)/Headers
 
 INCDIR = ./includes/
-INCS = rt.h
+INCS = rt.h defines.h
 INCS := $(addprefix $(INCDIR), $(INCS))
 
 SRCSDIR = ./src/
@@ -82,7 +82,7 @@ OBJS	=	$(addprefix $(OBJSDIR), $(SRCS:.c=.o))
 
 all: $(LIBFT) $(RTMATH) $(NAME)
 
-$(NAME): $(OBJS) 
+$(NAME): $(OBJS) $(INCS)
 	@echo 'making executable'
 	$(CC) -o $@ $(OBJS) $(LDLIBS) $(LDFLAGS)
 	@echo DONE!

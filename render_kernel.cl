@@ -1,6 +1,9 @@
-#include "defines.h"
 
-# define REFLECTIONS 2
+# define SCREEN_WIDTH 1080
+# define SCREEN_HEIGHT 720
+# define GLOBAL_SIZE SCREEN_HEIGHT * SCREEN_WIDTH
+
+# define REFLECTIONS 10
 
 typedef enum	e_objs
 {
@@ -75,7 +78,6 @@ typedef struct	s_hit_info
 	float		t;
 }				t_hit_info;
 
-t_world	new_world(t_obj objs, const int nobjs, t_light_source lights, const int nlights);
 float	noise(float x, float y, float z);
 t_ray	create_cam_ray(const float x, const float y, t_camera cam);
 void	get_hit_point(__constant t_obj *obj, t_ray *ray, t_hit_info *info);
@@ -100,11 +102,6 @@ int4	trace_ray(t_ray *ray, __constant t_obj *objs, const int nobjs,
 				__constant t_light_source *lights, const int nlights);
 int4	fresh_color(int4 nclr, int4 ccolor, float ref);
 
-float	noise(float x, float y, float z)
-{
-	float num = 0.0f;
-	return fract(sin(x * 112.9898f + y * 179.233f + z * 237.212f) * 43758.5453f, &num);
-}
 
 t_ray	create_cam_ray(const float x, const float y, t_camera cam)
 {
@@ -454,17 +451,6 @@ int4	trace_ray(t_ray *ray, __constant t_obj *objs, const int nobjs,
 		j--;
 	}
 	return color;
-}
-
-t_world	new_world(t_obj objs, const int nobjs, t_light_source lights, const int nlights)
-{
-	t_world	world;
-
-	world.objs = &objs;
-	world.lights = &lights;
-	world.nobjs = nobjs;
-	world.nlights = nlights;
-	return world;
 }
 
 
