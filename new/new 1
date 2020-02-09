@@ -1,0 +1,43 @@
+rt
+
+window
+	SDL_Window
+	SDL_Renderer
+	SDL_Texture
+	width
+	height
+	
+cl_program
+	cl_program
+	cl_kernel
+	cl_mem	objs;
+	cl_mem	mat;
+	cl_mem	lights;
+	cl_mem	camera;
+	size_t	work_size
+	size_t	work_group_size
+	char	*source_str;
+clp
+	pl_id
+	de_id
+	ret_num_devices
+	ret_num_platforms
+	ret
+	context
+	queue
+	
+camera
+	origin
+	direction
+	ratio
+	inv_w
+	inv_h
+	far_z
+	near_z
+	fov
+	
+
+sphere
+
+plane
+

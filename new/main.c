@@ -15,9 +15,11 @@
 #include <stdint.h>
 #include <fcntl.h>
 
-FILE *f;
-#define DEBUG
+#include <time.h> //for primitive fps count
 
+FILE *f;
+int fd;
+#define DEBUG
 
 #ifdef DEBUG
 # include <assert.h>
@@ -26,7 +28,6 @@ FILE *f;
 #ifdef __APPLE__
 # include "OpenCL/opencl.h"
 #elif _WIN64
-# include "windows.h"
 # include "CL/cl.h"
 #endif
 
@@ -39,43 +40,6 @@ FILE *f;
 ** @brief
 ** L1 Cache = Local Memory(OpenCL) = Shared Memory(CUDA)
 */
-
-/**
-** @brief
-** информация о opencl
-*/
-typedef struct	s_clp
-{
-	cl_platform_id		pl_id;
-	cl_device_id		de_id;
-	cl_uint				ret_num_devices;
-	cl_uint				ret_num_platforms;
-	cl_int				ret;
-	cl_context			context;
-	cl_command_queue	queue;
-}				t_clp;
-
-/**
-** @brief
-** top level struct of the program
-** that info and contains other structs
-*/
-struct	s_program
-{
-	int				width; // window width
-	int				height; // window heigh
-	SDL_Window		*window;
-	SDL_Renderer	*renderer;
-	uint32_t		*image; //image to render and display
-	SDL_Texture		*texture; //texture to display image on winow
-	t_clp			clp; //opencl common info
-	size_t			global_item_size;
-	size_t			local_item_size;
-	char			*source_str; // думаю надо будет как-то вынести
-	uint32_t		source_size;
-} s_program_default = {.width = 800, .height = 640};
-
-typedef struct s_program	t_program;
 
 /**
 ** @todo
@@ -119,7 +83,7 @@ t_clp	init_opencl()
 ** @param str
 ** @return ** size_t
 */
-size_t read_kernel(char *file_name, char **str)
+size_t	read_kernel(char *file_name, char **str)
 {
 	int		fd;
 	char	*tmp;
@@ -147,60 +111,240 @@ size_t read_kernel(char *file_name, char **str)
 	return (size_t)ft_strlen(*str);
 }
 
+
+
+void	display_image(t_window *w)
+{
+	// static SDL_Window 	*window = NULL;
+	// static SDL_Renderer	*renderer = NULL;
+	// static SDL_Texture	*texture = NULL;
+
+	SDL_UpdateTexture(w->texture, NULL, w->image, sizeof(uint32_t) * w->width);
+	SDL_RenderClear(w->renderer);
+	SDL_RenderCopy(w->renderer, w->texture, NULL, NULL);
+	SDL_RenderPresent(w->renderer);
+}
+
+int		catch_event()
+{
+	SDL_Event event;
+
+	if (SDL_PollEvent(&event) != 0)
+	{
+		if (event.type == SDL_QUIT)
+		{
+			return 1;
+		}
+		if (event.type = SDL_WINDOWEVENT)
+		{
+			switch (event.window.event)
+			{
+				case SDL_WINDOWEVENT_SHOWN:
+				case SDL_WINDOWEVENT_HIDDEN:
+				case SDL_WINDOWEVENT_EXPOSED:
+				case SDL_WINDOWEVENT_MOVED:
+				case SDL_WINDOWEVENT_SIZE_CHANGED:
+				case SDL_WINDOWEVENT_MINIMIZED:
+				case SDL_WINDOWEVENT_MAXIMIZED:
+					break;
+				case SDL_WINDOWEVENT_CLOSE:
+					return 1;
+
+				case SDL_WINDOWEVENT_RESIZED:
+				{
+					fprintf(f, "Window size changed to %dx%d\n",
+							event.window.data1, event.window.data2);
+				} break;
+
+			}
+		}
+		if (event.type == SDL_KEYDOWN)
+		{
+
+		}
+		if (event.type == SDL_KEYUP)
+		{
+
+		}
+		if (event.type = SDL_MOUSEBUTTONDOWN)
+		{
+
+		}
+		if (event.type == SDL_MOUSEBUTTONUP)
+		{
+
+		}
+		//check input
+		//switch kernel here?
+	}
+	return 0;
+}
+
+void cl_error(t_cl_program *program, t_clp *clp, int code)
+{
+	if (code != CL_SUCCESS)
+	{
+		// Determine the size of the log
+		size_t log_size;
+		clGetProgramBuildInfo(program->program, clp->de_id, CL_PROGRAM_BUILD_LOG, 0,
+							  NULL, &log_size);
+		// Allocate memory for the log
+		char *log = (char *)malloc(log_size);
+		// Get the log
+		clGetProgramBuildInfo(program->program, clp->de_id, CL_PROGRAM_BUILD_LOG,
+							  log_size, log, NULL);
+		// Print the log
+		printf("\n\n\n\n\n%s\n", log);
+		fprintf(f, "\n\n\n\n\n%s\n", log);
+	}
+}
+
+//use work_size later, when inits will be splitted
+void	create_render_program(t_cl_program *program, t_clp *clp,
+	int work_size)
+{
+	program->input = clCreateBuffer(clp->context, CL_MEM_READ_ONLY,
+		sizeof(uint32_t) * program->work_size, NULL, &clp->ret);
+	cl_error(program, clp, clp->ret);
+	assert(!clp->ret);
+	program->output = clCreateBuffer(clp->context, CL_MEM_WRITE_ONLY,
+		sizeof(uint32_t) * program->work_size, NULL, &clp->ret);
+	cl_error(program, clp, clp->ret);
+	assert(!clp->ret);
+	program->program = clCreateProgramWithSource(clp->context, 1,
+		&program->source_str, NULL, &clp->ret);
+	cl_error(program, clp, clp->ret);
+	assert(!clp->ret);
+	clBuildProgram(program->program, 1, &clp->de_id, "-cl-opt-disable", NULL, NULL);
+	program->kernel = clCreateKernel(program->program,"render2", &clp->ret);
+	cl_error(program, clp, clp->ret);
+	assert(!clp->ret);
+
+}
+
+void	fps_count()
+{
+	static clock_t	end = 0;
+	static int		count = 0;
+	static clock_t	start = 0;
+	int				secs;
+
+	end = clock();
+	count++;
+	secs = (float)(end - start)/ CLK_TCK;
+	if (secs > 2)
+	{
+		fprintf(f, "FPS: %f\n", count / 2.0f);
+		start = clock();
+		end = 0;
+		count = 0;
+	}
+}
+
+//NOTE: test case. Delete later
+#include "stdlib.h"
+struct s_sphere
+{
+	cl_float4	origin;
+	cl_float	radius;
+	uint32_t	color;
+};
+
+typedef struct s_sphere t_sphere;
+
+t_sphere	*generate_spheres(int number)
+{
+	t_sphere	*spheres;
+
+	spheres = malloc(sizeof(t_sphere) * number);
+	srand(2);
+	for (int i = 0; i < number; i++)
+	{
+		spheres[i].origin.x = -200 + rand() % 1201;
+		spheres[i].origin.y = -60 + rand() % 761;
+		spheres[i].origin.z = 50 + rand() % 20;
+		spheres[i].origin.w = 0;
+		// spheres[i].origin.x = 400;
+		// spheres[i].origin.y = 320;
+		// spheres[i].origin.z = 100;
+		// spheres[i].origin.w = 0;
+		spheres[i].radius = 100;
+		// spheres[i].color = 0x00ff0000;
+		spheres[i].color = (64 + rand() % 196) << 16 |
+							(64 + rand() % 196) << 8 |
+							0;
+	printf("generated: %d: (%f,%f,%f) %f %X\n", i, spheres[i].origin.x, spheres[i].origin.y,
+			spheres[i].origin.z, spheres[i].radius, spheres[i].color);
+	}
+	return spheres;
+}
+///////////////
+
+// init scene
+int		read_data(t_scene *scene)
+{
+
+}
+int		init_win(t_window *window);
+int		init_cl(t_clp *clp);
+int		init_renderer(t_cl_program *cl_program);
 /**
 ** @brief
-** output image in window
-** @param p
-** @return ** void
+** default initialization
+** @param window
+** @param cl_program
+** @return ** int
 */
-/* void show_image(t_program *p)
+int		init(t_window *window, t_cl_program *cl_program, t_scene *scene)
 {
-	static SDL_Window	*window = NULL;
-	static SDL_Renderer	*renderer = NULL;
+	read_data(scene);
+	return 0;
+}
 
-	if (!window)
-		window = SDL_CreateWindow("<3", SDL_WINDOWPOS_CENTERED,
-		SDL_WINDOWPOS_CENTERED, p.height, p.widht, NULL);
-} */
-
-struct s_cl_program
+#include "windows.h"
+//NOTE: можно все структуры в одну структуру запихнуть
+//	можно просто сделать перменные в функции
+void	render_loop(t_program *p)
 {
-	cl_program	program;
-	cl_kernel	kernel;
-	cl_mem		input;
-	cl_mem		output;
-};
-typedef struct s_cl_program	t_cl_program;
-
-void render_loop(t_program *p)
-{
-	t_bool		quit;
-	SDL_Event	event;
-	cl_kernel	kernel;
-	cl_mem		buffer;
+	t_window		window;
+	t_cl_program	program;
+	t_scene			scene;
+	t_bool			quit;
+	// t_cl_program	program;
 
 	quit = FALSE;
-	//kernel = clCreateKernel();
-	//create kernel
+	//init first data
+	//init window
+	//init opecl
+	//init renderer
+	t_sphere *m = generate_spheres(10);
+	printf("space between %s and %s: %ld\n", "g", "h", (long)(&m[0]) - (long)(&m[1]));
+	cl_mem spheres = clCreateBuffer(p->clp.context, CL_MEM_READ_WRITE |
+		 CL_MEM_COPY_HOST_PTR, sizeof(t_sphere) * 10, m, &p->clp.ret);
+	assert(!p->clp.ret);
+
+	create_render_program(&p->program, &p->clp, -1);
+	clSetKernelArg(p->program.kernel, 0, sizeof(cl_mem),
+				   (void *)&p->program.output);
+	clSetKernelArg(p->program.kernel, 1, sizeof(cl_mem), &spheres);
+	// clSetKernelArg(p->program.kernel, 2, sizeof(cl_mem), &rays);
+	clEnqueueNDRangeKernel(p->clp.queue, p->program.kernel, 1, NULL,
+						   &p->program.work_size, &p->program.work_group_size, 0, NULL, NULL);
+	clEnqueueReadBuffer(p->clp.queue, p->program.output, CL_TRUE, 0,
+						p->program.work_size * sizeof(uint32_t), p->window.image, 0, NULL, NULL);
 	while (!quit)
 	{
-		if (SDL_PollEvent(&event) != 0)
-		{
-			if (event.type == SDL_QUIT)
-			{
-				quit = 1;
-			}
-			//check input
-			//switch kernel here?
-		}
-		//render image
-		//show rendered image
+		if (catch_event() == 1)
+			quit = TRUE;
+		display_image(&p->window);
+		fps_count();
 	}
 }
 
 /**
 ** @brief
 ** initializing main part of the program
+** there are mostly only constants and malloc
 ** @param program
 ** get address of t_program struct and store info in it
 ** @return ** int
@@ -208,144 +352,51 @@ void render_loop(t_program *p)
 int init_program(t_program *program)
 {
 	t_program	p;
+	t_window	*w;
 
+	fprintf(f, "hello\n");
 	SDL_Init(SDL_INIT_EVERYTHING);
-	p = s_program_default;
-	fprintf(f, "%d %d\n", p.width, p.height);
-	//create sdl window first
-	p.window = SDL_CreateWindow("<3", SDL_WINDOWPOS_CENTERED,SDL_WINDOWPOS_CENTERED,
-		 p.width, p.height, 0);
-	if (!p.window)
-		return -1;
-#ifdef DEBUG
-	assert(p.window);
-#endif
-	//create renderer using sdl window
-	p.renderer = SDL_CreateRenderer(p.window, -1, SDL_RENDERER_ACCELERATED);
-#ifdef DEBUG
-	assert(p.renderer);
-#endif
-	//create image
-	p.image = (uint32_t *)malloc(sizeof(uint32_t) * p.width * p.height);
-#ifdef DEBUG
-	assert(p.image);
-#endif
-	//set image pixel values to 0
-	memset(p.image, 64, sizeof(uint32_t) * p.width * p.height);
-	//create texture to display image in window
-	p.texture = SDL_CreateTexture(p.renderer, SDL_PIXELFORMAT_ARGB8888,
-		SDL_TEXTUREACCESS_STREAMING, p.width, p.height);
-#ifdef DEBUG
-	assert(p.texture);
-#endif
-	//init opencl
+	w = &p.window;
+	w->width = 800;
+	w->height = 640;
+	p.program.work_group_size = 64;
+	p.program.work_size = w->width * w->height;
+	read_kernel("../beautiful_gradient.cl", &p.program.source_str);
+	w->image = (uint32_t *)malloc(sizeof(uint32_t) * p.program.work_size);
+	memset(w->image, 64, sizeof(uint32_t) * p.program.work_size);
+	w->ptr = SDL_CreateWindow("<3", SDL_WINDOWPOS_CENTERED,
+		SDL_WINDOWPOS_CENTERED, w->width, w->height, SDL_WINDOW_RESIZABLE);
+	assert(w->ptr);
+	w->renderer = SDL_CreateRenderer(w->ptr, -1, SDL_RENDERER_ACCELERATED);
+	assert(w->renderer);
+	w->texture = SDL_CreateTexture(w->renderer, SDL_PIXELFORMAT_ARGB8888,
+		SDL_TEXTUREACCESS_STREAMING, w->width, w->height);
+	assert(w->texture);
 	p.clp = init_opencl();
-	p.source_size = read_kernel("../beautiful_gradient.cl", &p.source_str);
-	fprintf(f, "init source size %d\n", p.source_size);
-	p.global_item_size = p.width * p.height;
-	p.local_item_size = 64;
 	*program = p;
+	fprintf(f, "program inited\n");
 }
 
-#if defined(_WIN64)
+#if 0
+#include "windows.h"
 int WinMain(HINSTANCE hInstance,
   			HINSTANCE hPrevInstance,
   			LPSTR     lpCmdLine,
   			int       nShowCmd)
 #else
-int main(int ac, char **av)
+#include "conio.h"
+int main(int argc, char *argv[])
 #endif
 {
-	//SDL_Init(SDL_INIT_EVERYTHING);
-
-	//SDL_Window *window = SDL_CreateWindow("<3", SDL_WINDOWPOS_CENTERED,
-	//	SDL_WINDOWPOS_CENTERED, 800, 640, SDL_WINDOW_SHOWN);
-	//SDL_Renderer *renderer = SDL_CreateRenderer(window, -1 ,
-	//	SDL_RENDERER_ACCELERATED);
-	//uint32_t *image = (uint32_t *)malloc(sizeof(uint32_t) * 800 * 640);
-	//memset(image, 55, sizeof(uint32_t) * 800 * 640);
-	//SDL_Texture *texture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_ARGB8888,
-	//	SDL_TEXTUREACCESS_STREAMING, 800, 640);
-	//t_clp *clp = init_opencl();
-
-	f = fopen("out", "w");
-
 	t_program	params;
-	t_bool		quit;
-	char		*source_str;
-
+	4;
+	printf("ololo\n");
+	f = fopen("out", "w");
+	fprintf(f, "start\n");
+	//read data
 	init_program(&params);
-	uint32_t test = read_kernel("../beautiful_gradient.cl", &source_str);
-	fprintf(f, "%d\n", test);
-	cl_mem buffer = clCreateBuffer(params.clp.context, CL_MEM_WRITE_ONLY,
-		sizeof(uint32_t) * params.width * params.height, NULL, &params.clp.ret);
-
-	cl_program program = clCreateProgramWithSource(params.clp.context, 1,
-		&source_str, NULL, &params.clp.ret);
-	fprintf(f, "%d\n", params.clp.ret);
-	// if (params.clp.ret != CL_SUCCESS)
-	// {
-	// 	// Determine the size of the log
-	// 	size_t log_size;
-	// 	clGetProgramBuildInfo(program, params.clp.de_id`,
-	// 		 CL_PROGRAM_BUILD_LOG, 0, NULL, &log_size);
-
-	// 	// Allocate memory for the log
-	// 	char *log = (char *)malloc(log_size);
-
-	// 	// Get the log
-	// 	clGetProgramBuildInfo(program,  params.clp.de_id,
-	// 		CL_PROGRAM_BUILD_LOG, log_size, log, NULL);
-
-	// 	// Print the log
-	// 	fprintf(f, "%s\n", log);
-	// }
-	clBuildProgram(program, 1, &params.clp.de_id, NULL, NULL, NULL);
-
-	cl_kernel kernel = clCreateKernel(program, "render", &params.clp.ret);
-	cl_kernel kernel2 = clCreateKernel(program, "render2", &params.clp.ret);
-	// if (params.clp.ret != CL_SUCCESS)
-	// {
-	// 	// Determine the size of the log
-	// 	size_t log_size;
-	// 	clGetProgramBuildInfo(program, params.clp.de_id,
-	// 						  CL_PROGRAM_BUILD_LOG, 0, NULL, &log_size);
-
-	// 	// Allocate memory for the log
-	// 	char *log = (char *)malloc(log_size);
-
-	// 	// Get the log
-	// 	clGetProgramBuildInfo(program, params.clp.de_id,
-	// 						  CL_PROGRAM_BUILD_LOG, log_size, log, NULL);
-
-	// 	// Print the log
-	// 	fprintf(f, "%s\n", log);
-	// }
-
-	int offset = 0;
-	clSetKernelArg(kernel2, 0, sizeof(cl_mem), (void *)&buffer);
-	//запуск ядра
-	clEnqueueNDRangeKernel(params.clp.queue, kernel2, 1, NULL,
-						   &params.global_item_size, &params.local_item_size, 0, NULL, NULL);
-	clEnqueueReadBuffer(params.clp.queue, buffer, CL_TRUE, 0,
-						params.global_item_size * sizeof(int), params.image, 0, NULL, NULL);
-	SDL_UpdateTexture(params.texture, NULL, params.image,
-					  sizeof(uint32_t) * params.width);
-	SDL_RenderClear(params.renderer);
-	SDL_RenderCopy(params.renderer, params.texture, NULL, NULL);
-	SDL_RenderPresent(params.renderer);
-
-
-	quit = FALSE;
-	while (!quit)
-	{
-		SDL_Event event;
-		if (SDL_PollEvent(&event) != 0)
-		{
-			if (event.type == SDL_QUIT)
-				quit = 1;
-		}
-	}
-
+	render_loop(&params);
 	SDL_Quit();
+	getch();
+	return (0);
 }
