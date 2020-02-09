@@ -241,51 +241,28 @@ void	fps_count()
 	}
 }
 
-//NOTE: test case. Delete later
-#include "stdlib.h"
-struct s_sphere
-{
-	cl_float4	origin;
-	cl_float	radius;
-	uint32_t	color;
-};
-
-typedef struct s_sphere t_sphere;
-
-t_sphere	*generate_spheres(int number)
-{
-	t_sphere	*spheres;
-
-	spheres = malloc(sizeof(t_sphere) * number);
-	srand(2);
-	for (int i = 0; i < number; i++)
-	{
-		spheres[i].origin.x = -200 + rand() % 1201;
-		spheres[i].origin.y = -60 + rand() % 761;
-		spheres[i].origin.z = 50 + rand() % 20;
-		spheres[i].origin.w = 0;
-		// spheres[i].origin.x = 400;
-		// spheres[i].origin.y = 320;
-		// spheres[i].origin.z = 100;
-		// spheres[i].origin.w = 0;
-		spheres[i].radius = 100;
-		// spheres[i].color = 0x00ff0000;
-		spheres[i].color = (64 + rand() % 196) << 16 |
-							(64 + rand() % 196) << 8 |
-							0;
-	printf("generated: %d: (%f,%f,%f) %f %X\n", i, spheres[i].origin.x, spheres[i].origin.y,
-			spheres[i].origin.z, spheres[i].radius, spheres[i].color);
-	}
-	return spheres;
-}
-///////////////
-
+#define DEFAULT_CAMERA (t_camera){0}
 // init scene
 int		read_data(t_scene *scene)
 {
-
+	scene->camera = camera_default;
 }
-int		init_win(t_window *window);
+int		init_window(t_window *window)
+{
+	window->width = 800; //NOTE: make as define
+	window->height = 640; //NOTE: make as define
+	window->ptr = SDL_CreateWindow("<3", SDL_WINDOWPOS_CENTERED,
+		SDL_WINDOWPOS_CENTERED, window->width, window->height,
+			SDL_WINDOW_RESIZABLE);
+	window->renderer = SDL_CreateRenderer(window->ptr, -1,
+		SDL_RENDERER_ACCELERATED);
+	window->texture = SDL_CreateTexture(window->renderer,
+		SDL_PIXELFORMAT_ARGB8888, SDL_TEXTUREACCESS_STREAMING,
+		window->width, window->height);
+	window->image = (uint32_t *)malloc(sizeof(uint32_t) *
+		window->width * window->height);
+}
+
 int		init_cl(t_clp *clp);
 int		init_renderer(t_cl_program *cl_program);
 /**
@@ -298,6 +275,10 @@ int		init_renderer(t_cl_program *cl_program);
 int		init(t_window *window, t_cl_program *cl_program, t_scene *scene)
 {
 	read_data(scene);
+	init_window(window);
+	cl_program->work_size = window->width * window->height;
+	cl_program->work_group_size = 128;
+	read_kernel("../beautiful_gradient.cl", &cl_program->source_str);
 	return 0;
 }
 
@@ -317,17 +298,10 @@ void	render_loop(t_program *p)
 	//init window
 	//init opecl
 	//init renderer
-	t_sphere *m = generate_spheres(10);
-	printf("space between %s and %s: %ld\n", "g", "h", (long)(&m[0]) - (long)(&m[1]));
-	cl_mem spheres = clCreateBuffer(p->clp.context, CL_MEM_READ_WRITE |
-		 CL_MEM_COPY_HOST_PTR, sizeof(t_sphere) * 10, m, &p->clp.ret);
-	assert(!p->clp.ret);
 
 	create_render_program(&p->program, &p->clp, -1);
 	clSetKernelArg(p->program.kernel, 0, sizeof(cl_mem),
 				   (void *)&p->program.output);
-	clSetKernelArg(p->program.kernel, 1, sizeof(cl_mem), &spheres);
-	// clSetKernelArg(p->program.kernel, 2, sizeof(cl_mem), &rays);
 	clEnqueueNDRangeKernel(p->clp.queue, p->program.kernel, 1, NULL,
 						   &p->program.work_size, &p->program.work_group_size, 0, NULL, NULL);
 	clEnqueueReadBuffer(p->clp.queue, p->program.output, CL_TRUE, 0,

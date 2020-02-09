@@ -116,6 +116,11 @@ struct s_camera
 	cl_float near_z;
 	cl_float far_z;
 	cl_int fov;
+}
+camera_default = {
+	.origin = {
+		.x = 0.0f
+	}
 };
 
 typedef struct s_scene t_scene;
