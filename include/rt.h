@@ -6,7 +6,7 @@
 /*   By: dmelessa <dmelessa@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2020/01/28 15:00:53 by dmelessa          #+#    #+#             */
-/*   Updated: 2020/02/10 18:11:20 by dmelessa         ###   ########.fr       */
+/*   Updated: 2020/02/10 19:55:21 by dmelessa         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,27 +18,16 @@
 # include <stdint.h>
 # include <fcntl.h>
 
-# include <time.h> //for primitive fps count
-
-# define DEBUG
-
-# ifdef DEBUG
-#  include <assert.h>
-# endif
-
-# ifdef __APPLE__
-# 	include "OpenCL/opencl.h"
-# elif _WIN64
-#  include "CL/cl.h"
-#  include "windows.h"
-# endif
+# include <assert.h>
 
 # include "SDL.h"
 
 # include "libft.h"
+# include "world.h"
 
 # define DEFAULT_WIDTH 800
 # define DEFAULT_HEIGHT 640
+
 # define DEFAULT_KERNEL_FILE "./beautiful_gradient.cl"
 # define DEFAULT_KERNEL_NAME "render2"
 
@@ -83,62 +72,6 @@ struct					s_cl_program
 	size_t				work_size;
 	size_t				work_group_size;
 	char				*source_str;
-};
-
-/**
-** @brief
-** top level struct of the program
-** that info and contains other structs
-*/
-typedef struct s_program	t_program;
-struct					s_program
-{
-	t_window			window;
-	t_clp				clp; //opencl common info
-	t_cl_program		program;
-	void				*data;
-};
-
-typedef struct s_ray	t_ray;
-struct					s_ray
-{
-	cl_float4			origin;
-	cl_float4			direction;
-};
-
-typedef struct s_material	t_material;
-struct					s_material
-{
-	cl_int4				color;
-	cl_float			kd;
-	cl_float			ks;
-	cl_float			n;
-	void				*texture;
-};
-
-typedef struct s_obj	t_obj;
-struct					s_obj
-{
-	cl_int				type;
-	t_material			material;
-	cl_float4			origin;
-	cl_float4			direction;
-	cl_float			r;
-	cl_float			r2;
-	cl_float			angle;
-};
-
-typedef struct s_camera	t_camera;
-struct					s_camera
-{
-	cl_float4			origin;
-	cl_float4			direction;
-	cl_float			ratio;
-	cl_float			inv_w;
-	cl_float			inv_h;
-	cl_float			near_z;
-	cl_float			far_z;
-	cl_int				fov;
 };
 
 typedef struct s_scene	t_scene;

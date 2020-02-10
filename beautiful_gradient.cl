@@ -1,17 +1,11 @@
+#include "world.h"
+
 struct	s_ray
 {
 	float4	origin;
 	float4	direction;
 };
 typedef struct s_ray	t_ray;
-
-struct s_sphere
-{
-	float4	origin;
-	float	radius;
-	int		color;
-};
-typedef struct s_sphere	t_sphere;
 
 t_ray	cast_ray(int x, int y)
 {
@@ -22,7 +16,7 @@ t_ray	cast_ray(int x, int y)
 	return ray;
 }
 
-bool	sphere_intersection(t_ray ray, t_sphere sphere, float *tr)
+bool	sphere_intersection(t_ray ray, t_obj sphere, float *tr)
 {
 #if 0 // geometric solution
 
@@ -31,9 +25,9 @@ bool	sphere_intersection(t_ray ray, t_sphere sphere, float *tr)
 	if (tca < 0.0f)
 		return false;
 	float d2 = dot(L, L) - tca * tca;
-	if (d2 > sphere.radius * sphere.radius) //r^2 should be precomputed
+	if (d2 > sphere.r2) //r^2 should be precomputed
 		return false;
-	float thc = sqrt(sphere.radius * sphere.radius);
+	float thc = sqrt(sphere.r2 - d2);
 	float t = tca - thc;
 	if (t < 0.0f)
 	{
@@ -49,7 +43,7 @@ bool	sphere_intersection(t_ray ray, t_sphere sphere, float *tr)
 	float4 L = sphere.origin - ray.origin;
 	float a = 1; //NOTE: if ray.direction normalized!
 	float b = dot(ray.direction, L); //b/2
-	float c = dot(L, L) - sphere.radius * sphere.radius;
+	float c = dot(L, L) - sphere.r2;
 	float disc = b * b - c; // DISC = (b/2)^2-ac
 
 	if (disc < 0.0f)

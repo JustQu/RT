@@ -6,7 +6,7 @@
 /*   By: dmelessa <dmelessa@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2020/02/10 17:43:55 by dmelessa          #+#    #+#             */
-/*   Updated: 2020/02/10 18:30:54 by dmelessa         ###   ########.fr       */
+/*   Updated: 2020/02/10 19:41:55 by dmelessa         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -176,7 +176,7 @@ int		init_renderer(t_cl_program *program)
 		(const char **)&program->source_str, NULL, &ret);
 	assert(!ret);
 	ret = clBuildProgram(program->program, 1, &program->clp.de_id,
-		NULL, NULL, NULL);
+		"-I./include/", NULL, NULL);
 	assert(!ret);
 	program->kernel = clCreateKernel(program->program, DEFAULT_KERNEL_NAME,
 		&ret);

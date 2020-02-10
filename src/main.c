@@ -6,7 +6,7 @@
 /*   By: dmelessa <dmelessa@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2020/01/28 15:18:45 by dmelessa          #+#    #+#             */
-/*   Updated: 2020/02/10 18:29:59 by dmelessa         ###   ########.fr       */
+/*   Updated: 2020/02/10 19:17:20 by dmelessa         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -85,7 +85,6 @@ int		catch_event()
 	}
 	return 0;
 }
-
 
 
 void	render_loop()
