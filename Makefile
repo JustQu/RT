@@ -5,76 +5,79 @@
 #                                                     +:+ +:+         +:+      #
 #    By: dmelessa <dmelessa@student.42.fr>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
-#    Created: 2019/09/20 12:27:08 by dmelessa          #+#    #+#              #
-#    Updated: 2019/09/20 12:27:08 by dmelessa         ###   ########.fr        #
+#    Created: 2020/02/10 14:33:34 by dmelessa          #+#    #+#              #
+#    Updated: 2020/02/10 18:28:50 by dmelessa         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
-CC = gcc
-
+NAME = ./RT
+CC = clang
 RM = rm -f
+CURRENTDIR = .
 
 UNAME_S := $(shell uname -s)
 
-CFLAGS = -O3\
-		 -I.\
-		 -I$(INCDIR)\
+#SYSTEM:
+SYSTEM = $(shell uname)
+MACOS = Darwin
+LINUX = Linux
+
+CFLAGS = -I$(INCDIR)\
 		 -I$(LIBFTINC)\
-		 -I$(RTMATHINC)\
-		 -I$(SDL2INC)
+		 -I$(SDL2INC)\
+		 -Wall\
+		 -Werror\
+		 -Wextra
 
-LDLIBS = -lm\
-		 -lft\
-		 -lrtmath\
-		 -framework SDL2\
-		 -framework OpenCL
+ifeq ($(SYSTEM), $(MACOS))
+	LDLIBS = -lm\
+			 -lft\
+			 -framework SDL2\
+			 -framework OpenCL
 
-LDFLAGS	=	-L$(LIBFTDIR)\
-			-L$(RTMATHDIR)\
-			-F ./frameworks\
-			-rpath ./frameworks
+	LDFLAGS = -L$(LIBFTDIR)\
+			  -F $(LIBSDIR)\
+			  -rpath $(LIBSDIR)
+else ifeq ($(SYSTEM), $(LINUX))
+	LDLIBS = -lm\
+			 -lft\
+			 -l SDL2\
+			 -l OpenCL
+
+	LDFLAGS	=	-L$(LIBFTDIR)
+endif
+
+
+LIBSDIR = $(CURRENTDIR)/Libs
 
 LIBFT = libft.a
-LIBFTDIR = ./libft
+LIBFTDIR = $(LIBSDIR)/libft
 LIBFTINC = $(LIBFTDIR)/includes
 
-RTMATH = librtmath.a
-RTMATHDIR = ./rtmath
-RTMATHINC = $(RTMATHDIR)/includes
-
-SDL2 = libS
-SDL2DIR = ./frameworks/SDL2.framework
+#MACOS
+SDL2DIR = $(LIBSDIR)/SDL2.framework
 SDL2INC = $(SDL2DIR)/Headers
 
-INCDIR = ./includes/
+INCDIR = $(CURRENTDIR)/include/
 INCS = rt.h
 INCS := $(addprefix $(INCDIR), $(INCS))
 
-SRCSDIR = ./src/
-SRCS = main.c draw.c control.c sphere.c reader.c saver.c camera_movement.c\
-		convert_to_16.c ft_itoaf.c list_funcs.c object_initiation.c\
-		other_initiation.c other_out.c out_objects.c out_params.c\
-		param_reading.c utils.c cone.c cylinder.c normals.c\
-		plane.c intersection.c rays.c read_kernel.c
+SRCSDIR	= ./src/
+SRCS = main.c init.c
 
-OBJSDIR	=	./objs/
-OBJS	=	$(addprefix $(OBJSDIR), $(SRCS:.c=.o))
+OBJSDIR = ./obj/
+OBJS = $(addprefix $(OBJSDIR), $(SRCS:.c=.o))
 
-NAME = ./RT
+all: $(LIBFT) $(NAME)
 
-.PHONY: all
-all: $(LIBFT) $(RTMATH) $(NAME)
-
-$(NAME): $(OBJS) 
+$(NAME): $(OBJS) $(INCS)
 	@echo 'making executable'
-	$(CC) $(LDLIBS) $(LDFLAGS) -o $@ $(OBJS) -framework OpenCL
+	$(CC) -o $@ $(OBJS) $(LDLIBS) $(LDFLAGS)
 	@echo DONE!
+
 
 $(LIBFT):
 	@make -C $(LIBFTDIR)
-
-$(RTMATH):
-	@make -C $(RTMATHDIR)
 
 $(OBJS): $(OBJSDIR)%.o: $(SRCSDIR)%.c | $(OBJSDIR)
 	$(CC) $(CFLAGS) -c $< -o $@
@@ -84,20 +87,15 @@ $(OBJS): $(INCS)
 $(OBJSDIR):
 	mkdir $@
 
-.PHONY: clean
 clean:
 	@echo deliting object files
 	@$(RM) $(OBJS)
 	@make -C $(LIBFTDIR) clean
-	@make -C $(RTMATHDIR) clean
 
-.PHONY: fclean
 fclean: clean
 	@echo deliting executable file
 	@$(RM) $(NAME)
 	@make -C $(LIBFTDIR) fclean
-	@make -C $(RTMATHDIR) fclean
 
-
-.PHONY: re
+.PHONY: all clean fclean re
 re:	fclean all

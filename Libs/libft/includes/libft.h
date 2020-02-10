@@ -6,7 +6,7 @@
 /*   By: dmelessa <dmelessa@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2019/02/05 16:59:08 by dmelessa          #+#    #+#             */
-/*   Updated: 2019/09/14 18:32:39 by dmelessa         ###   ########.fr       */
+/*   Updated: 2020/02/10 15:29:52 by dmelessa         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,7 +15,7 @@
 
 # include <string.h>
 # include <stdlib.h>
-# ifdef __linux__
+# ifdef __APPLE__
 #  include <unistd.h>
 # else
 #  include <io.h>
