@@ -18,9 +18,9 @@ RM	=	rm -f
 
 #compiler flags
 CFLAGS	=	-I$(INCSDIR)\
-			-Wall\
+#			-Wall\
 			-Werror\
-			-Wextra\
+			-Wextra
 			-std=c99\
 			-pedantic\
 			-O3
