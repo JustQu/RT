@@ -11,7 +11,7 @@
 /* ************************************************************************** */
 
 #ifndef  WORLD_H
-# include WORLD_H
+# define WORLD_H
 
 # ifdef __APPLE__
 # 	include "OpenCL/opencl.h"
@@ -20,14 +20,14 @@
 #  include "windows.h"
 # endif
 
-# ifdef __OPENCL_C_VERSION__
-typedef cl_float4 float4;
-typedef cl_float3 float3;
-typedef cl_float float;
-typedef cl_int4 int4;
-typedef cl_int3 int3;
-typedef cl_int cl_int;
-# endif
+// # ifdef __OPENCL_C_VERSION__
+// #define cl_float4 float4;
+// #define cl_float3 float3;
+// #define cl_float float;
+// #define cl_int4 int4;
+// #define cl_int3 int3;
+// #define cl_int int;
+// # endif
 
 typedef struct s_material	t_material;
 struct					s_material

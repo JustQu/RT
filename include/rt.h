@@ -81,6 +81,6 @@ struct					s_scene
 	t_camera			camera;
 };
 
-int		init();
+int init(t_window *window, t_cl_program *cl_program, t_scene *scene);
 
 #endif

@@ -176,7 +176,8 @@ int		init_renderer(t_cl_program *program)
 		(const char **)&program->source_str, NULL, &ret);
 	assert(!ret);
 	ret = clBuildProgram(program->program, 1, &program->clp.de_id,
-		"-I./include/", NULL, NULL);
+		"-I../include/ -I./include/", NULL, NULL);
+	cl_error(program, &program->clp, ret);
 	assert(!ret);
 	program->kernel = clCreateKernel(program->program, DEFAULT_KERNEL_NAME,
 		&ret);
