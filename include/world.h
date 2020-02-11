@@ -13,26 +13,29 @@
 #ifndef  WORLD_H
 # define WORLD_H
 
-# ifdef __APPLE__
-# 	include "OpenCL/opencl.h"
-# elif _WIN64
-#  include "CL/cl.h"
-#  include "windows.h"
+# define WORK_GROUP_SIZE 128
+
+# ifndef __OPENCL_C_VERSION__
+#  ifdef __APPLE__
+#   include "OpenCL/opencl.h"
+#  else
+#   include "CL/cl.h"
+#  endif
 # endif
 
-// # ifdef __OPENCL_C_VERSION__
-// #define cl_float4 float4;
-// #define cl_float3 float3;
-// #define cl_float float;
-// #define cl_int4 int4;
-// #define cl_int3 int3;
-// #define cl_int int;
-// # endif
+# ifdef __OPENCL_C_VERSION__
+#define cl_float4 float4
+#define cl_float3 float3
+#define cl_float float
+#define cl_int4 int4
+#define cl_int3 int3
+#define cl_int int
+# endif
 
 typedef struct s_material	t_material;
 struct					s_material
 {
-	cl_int4				color;
+	cl_int				color;
 	cl_float			kd;
 	cl_float			ks;
 	cl_float			n;

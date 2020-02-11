@@ -26,7 +26,7 @@ CFLAGS	=	-I$(INCSDIR)\
 			-O3
 
 #linker flags
-LDFLAGS	= 
+LDFLAGS	=
 
 #-------------------------------------------------------------------------------
 #source fiiles and their directory

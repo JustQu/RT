@@ -15,10 +15,10 @@
 
 # include <string.h>
 # include <stdlib.h>
-# ifdef __APPLE__
-#  include <unistd.h>
-# else
+# ifdef _WIN64
 #  include <io.h>
+# else
+#  include <unistd.h>
 # endif
 
 # define BUFF_SIZE 32

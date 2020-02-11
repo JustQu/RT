@@ -17,7 +17,6 @@
 # include <stdio.h>
 # include <stdint.h>
 # include <fcntl.h>
-
 # include <assert.h>
 
 # include "SDL.h"
@@ -28,7 +27,12 @@
 # define DEFAULT_WIDTH 800
 # define DEFAULT_HEIGHT 640
 
-# define DEFAULT_KERNEL_FILE "./beautiful_gradient.cl"
+# ifdef _WIN64
+#  define DEFAULT_KERNEL_FILE "../beautiful_gradient.cl"
+# else
+#  define DEFAULT_KERNEL_FILE "./beautiful_gradient.cl"
+# endif
+
 # define DEFAULT_KERNEL_NAME "render2"
 
 typedef int	t_bool;
@@ -60,8 +64,16 @@ typedef struct			s_window
 	int					height;
 }						t_window;
 
-typedef struct s_cl_program	t_cl_program;
+enum	e_types
+{
+	sphere,
+	plane,
+	cone,
+	cylinder
+};
+typedef enum e_types	t_type;
 
+typedef struct s_cl_program	t_cl_program;
 struct					s_cl_program
 {
 	t_clp				clp;
@@ -77,8 +89,9 @@ struct					s_cl_program
 typedef struct s_scene	t_scene;
 struct					s_scene
 {
-	t_obj				objects;
+	t_obj				*objects;
 	t_camera			camera;
+	int					nobjects;
 };
 
 int init(t_window *window, t_cl_program *cl_program, t_scene *scene);

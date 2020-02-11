@@ -31,7 +31,6 @@ t_camera camera_default = {
 	.fov = 90
 };
 
-
 /**
 ** @TODO: Maybe rewrite?
 ** @brief
@@ -104,6 +103,12 @@ void cl_error(t_cl_program *program, t_clp *clp, int code)
 int		read_data(t_scene *scene)
 {
 	scene->camera = camera_default;
+	scene->nobjects = 10;
+	scene->objects = (t_obj *)malloc(sizeof(t_obj) * scene->nobjects);
+
+	//test cases
+	scene->objects[0].type = 1;
+	//
 	return (0);
 }
 
@@ -115,8 +120,8 @@ int		read_data(t_scene *scene)
 */
 int		init_window(t_window *window)
 {
-	window->width = DEFAULT_WIDTH; //NOTE: make default value as define
-	window->height = DEFAULT_HEIGHT; //NOTE: make default value as define
+	window->width = DEFAULT_WIDTH;
+	window->height = DEFAULT_HEIGHT;
 	window->ptr = SDL_CreateWindow("<3", SDL_WINDOWPOS_CENTERED,
 				SDL_WINDOWPOS_CENTERED, window->width, window->height,
 				SDL_WINDOW_RESIZABLE);
@@ -132,7 +137,8 @@ int		init_window(t_window *window)
 
 /**
 ** @brief
-** get opencl GPU device
+** get
+**  opencl GPU device
 ** create opencl context and command queue
 ** @param clp
 ** @return ** int

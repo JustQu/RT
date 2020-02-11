@@ -15,7 +15,7 @@ CC = clang
 RM = rm -f
 CURRENTDIR = .
 
-UNAME_S := $(shell uname -s)
+UNAME_S = $(shell uname -s)
 
 #SYSTEM:
 SYSTEM = $(shell uname)
