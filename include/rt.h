@@ -18,26 +18,28 @@
 # include <stdint.h>
 # include <fcntl.h>
 # include <assert.h>
+# include <math.h>
 
 # include "SDL.h"
 
 # include "libft.h"
 # include "world.h"
 
-# define DEFAULT_WIDTH 800
-# define DEFAULT_HEIGHT 640
-
 # ifdef _WIN64
-#  define DEFAULT_KERNEL_FILE "../beautiful_gradient.cl"
+#  define DEFAULT_KERNEL_FILE "./ray_tracer.cl"
 # else
 #  define DEFAULT_KERNEL_FILE "./beautiful_gradient.cl"
 # endif
 
-# define DEFAULT_KERNEL_NAME "render2"
+# define DEFAULT_KERNEL_NAME "main"
 
 typedef int	t_bool;
-# define TRUE 1
-# define FALSE 0
+# ifndef TRUE
+#  define TRUE 1
+# endif
+# ifndef FALSE
+#  define FALSE 0
+# endif
 
 /**
 ** @brief
@@ -64,15 +66,6 @@ typedef struct			s_window
 	int					height;
 }						t_window;
 
-enum	e_types
-{
-	sphere,
-	plane,
-	cone,
-	cylinder
-};
-typedef enum e_types	t_type;
-
 typedef struct s_cl_program	t_cl_program;
 struct					s_cl_program
 {
@@ -81,6 +74,7 @@ struct					s_cl_program
 	cl_kernel			kernel;
 	cl_mem				input;
 	cl_mem				output;
+	cl_mem				triangles;
 	size_t				work_size;
 	size_t				work_group_size;
 	char				*source_str;
@@ -90,8 +84,10 @@ typedef struct s_scene	t_scene;
 struct					s_scene
 {
 	t_obj				*objects;
+	t_triangle			*triangles;
 	t_camera			camera;
 	int					nobjects;
+	int					ntriangles;
 };
 
 int init(t_window *window, t_cl_program *cl_program, t_scene *scene);

@@ -100,8 +100,10 @@ void	render_loop()
 	{
 		if (catch_event() == 1)
 			quit = TRUE;
-		clSetKernelArg(program.kernel, 0, sizeof(cl_mem),
-			(void *)&program.output);
+		clSetKernelArg(program.kernel, 0, sizeof(cl_mem), (void *)&program.output);
+		clSetKernelArg(program.kernel, 1, sizeof(cl_mem), (void *)&program.input);
+		clSetKernelArg(program.kernel, 2, sizeof(t_camera), (void *)&scene.camera);
+		clSetKernelArg(program.kernel, 3, sizeof(cl_mem), (void *)&program.triangles);
 		clEnqueueNDRangeKernel(program.clp.queue, program.kernel, 1, NULL,
 			&program.work_size, &program.work_group_size, 0, NULL, NULL);
 		clEnqueueReadBuffer(program.clp.queue, program.output, CL_TRUE, 0,
@@ -112,6 +114,9 @@ void	render_loop()
 
 int main(void)
 {
+	printf("t_mat: %zd\n", sizeof(t_material));
+	printf("t_obj: %zd\n", sizeof(t_obj));
+	printf("t_cam: %zd\n", sizeof(t_camera));
 	render_loop();
 	SDL_Quit();
 	return (0);

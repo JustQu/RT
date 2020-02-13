@@ -12,11 +12,11 @@
 
 #include "rt.h"
 
-t_camera camera_default = {
+const t_camera camera_default = {
 	.origin = {
 		.x = 0.0f,
 		.y = 0.0f,
-		.z = -1.0f,
+		.z = -3.0f,
 		.w = 0.0f
 	},
 	.direction = {
@@ -25,10 +25,181 @@ t_camera camera_default = {
 		.z = 1.0f,
 		.w = 0.0f
 	},
-	.ratio = DEFAULT_WIDTH / DEFAULT_HEIGHT,
-	.inv_w = 1 / DEFAULT_WIDTH,
-	.inv_h = 1 / DEFAULT_HEIGHT,
-	.fov = 90
+	.ratio = (float)DEFAULT_WIDTH / (float)DEFAULT_HEIGHT,
+	.inv_w = 1.0f / DEFAULT_WIDTH,
+	.inv_h = 1.0f / DEFAULT_HEIGHT,
+	.angle = 1.0f,
+	.fov = DEFAULT_FOV
+};
+
+const t_material default_material = {
+	.color = 0x0076448A,
+	.kd = 0.5,
+	.ks = 0.5,
+	.n = 50};
+
+t_obj default_sphere = {
+	.type = sphere,
+	.origin = {
+		.x = 0.0f,
+		.y = 0.0f,
+		.z = 1.0f,
+		.w = 0.0f
+	},
+	.r = 1.0f,
+	.r2 = 1.0f,
+	.material = {
+		.color = 0x0076448A,
+		.kd = 0.5,
+		.ks = 0.5,
+		.n = 50
+	}
+};
+
+t_obj default_plane = {
+	.type = plane,
+	.origin = {
+		.x = -1.0f,
+		.y = 0.0f,
+		.z = 0.0f,
+		.w = 0.0f
+	},
+	.direction = {
+		.x = 1.0f,
+		.y = 0.0f,
+		.z = 0.0f,
+		.w = 0.0f
+	},
+	.material = {
+		.color = 0x00148869
+	}
+};
+t_obj default_cylinder = {
+	.type = cylinder,
+	.origin = {
+		.x = 0.0f,
+		.y = 0.0f,
+		.z = 1.0f,
+		.w = 0.0f
+	},
+	.direction = {
+		.x = 0.0f,
+		.y = 1.0f,
+		.z = 0.0f,
+		.w = 0.0f
+	},
+	.r = 1.0f,
+	.r2 = 1.0f,
+	.maxm = 1.0f,//max height of cylinder
+	.material = {
+		.color = 0x001002af
+	}
+};
+
+t_obj default_cone = {
+	.type = cone,
+	.origin = {
+		.x = 0.0f,
+		.y = 0.0f,
+		.z = 1.0f,
+		.w = 0.0f,
+	},
+	.direction = {
+		.x = 0.0f,
+		.y = 1.0f,
+		.z = 0.0f,
+		.w = 0.0f,
+	},
+	.angle = 60.0f * M_PI / 180.0f,
+	.r = 0.57735026919,
+	.r2 = 1.33333333333,
+	.maxm = 2.0f,
+	.minm = 1.0f,
+	.material = {
+		.color = 0x00fa0fa0
+	}
+};
+
+t_obj	default_paraboloid = {
+	.type = paraboloid,
+	.origin = {
+		.x = 0.0f,
+		.y = 0.0f,
+		.z = 1.0f,
+		.w = 0.0f
+	},
+	.direction = {
+		.x = 0.0f,
+		.y = 1.0f,
+		.z = 0.0f,
+		.w = 0.0f
+	},
+	.r = 0.2f,
+	.minm = 0.4f,
+	.maxm = 1.5f,
+	.material = {
+		.color = 0x05f000f
+	}
+};
+
+t_obj	default_torus = {
+	.type = torus,
+	.origin = {
+		.x = 0.0f,
+		.y = 0.0f,
+		.z = 1.0f,
+		.w = 0.0f
+	},
+	.direction = {
+		.x = 0.0f,
+		.y = 0.8f,
+		.z = 0.6f,
+		.w = 0.0f
+	},
+	.r = 1.0f,
+	.r2 = 0.5f,
+	.material = {
+		.color = 0x00bf8f0f
+	}
+};
+
+t_triangle default_triangle = {
+	.vertex1 = {
+		.x = -1.0f,
+		.y = -1.0f,
+		.z = 0.0f,
+		.w = 0.0f
+	},
+	.vertex2 = {
+		.x = 1.0f,
+		.y = -1.0f,
+		.z = 0.0f,
+		.w = 0.0f
+	},
+	.vertex3 = {
+		.x = 0.0f,
+		.y = 1.0f,
+		.z = 0.0f,
+		.w = 0.0f
+	},
+	.vector1 = {
+		.x = 2.0f,
+		.y = 0.0f,
+		.z = 0.0f,
+		.w = 0.0f,
+	},
+	.vector2 = {
+		.x = 1.0f,
+		.y = 2.0f,
+		.z = 0.0f,
+		.w = 0.0f
+	},
+	.normal = {
+		.x = 0.0f,
+		.y = 0.0f,
+		.z = 1.0f,
+		.w = 0.0f
+	}
 };
 
 /**
@@ -39,7 +210,8 @@ t_camera camera_default = {
 ** @param str
 ** @return ** size_t
 */
-size_t	read_kernel(char *file_name, char **str)
+size_t
+read_kernel(char *file_name, char **str)
 {
 	int		fd;
 	char	*tmp;
@@ -104,10 +276,20 @@ int		read_data(t_scene *scene)
 {
 	scene->camera = camera_default;
 	scene->nobjects = 10;
+	scene->ntriangles = 1;
 	scene->objects = (t_obj *)malloc(sizeof(t_obj) * scene->nobjects);
+	scene->triangles = (t_triangle *)malloc(sizeof(t_triangle) * scene->ntriangles);
 
 	//test cases
-	scene->objects[0].type = 1;
+	// scene->objects[0] = default_sphere;
+	// scene->objects[0].origin.x = 0;
+	// scene->objects[0].origin.y = 0;
+	// scene->objects[0].origin.z = 1.0f;
+	// scene->objects[0].r = 1;
+	// scene->objects[0].r2 = 1;
+
+	scene->objects[0] = default_torus;
+	scene->triangles[0] = default_triangle;
 	//
 	return (0);
 }
@@ -169,14 +351,21 @@ int		init_cl(t_clp *clp)
 ** @param cl_program
 ** @return ** int
 */
-int		init_renderer(t_cl_program *program)
+int		init_renderer(t_cl_program *program, t_scene *scene)
 {
 	int		ret;
 
 	init_cl(&program->clp);
 	read_kernel(DEFAULT_KERNEL_FILE, &program->source_str);
+	program->input = clCreateBuffer(program->clp.context, CL_MEM_READ_ONLY |
+		CL_MEM_COPY_HOST_PTR, sizeof(t_obj) * scene->nobjects, scene->objects,
+		 &ret);
 	program->output = clCreateBuffer(program->clp.context,
-		CL_MEM_READ_ONLY, sizeof(uint32_t) * program->work_size, NULL, &ret);
+		CL_MEM_WRITE_ONLY, sizeof(uint32_t) * program->work_size, NULL, &ret);
+	assert(!ret);
+	program->triangles = clCreateBuffer(program->clp.context, CL_MEM_READ_ONLY |
+		CL_MEM_COPY_HOST_PTR, sizeof(t_triangle) * scene->ntriangles,
+		scene->triangles, &ret);
 	assert(!ret);
 	program->program = clCreateProgramWithSource(program->clp.context, 1,
 		(const char **)&program->source_str, NULL, &ret);
@@ -187,6 +376,7 @@ int		init_renderer(t_cl_program *program)
 	assert(!ret);
 	program->kernel = clCreateKernel(program->program, DEFAULT_KERNEL_NAME,
 		&ret);
+	cl_error(program, &program->clp, ret);
 	assert(!ret);
 	return (0);
 }
@@ -204,6 +394,6 @@ int		init(t_window *window, t_cl_program *cl_program, t_scene *scene)
 	init_window(window);
 	cl_program->work_size = window->width * window->height;
 	cl_program->work_group_size = 128;
-	init_renderer(cl_program);
+	init_renderer(cl_program, scene);
 	return 0;
 }
