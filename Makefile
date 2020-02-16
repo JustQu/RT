@@ -6,7 +6,7 @@
 #    By: dmelessa <dmelessa@student.42.fr>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2020/02/10 14:33:34 by dmelessa          #+#    #+#              #
-#    Updated: 2020/02/10 18:28:50 by dmelessa         ###   ########.fr        #
+#    Updated: 2020/02/16 19:19:53 by dmelessa         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -15,10 +15,10 @@ CC = gcc
 RM = rm -f
 CURRENTDIR = .
 
-UNAME_S = $(shell uname -s)
+#UNAME_S = $(shell uname -s)
 
 #SYSTEM:
-SYSTEM = $(shell uname)
+#SYSTEM = $(shell uname)
 MACOS = Darwin
 LINUX = Linux
 
@@ -28,7 +28,6 @@ CFLAGS = -I$(INCDIR)\
 #		 -Wall\
 		 -Werror\
 		 -Wextra
-
 ifeq ($(SYSTEM), $(MACOS))
 	LDLIBS = -lm\
 			 -lft\
@@ -63,7 +62,8 @@ INCS = rt.h
 INCS := $(addprefix $(INCDIR), $(INCS))
 
 SRCSDIR	= ./src/
-SRCS = main.c init.c
+SRCS =	main.c init.c init_window.c catch_event.c\
+		read_data.c create_program.c error_handling.c
 
 OBJSDIR = ./obj/
 OBJS = $(addprefix $(OBJSDIR), $(SRCS:.c=.o))

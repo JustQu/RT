@@ -417,7 +417,6 @@ int		get_point_color(t_camera camera,
 	}
 	if (mint >= 1.0f && mint < 10000.0f)
 	{
-		// printf("in\n");
 		return objects[id].material.color;
 	}
 	else
@@ -433,22 +432,6 @@ __kernel void main(
 	private int		global_id = get_global_id(0);
 	private int		x = global_id % DEFAULT_WIDTH;
 	private int		y = global_id / DEFAULT_WIDTH;
-	// private t_ray	ray;
-	// ray = cast_primal_ray(camera, x, y);
 	if (global_id < DEFAULT_WIDTH * DEFAULT_HEIGHT)
 		output_image[global_id] = get_point_color(camera, objects, nobjects, x, y);
-	// if (box_intersection(ray, box))
-	// 	output[global_id] = 0x0000ffaf;
-	// else
-	// 	output[global_id] = 0x0000000f;
-
-	// if (triangle_intersection(ray, triangles[0], &t))
-		// output[global_id] = 0x0000ffaf;
-	// else
-		// output[global_id] = 0x0000000f;
-
-	// if (intersection(ray, objects, &t))
-		// output[global_id] = (objects + 0)->material.color;
-	// else
-		// output[global_id] = 0x0000000f;
 }

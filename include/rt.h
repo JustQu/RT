@@ -30,7 +30,7 @@
 # include "world.h"
 
 # ifdef _WIN64
-#  define DEFAULT_KERNEL_FILE "./src/cl/ray_tracer.cl"
+#  define DEFAULT_KERNEL_FILE "ray_tracer.cl"
 # else
 #  define DEFAULT_KERNEL_FILE "./src/cl/beautiful_gradient.cl"
 # endif
@@ -38,6 +38,17 @@
 # define DEFAULT_KERNEL_NAME "main"
 
 # define DEFAULT_KERNEL_INCLUDE "-I. -I./include -I./src/cl"
+# define DEFAULT_WORK_SIZE DEFAULT_WIDTH * DEFAULT_HEIGHT
+# define DEFAULT_WIDTH 1200
+# define DEFAULT_HEIGHT 720
+
+# ifdef _WIN64
+#	define DEFAULT_KERNEL_DIR "./src/cl/"
+# else
+#	define DEFAULT_KERNEL_DIR "./src_cl/"
+# endif
+
+# define FILES_NUM 1
 
 typedef int	t_bool;
 # ifndef TRUE
@@ -83,7 +94,6 @@ struct					s_cl_program
 	cl_mem				triangles;
 	size_t				work_size;
 	size_t				work_group_size;
-	char				*source_str;
 };
 
 typedef struct s_scene	t_scene;
@@ -97,6 +107,13 @@ struct					s_scene
 	int					ntriangles;
 };
 
-int init(t_window *window, t_cl_program *cl_program, t_scene *scene);
+cl_program	create_program(cl_context context);
+int			read_data(t_scene *scene);
+int			init_window(t_window *window);
+int 		init(t_window *window, t_cl_program *cl_program, t_scene *scene);
+
+int			catch_event();
+
+void		cl_error(t_cl_program *program, t_clp *clp, int code);
 
 #endif
