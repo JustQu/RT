@@ -12,11 +12,11 @@
 
 #include "rt.h"
 
-const t_camera camera_default = {
+static const t_camera	camera_default = {
 	.origin = {
 		.x = 0.0f,
-		.y = 0.0f,
-		.z = -3.0f,
+		.y = 2.0f,
+		.z = -1.0f,
 		.w = 0.0f
 	},
 	.direction = {
@@ -28,17 +28,18 @@ const t_camera camera_default = {
 	.ratio = (float)DEFAULT_WIDTH / (float)DEFAULT_HEIGHT,
 	.inv_w = 1.0f / DEFAULT_WIDTH,
 	.inv_h = 1.0f / DEFAULT_HEIGHT,
-	.angle = 1.0f,
-	.fov = DEFAULT_FOV
+	.angle = 1.7320508757,
+	.fov = 120
 };
 
-const t_material default_material = {
-	.color = 0x0076448A,
+static const t_material	default_material = {
+	.color = 0x0000afff,
 	.kd = 0.5,
 	.ks = 0.5,
-	.n = 50};
+	.n = 50
+};
 
-t_obj default_sphere = {
+static const t_obj		default_sphere = {
 	.type = sphere,
 	.origin = {
 		.x = 0.0f,
@@ -56,17 +57,17 @@ t_obj default_sphere = {
 	}
 };
 
-t_obj default_plane = {
+static const t_obj		default_plane = {
 	.type = plane,
 	.origin = {
-		.x = -1.0f,
-		.y = 0.0f,
+		.x = 0.0f,
+		.y = -1.0f,
 		.z = 0.0f,
 		.w = 0.0f
 	},
 	.direction = {
-		.x = 1.0f,
-		.y = 0.0f,
+		.x = 0.0f,
+		.y = 1.0f,
 		.z = 0.0f,
 		.w = 0.0f
 	},
@@ -74,7 +75,8 @@ t_obj default_plane = {
 		.color = 0x00148869
 	}
 };
-t_obj default_cylinder = {
+
+static const t_obj		default_cylinder = {
 	.type = cylinder,
 	.origin = {
 		.x = 0.0f,
@@ -96,36 +98,36 @@ t_obj default_cylinder = {
 	}
 };
 
-t_obj default_cone = {
+static const t_obj default_cone = {
 	.type = cone,
 	.origin = {
-		.x = 0.0f,
-		.y = 0.0f,
-		.z = 1.0f,
+		.x = -3.0f,
+		.y = 4.0f,
+		.z = 6.0f,
 		.w = 0.0f,
 	},
 	.direction = {
 		.x = 0.0f,
-		.y = 1.0f,
+		.y = -1.0f,
 		.z = 0.0f,
 		.w = 0.0f,
 	},
-	.angle = 60.0f * M_PI / 180.0f,
+	.angle = 60.0f * M_PI / 180.0f, //radians
 	.r = 0.57735026919,
-	.r2 = 1.33333333333,
-	.maxm = 2.0f,
-	.minm = 1.0f,
+	.r2 = 1.33333333333, //tan(angle / 2) + 1
+	.maxm = 3.0f,
+	.minm = 0.0f,//?? this is the right way
 	.material = {
-		.color = 0x00fa0fa0
+		.color = 0x00d4ca19
 	}
 };
 
-t_obj	default_paraboloid = {
+static const t_obj		default_paraboloid = {
 	.type = paraboloid,
 	.origin = {
-		.x = 0.0f,
-		.y = 0.0f,
-		.z = 1.0f,
+		.x = 2.0f,
+		.y = 1.0f,
+		.z = 5.0f,
 		.w = 0.0f
 	},
 	.direction = {
@@ -134,36 +136,36 @@ t_obj	default_paraboloid = {
 		.z = 0.0f,
 		.w = 0.0f
 	},
-	.r = 0.2f,
-	.minm = 0.4f,
-	.maxm = 1.5f,
+	.r = 0.3f,
+	.minm = 0.0f,
+	.maxm = 2.0f,
 	.material = {
 		.color = 0x05f000f
 	}
 };
 
-t_obj	default_torus = {
+static const t_obj		default_torus = {
 	.type = torus,
 	.origin = {
 		.x = 0.0f,
-		.y = 0.0f,
+		.y = 1.0f,
 		.z = 1.0f,
 		.w = 0.0f
 	},
 	.direction = {
 		.x = 0.0f,
-		.y = 0.8f,
-		.z = 0.6f,
+		.y = 0.7071067118f,
+		.z = 0.7071067118f,
 		.w = 0.0f
 	},
-	.r = 1.0f,
-	.r2 = 0.5f,
+	.r = 2.0f,
+	.r2 = 0.4f,
 	.material = {
 		.color = 0x00bf8f0f
 	}
 };
 
-t_triangle default_triangle = {
+static const t_triangle	default_triangle = {
 	.vertex1 = {
 		.x = -1.0f,
 		.y = -1.0f,
@@ -198,6 +200,21 @@ t_triangle default_triangle = {
 		.x = 0.0f,
 		.y = 0.0f,
 		.z = 1.0f,
+		.w = 0.0f
+	}
+};
+
+static const t_box	default_box = {
+	.min ={
+		.x = 0.0f,
+		.y = 0.0f,
+		.z = 1.0f,
+		.w = 0.0f
+	},
+	.max = {
+		.x = 1.0f,
+		.y = 1.0f,
+		.z = 2.0f,
 		.w = 0.0f
 	}
 };
@@ -279,17 +296,87 @@ int		read_data(t_scene *scene)
 	scene->ntriangles = 1;
 	scene->objects = (t_obj *)malloc(sizeof(t_obj) * scene->nobjects);
 	scene->triangles = (t_triangle *)malloc(sizeof(t_triangle) * scene->ntriangles);
+	scene->boxes = (t_box *)malloc(sizeof(t_box));
 
-	//test cases
-	// scene->objects[0] = default_sphere;
-	// scene->objects[0].origin.x = 0;
-	// scene->objects[0].origin.y = 0;
-	// scene->objects[0].origin.z = 1.0f;
-	// scene->objects[0].r = 1;
-	// scene->objects[0].r2 = 1;
+	//default_scene
 
-	scene->objects[0] = default_torus;
-	scene->triangles[0] = default_triangle;
+	scene->objects[0] = default_plane;
+
+	scene->objects[1] = default_plane;
+	scene->objects[1].origin.x = 0.0f;
+	scene->objects[1].origin.y = 0.0f;
+	scene->objects[1].origin.z = 10.0f;
+	scene->objects[1].origin.w = 0.0f;
+	scene->objects[1].direction.x = 0.0f;
+	scene->objects[1].direction.y = 0.0f;
+	scene->objects[1].direction.z = 1.0f;
+	scene->objects[1].direction.w = 0.0f;
+	scene->objects[1].material.color = 0x00fa00af;
+
+	scene->objects[2] = default_plane;
+	scene->objects[2].origin.x = 3.0f;
+	scene->objects[2].origin.y = 0.0f;
+	scene->objects[2].origin.z = 0.0f;
+	scene->objects[2].origin.w = 0.0f;
+	scene->objects[2].direction.x = -0.86602540378f;
+	scene->objects[2].direction.y = 0.0f;
+	scene->objects[2].direction.z = 0.5f;
+	scene->objects[2].direction.w = 0.0f;
+	scene->objects[2].material.color = 0x0000afaf;
+
+	scene->objects[3] = default_plane;
+	scene->objects[3].origin.x = -3.0f;
+	scene->objects[3].origin.y = 0.0f;
+	scene->objects[3].origin.z = 0.0f;
+	scene->objects[3].origin.w = 0.0f;
+	scene->objects[3].direction.x = 0.86602540378f;
+	scene->objects[3].direction.y = 0.0f;
+	scene->objects[3].direction.z = 0.5f;
+	scene->objects[3].direction.w = 0.0f;
+	scene->objects[3].material.color = 0x00af0f00;
+
+	scene->objects[4] = default_sphere;
+	scene->objects[4].origin.x = 5.0f;
+	scene->objects[4].origin.y = 5.0f;
+	scene->objects[4].origin.z = 7.0f;
+	scene->objects[4].r = 2.0f;
+	scene->objects[4].r2 = 4.0f;
+	scene->objects[4].material.color = 0x003846b0;
+
+	scene->objects[5] = default_cylinder;
+	scene->objects[5].origin.x = -1.0f;
+	scene->objects[5].origin.y = 5.0f;
+	scene->objects[5].origin.z = 7.0f;
+	scene->objects[5].direction.x = 1.0f;
+	scene->objects[5].direction.y = 0.0f;
+	scene->objects[5].direction.z = 0.0f;
+	scene->objects[5].maxm = 5.0f;
+
+	scene->objects[6] = default_cone;
+	scene->objects[6].material.color = 0x00d4ca19;
+
+	scene->objects[7] = default_paraboloid;
+
+	scene->objects[8] = default_torus;
+	scene->objects[8].origin.x = -3.0f;
+	scene->objects[8].origin.y = 4.0f;
+	scene->objects[8].origin.z = 4.0f;
+	scene->objects[8].direction.x = 0.0f;
+	scene->objects[8].direction.y = 0.5;
+	scene->objects[8].direction.z = 0.86602540378;
+	scene->objects[8].r = 1.5f;
+	scene->objects[8].r2 = 0.3f;
+
+	scene->objects[9] = default_torus;
+	scene->objects[9].origin.x = -2.0f;
+	scene->objects[9].origin.y = 5.0f;
+	scene->objects[9].origin.z = 4.0f;
+	scene->objects[9].direction.x = 0.86602540378f;
+	scene->objects[9].direction.y = -0.5;
+	scene->objects[9].direction.z = 0;
+	scene->objects[9].r = 1.5f;
+	scene->objects[9].r2 = 0.3f;
+
 	//
 	return (0);
 }
@@ -357,11 +444,11 @@ int		init_renderer(t_cl_program *program, t_scene *scene)
 
 	init_cl(&program->clp);
 	read_kernel(DEFAULT_KERNEL_FILE, &program->source_str);
-	program->input = clCreateBuffer(program->clp.context, CL_MEM_READ_ONLY |
+	program->objects = clCreateBuffer(program->clp.context, CL_MEM_READ_ONLY |
 		CL_MEM_COPY_HOST_PTR, sizeof(t_obj) * scene->nobjects, scene->objects,
 		 &ret);
-	program->output = clCreateBuffer(program->clp.context,
-		CL_MEM_WRITE_ONLY, sizeof(uint32_t) * program->work_size, NULL, &ret);
+	program->output_image = clCreateBuffer(program->clp.context,
+		CL_MEM_READ_WRITE, sizeof(uint32_t) * program->work_size, NULL, &ret);
 	assert(!ret);
 	program->triangles = clCreateBuffer(program->clp.context, CL_MEM_READ_ONLY |
 		CL_MEM_COPY_HOST_PTR, sizeof(t_triangle) * scene->ntriangles,
@@ -371,7 +458,7 @@ int		init_renderer(t_cl_program *program, t_scene *scene)
 		(const char **)&program->source_str, NULL, &ret);
 	assert(!ret);
 	ret = clBuildProgram(program->program, 1, &program->clp.de_id,
-		"-I../include/ -I./include/", NULL, NULL);
+		DEFAULT_KERNEL_INCLUDE, NULL, NULL);
 	cl_error(program, &program->clp, ret);
 	assert(!ret);
 	program->kernel = clCreateKernel(program->program, DEFAULT_KERNEL_NAME,
@@ -393,7 +480,8 @@ int		init(t_window *window, t_cl_program *cl_program, t_scene *scene)
 	read_data(scene);
 	init_window(window);
 	cl_program->work_size = window->width * window->height;
-	cl_program->work_group_size = 128;
+	cl_program->work_group_size = WORK_GROUP_SIZE;
+	printf("%d\n", cl_program->work_size);
 	init_renderer(cl_program, scene);
 	return 0;
 }

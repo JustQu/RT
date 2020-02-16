@@ -39,7 +39,7 @@ typedef struct s_material	t_material;
 # ifdef _WIN64
 __declspec(align(8))
 # endif
-struct					s_material
+struct					s_material //32
 {
 	cl_int				color;
 	cl_float			kd;
@@ -60,14 +60,25 @@ enum	e_types
 };
 typedef enum e_types	t_type;
 
+typedef struct s_box	t_box;
+#ifdef _WIN64
+__declspec(align(8))
+#endif
+struct					s_box
+{
+	cl_float4			min;
+	cl_float4			max;
+};
+
 typedef struct s_obj	t_obj;
 # ifdef _WIN64
 __declspec(align(8))
 # endif
-struct s_obj
+struct					s_obj		//140
 {
 	t_type				type;
 	t_material			material;
+	t_box				bounding_box;
 	cl_float4			origin;
 	cl_float4			direction;
 	cl_float			r;

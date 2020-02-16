@@ -1,5 +1,6 @@
 #include "world.h"
 #include "solver.cl"
+
 struct	s_ray
 {
 	float4	origin;
@@ -16,13 +17,8 @@ t_ray	cast_primal_ray(t_camera camera, int x, int y)
 	px = (2 * ((x + 0.5f) / DEFAULT_WIDTH) - 1) * camera.angle * camera.ratio;
 	py = (1 - 2 * (y + 0.5f) / DEFAULT_HEIGHT) * camera.angle;
 	ray.origin = camera.origin;
-	ray.direction = ((float4)(px, py, 1.0f, 0.0f));//need to rotate vector if we have rotated camera
+	ray.direction = (float4)(px, py, 1.0f, 0.0f);//need to rotate vector if we have rotated camera
 	ray.direction = normalize(ray.direction);
-	if (get_global_id(0) == 432000)
-	{
-		printf("ray: (%.2f %.2f %.2f %.2f) ^(%.2f %.2f %.2f %.2f)\n", ray.origin.x, ray.origin.y, ray.origin.z,ray.origin.w, ray.direction.x, ray.direction.y, ray.direction.z,ray.direction.w);
-	}
-
 	return ray;
 }
 
@@ -101,17 +97,12 @@ bool	plane_intersection(t_ray ray, t_obj plane, float *tr)
 }
 
 /*
-** TODO(dmelessa): cap cylinder with planes
+** TODO(dmelessa): cap cylinder with discs
 */
 bool cylinder_intersection(t_ray ray, t_obj cylinder, float *tr)
 {
 	float4	x;
-	float	a;
-	float	b;
-	float	c;
-	float	dv;
-	float	xv;
-	float	disc;
+	float	a, b, c, dv, xv, disc;
 
 	x = ray.origin - cylinder.origin;
 	dv = dot(ray.direction, cylinder.direction);
@@ -138,15 +129,13 @@ bool cylinder_intersection(t_ray ray, t_obj cylinder, float *tr)
 	return false;
 }
 
+/*
+** TODO(dmelessa): cap cone with disc
+*/
 bool	cone_intersection(t_ray ray, t_obj cone, float *tr)
 {
 	float4	x;
-	float	dv;
-	float	xv;
-	float	a;
-	float	b;
-	float	c;
-	float	disc;
+	float	dv, xv, a, b, c, disc;
 
 	x = ray.origin - cone.origin;
 	dv = dot(ray.direction, cone.direction);
@@ -158,6 +147,7 @@ bool	cone_intersection(t_ray ray, t_obj cone, float *tr)
 	if (disc >= 0.0f)
 	{
 		float m;
+		a *= 2.0f;
 		disc = sqrt(disc);
 		*tr = (-b - disc) / a;
 		if (*tr < 0.0f)
@@ -174,6 +164,10 @@ bool	cone_intersection(t_ray ray, t_obj cone, float *tr)
 				if (m1 >= cone.minm && m1 <= cone.maxm)
 					return true;
 			}
+			else
+			{
+				return (*tr >= 0.0f);
+			}
 		}
 	}
 	return (false);
@@ -182,12 +176,7 @@ bool	cone_intersection(t_ray ray, t_obj cone, float *tr)
 bool	paraboloid_intersection(t_ray ray, t_obj paraboloid, float *tr)
 {
 	float4	x;
-	float	a;
-	float	b;
-	float	c;
-	float	dv;
-	float	xv;
-	float	disc;
+	float	a, b, c, dv, xv, disc;
 
 	x = ray.origin - paraboloid.origin;
 	dv = dot(ray.direction, paraboloid.direction);
@@ -199,6 +188,7 @@ bool	paraboloid_intersection(t_ray ray, t_obj paraboloid, float *tr)
 	if (disc >= 0.0f)
 	{
 		float m;
+		a *= 2;
 		disc = sqrt(disc);
 		*tr = (-b - disc) / a;
 		if (*tr < 0.0f)
@@ -214,6 +204,10 @@ bool	paraboloid_intersection(t_ray ray, t_obj paraboloid, float *tr)
 				m1 = dv * *tr + xv;
 				if (m1 >= paraboloid.minm && m1 <= paraboloid.maxm)
 					return true;
+			}
+			else
+			{
+				return (*tr >= 0.0f);
 			}
 		}
 	}
@@ -243,12 +237,6 @@ bool	torus_intersecion(t_ray ray, t_obj torus, float *tr)
 	coeffs[1] = 4.0f * n * o - 4.0f * (R2 + r2) * n + 8.0f * R2 * p * q;
 	coeffs[0] = o * o - 2.0f * (R2 + r2) * o + 4 * R2 * q * q + (R2 - r2) * (R2 - r2);
 	num_real_roots = SolveQuartic(coeffs, roots);
-	if (get_global_id(0) == 100000)
-	{
-		printf ("%f %f %f %f\n", roots[0], roots[1], roots[2], roots[3]);
-		printf ("cf: %f %f %f %f %f\n", coeffs[0], coeffs[1], coeffs[2], coeffs[3], coeffs[4]);
-		printf("nm:%d\n", num_real_roots);
-	}
 	bool	intersect = false;
 	float	t;
 	if (num_real_roots == 0)
@@ -273,6 +261,9 @@ bool	torus_intersecion(t_ray ray, t_obj torus, float *tr)
 	return (intersect);
 }
 
+/*
+** TODO(dmelessa): change later
+*/
 float	triangle_intersection(t_ray ray, t_triangle triangle, float *tr)
 {
 	float4	pvec = cross(ray.direction, triangle.vector2);
@@ -300,65 +291,161 @@ float	triangle_intersection(t_ray ray, t_triangle triangle, float *tr)
 	return dot(triangle.vector2,qvec) * inv_det;
 }
 
-bool	intersection(t_ray ray, __constant t_obj *obj, float *tr)
+bool	intersection(t_ray ray, t_obj obj, float *tr)
 {
-	if (obj->type == sphere)
+	if (obj.type == sphere)
 	{
-		return (sphere_intersection(ray, *obj, tr));
+		return (sphere_intersection(ray, obj, tr));
 	}
-	else if (obj->type == plane)
+	else if (obj.type == plane)
 	{
-		return (plane_intersection(ray, *obj, tr));
+		return (plane_intersection(ray, obj, tr));
 	}
-	else if (obj->type == cylinder)
+	else if (obj.type == cylinder)
 	{
-		return cylinder_intersection(ray, *obj, tr);
+		return cylinder_intersection(ray, obj, tr);
 	}
-	else if (obj->type == cone)
+	else if (obj.type == cone)
 	{
-		return (cone_intersection(ray, *obj, tr));
+		return (cone_intersection(ray, obj, tr));
 	}
-	else if (obj->type == paraboloid)
+	else if (obj.type == paraboloid)
 	{
-		return (paraboloid_intersection(ray, *obj, tr));
+		return (paraboloid_intersection(ray, obj, tr));
 	}
-	else if (obj->type == torus)
+	else if (obj.type == torus)
 	{
-		return torus_intersecion(ray, *obj, tr);
+		return torus_intersecion(ray, obj, tr);
 	}
 	return (false);
 }
 
+void	swap(float *a, float *b)
+{
+	float tmp;
+
+	tmp = *a;
+	*a = *b;
+	*b = tmp;
+}
+
+bool	box_intersection(t_ray ray, t_box box)
+{
+	float ox = ray.origin.x;
+	float oy = ray.origin.y;
+	float oz = ray.origin.z;
+	float dx = ray.direction.x;
+	float dy = ray.direction.y;
+	float dz = ray.direction.z;
+	float tx_min, ty_min, tz_min;
+	float tx_max, ty_max, tz_max;
+	float a = 1.0f / dx;
+	if (a >= 0.0f)
+	{
+		tx_min = (box.min.x - ox) * a;
+		tx_max = (box.max.x - ox) * a;
+	}
+	else
+	{
+		tx_min = (box.max.x - ox) * a;
+		tx_max = (box.min.x - ox) * a;
+	}
+	float b = 1.0 / dy;
+	if (b >= 0.0f)
+	{
+		ty_min = (box.min.y - oy) * b;
+		ty_max = (box.max.y - oy) * b;
+	}
+	else
+	{
+		ty_min = (box.max.y - oy) * b;
+		ty_max = (box.min.y - oy) * b;
+	}
+
+	float c = 1.0 / dz;
+	if (c >= 0.0f)
+	{
+		tz_min = (box.min.z - oz) * c;
+		tz_max = (box.max.z - oz) * c;
+	}
+	else
+	{
+		tz_min = (box.max.z - oz) * c;
+		tz_max = (box.min.z - oz) * c;
+	}
+	float t0, t1;
+	if (tx_min > ty_min)
+		t0 = tx_min;
+	else
+		t0 = ty_min;
+
+	if (tz_min > t0)
+		t0 = tz_min;
+
+	if (tx_max < ty_max)
+		t1 = tx_max;
+	else
+		t1 = ty_max;
+	if (tz_max < t1)
+		t1 = tz_max;
+
+	return (t0 < t1 && t1 > 1e-6);
+}
+
+int		get_point_color(t_camera camera,
+						__constant t_obj *objects, int nobjects,
+						int x, int y)
+{
+	t_ray	ray;
+	float	mint = 10001.0f;
+	float	t;
+	int		i;
+	int		id;
+
+	ray = cast_primal_ray(camera, x, y);
+
+	for (i = 0; i < nobjects; i++)
+	{
+		if (intersection(ray, objects[i], &t))
+		{
+			if (t < mint && t > 1.0f)
+			{
+				mint = t;
+				id = i;
+			}
+		}
+	}
+	if (mint >= 1.0f && mint < 10000.0f)
+	{
+		// printf("in\n");
+		return objects[id].material.color;
+	}
+	else
+		return 0x000000af;
+}
+
 __kernel void main(
-				__global uint *output,
-				__constant t_obj *objects,
+				__global uint *output_image,
+				__constant t_obj *objects, int nobjects,
 				t_camera camera,
 				__constant t_triangle *triangles)
 {
 	private int		global_id = get_global_id(0);
-	private int		local_id = get_local_id(0);
 	private int		x = global_id % DEFAULT_WIDTH;
 	private int		y = global_id / DEFAULT_WIDTH;
-	private t_ray	ray;
-	private int		i;
-	private float	t = 0;
-	private int		id;
-	private float	maxt = 0;
+	// private t_ray	ray;
+	// ray = cast_primal_ray(camera, x, y);
+	if (global_id < DEFAULT_WIDTH * DEFAULT_HEIGHT)
+		output_image[global_id] = get_point_color(camera, objects, nobjects, x, y);
+	// if (box_intersection(ray, box))
+	// 	output[global_id] = 0x0000ffaf;
+	// else
+	// 	output[global_id] = 0x0000000f;
 
-	if (global_id == 0)
-	{
-		printf("pepa\n");
-		printf("%f %f %f %f\n", triangles[0].vertex1.x, triangles[0].vertex1.y,	triangles[0].vertex1.z,triangles[0].vertex1.w);
-		printf("%f %f %f %f\n", triangles[0].vertex2.x, triangles[0].vertex2.y,	triangles[0].vertex2.z,triangles[0].vertex2.w);
-		printf("%f %f %f %f\n", triangles[0].vertex3.x, triangles[0].vertex3.y,	triangles[0].vertex3.z,triangles[0].vertex3.w);
-		printf("%f %f %f %f\n", triangles[0].vector1.x, triangles[0].vector1.y,	triangles[0].vector1.z,triangles[0].vector1.w);
-		printf("%f %f %f %f\n", triangles[0].vector2.x, triangles[0].vector2.y,	triangles[0].vector2.z,triangles[0].vector2.w);
-	}
-	ray = cast_primal_ray(camera, x, y);
-	if (triangle_intersection(ray, triangles[0], &t))
-		output[global_id] = 0x0000ffaf;
-	else
-		output[global_id] = 0x0000000f;
+	// if (triangle_intersection(ray, triangles[0], &t))
+		// output[global_id] = 0x0000ffaf;
+	// else
+		// output[global_id] = 0x0000000f;
 
 	// if (intersection(ray, objects, &t))
 		// output[global_id] = (objects + 0)->material.color;

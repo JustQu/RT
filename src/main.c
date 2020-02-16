@@ -66,7 +66,8 @@ int		catch_event()
 		}
 		if (event.type == SDL_KEYDOWN)
 		{
-
+			if (event.key.keysym.sym == SDLK_ESCAPE)
+				exit(0);
 		}
 		if (event.type == SDL_KEYUP)
 		{
@@ -74,7 +75,7 @@ int		catch_event()
 		}
 		if (event.type == SDL_MOUSEBUTTONDOWN)
 		{
-
+			printf("Mouse press at %d %d", event.button.x, event.button.y);
 		}
 		if (event.type == SDL_MOUSEBUTTONUP)
 		{
@@ -93,30 +94,31 @@ void	render_loop()
 	t_cl_program	program;
 	t_scene			scene;
 	t_bool			quit;
-
+	cl_int t = 10;
+	int a;
 	quit = FALSE;
 	init(&window, &program, &scene);
 	while (!quit)
 	{
 		if (catch_event() == 1)
 			quit = TRUE;
-		clSetKernelArg(program.kernel, 0, sizeof(cl_mem), (void *)&program.output);
-		clSetKernelArg(program.kernel, 1, sizeof(cl_mem), (void *)&program.input);
-		clSetKernelArg(program.kernel, 2, sizeof(t_camera), (void *)&scene.camera);
-		clSetKernelArg(program.kernel, 3, sizeof(cl_mem), (void *)&program.triangles);
-		clEnqueueNDRangeKernel(program.clp.queue, program.kernel, 1, NULL,
+		clSetKernelArg(program.kernel, 0, sizeof(cl_mem), (void *)&program.output_image);
+		clSetKernelArg(program.kernel, 1, sizeof(cl_mem), (void *)&program.objects);
+		clSetKernelArg(program.kernel, 2, sizeof(cl_int), (void *)&t);
+		clSetKernelArg(program.kernel, 3, sizeof(t_camera), (void *)&scene.camera);
+		clSetKernelArg(program.kernel, 4, sizeof(cl_mem), (void *)&program.triangles);
+		a = clEnqueueNDRangeKernel(program.clp.queue, program.kernel, 1, NULL,
 			&program.work_size, &program.work_group_size, 0, NULL, NULL);
-		clEnqueueReadBuffer(program.clp.queue, program.output, CL_TRUE, 0,
+		assert(!a);
+		a = clEnqueueReadBuffer(program.clp.queue, program.output_image, CL_TRUE, 0,
 			program.work_size * sizeof(uint32_t), window.image, 0, NULL, NULL);
+		assert(!a);
 		display_image(&window);
 	}
 }
 
 int main(void)
 {
-	printf("t_mat: %zd\n", sizeof(t_material));
-	printf("t_obj: %zd\n", sizeof(t_obj));
-	printf("t_cam: %zd\n", sizeof(t_camera));
 	render_loop();
 	SDL_Quit();
 	return (0);

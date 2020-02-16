@@ -26,12 +26,14 @@
 # include "world.h"
 
 # ifdef _WIN64
-#  define DEFAULT_KERNEL_FILE "./ray_tracer.cl"
+#  define DEFAULT_KERNEL_FILE "./src/cl/ray_tracer.cl"
 # else
-#  define DEFAULT_KERNEL_FILE "./beautiful_gradient.cl"
+#  define DEFAULT_KERNEL_FILE "./src/cl/beautiful_gradient.cl"
 # endif
 
 # define DEFAULT_KERNEL_NAME "main"
+
+# define DEFAULT_KERNEL_INCLUDE "-I. -I./include -I./src/cl"
 
 typedef int	t_bool;
 # ifndef TRUE
@@ -72,8 +74,8 @@ struct					s_cl_program
 	t_clp				clp;
 	cl_program			program;
 	cl_kernel			kernel;
-	cl_mem				input;
-	cl_mem				output;
+	cl_mem				objects;
+	cl_mem				output_image;
 	cl_mem				triangles;
 	size_t				work_size;
 	size_t				work_group_size;
@@ -85,6 +87,7 @@ struct					s_scene
 {
 	t_obj				*objects;
 	t_triangle			*triangles;
+	t_box				*boxes; //for test
 	t_camera			camera;
 	int					nobjects;
 	int					ntriangles;
