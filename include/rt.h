@@ -45,7 +45,7 @@
 # ifdef _WIN64
 #	define DEFAULT_KERNEL_DIR "./src/cl/"
 # else
-#	define DEFAULT_KERNEL_DIR "./src_cl/"
+#	define DEFAULT_KERNEL_DIR "./src/cl/"
 # endif
 
 # define FILES_NUM 1

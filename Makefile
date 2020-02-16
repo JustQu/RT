@@ -18,7 +18,7 @@ CURRENTDIR = .
 #UNAME_S = $(shell uname -s)
 
 #SYSTEM:
-#SYSTEM = $(shell uname)
+SYSTEM = $(shell uname)
 MACOS = Darwin
 LINUX = Linux
 
@@ -39,17 +39,16 @@ ifeq ($(SYSTEM), $(MACOS))
 			  -rpath $(LIBSDIR)
 else ifeq ($(SYSTEM), $(LINUX))
 	LDLIBS = -lm\
-			 -lft\
 			 -l SDL2\
 			 -l OpenCL
 
-	LDFLAGS	=	-L$(LIBFTDIR)
+	LDFLAGS	= $(LIBFT)
 endif
 
 
 LIBSDIR = $(CURRENTDIR)/Libs
 
-LIBFT = libft.a
+LIBFT = $(LIBFTDIR)/libft.a
 LIBFTDIR = $(LIBSDIR)/libft
 LIBFTINC = $(LIBFTDIR)/includes
 
@@ -58,7 +57,7 @@ SDL2DIR = $(LIBSDIR)/SDL2.framework
 SDL2INC = $(SDL2DIR)/Headers
 
 INCDIR = $(CURRENTDIR)/include/
-INCS = rt.h
+INCS = rt.h world.h
 INCS := $(addprefix $(INCDIR), $(INCS))
 
 SRCSDIR	= ./src/
