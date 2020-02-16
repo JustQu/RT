@@ -32,7 +32,7 @@
 # ifdef _WIN64
 #  define DEFAULT_KERNEL_FILE "ray_tracer.cl"
 # else
-#  define DEFAULT_KERNEL_FILE "./src/cl/beautiful_gradient.cl"
+#  define DEFAULT_KERNEL_FILE "ray_tracer.cl"
 # endif
 
 # define DEFAULT_KERNEL_NAME "main"
@@ -48,7 +48,6 @@
 #	define DEFAULT_KERNEL_DIR "./src/cl/"
 # endif
 
-# define FILES_NUM 1
 
 typedef int	t_bool;
 # ifndef TRUE
