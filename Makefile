@@ -11,7 +11,7 @@
 # **************************************************************************** #
 
 NAME = ./RT
-CC = clang
+CC = gcc
 RM = rm -f
 CURRENTDIR = .
 
@@ -25,7 +25,7 @@ LINUX = Linux
 CFLAGS = -I$(INCDIR)\
 		 -I$(LIBFTINC)\
 		 -I$(SDL2INC)\
-		 -Wall\
+#		 -Wall\
 		 -Werror\
 		 -Wextra
 

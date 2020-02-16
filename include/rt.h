@@ -20,7 +20,11 @@
 # include <assert.h>
 # include <math.h>
 
+# ifdef __unix__
+# include "SDL2/SDL.h"
+# else
 # include "SDL.h"
+# endif
 
 # include "libft.h"
 # include "world.h"
