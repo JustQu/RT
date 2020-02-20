@@ -423,7 +423,7 @@ int		get_point_color(t_camera camera,
 		return 0x000000af;
 }
 
-__kernel void main(
+__kernel void raytrace(
 				__global uint *output_image,
 				__constant t_obj *objects, int nobjects,
 				t_camera camera,

@@ -35,9 +35,9 @@
 #  define DEFAULT_KERNEL_FILE "ray_tracer.cl"
 # endif
 
-# define DEFAULT_KERNEL_NAME "main"
+# define DEFAULT_KERNEL_NAME "raytrace"
 
-# define DEFAULT_KERNEL_INCLUDE "-I. -I./include -I./src/cl"
+# define DEFAULT_KERNEL_INCLUDE "-I ./include -I ./src/cl"
 # define DEFAULT_WORK_SIZE DEFAULT_WIDTH * DEFAULT_HEIGHT
 # define DEFAULT_WIDTH 1200
 # define DEFAULT_HEIGHT 720
