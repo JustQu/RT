@@ -1,4 +1,5 @@
 #include "world.h"
+# define SAMPLES 100
 
 t_ray	cast_primal_ray(t_camera camera, int x, int y)
 {
@@ -21,8 +22,8 @@ __kernel void ray_tracer(
 				__constant t_triangle *triangles)
 {
 	private int		global_id = get_global_id(0);
-	int		x = global_id % DEFAULT_WIDTH;
-	int		y = global_id / DEFAULT_WIDTH;
+	unsigned int	x = global_id % DEFAULT_WIDTH;
+	unsigned int	y = global_id / DEFAULT_WIDTH;
 
 	if (global_id < DEFAULT_WIDTH * DEFAULT_HEIGHT)
 	{
@@ -31,9 +32,9 @@ __kernel void ray_tracer(
 		t_ray	camray = cast_primal_ray(camera, x, y);
 
 		for (int i = 0; i < SAMPLES; i++)
-			color += get_point_color(camray, objects, nobjects, x, y) * invSamples;
+			color += get_point_color(camray, objects, nobjects, &x, &y) * invSamples;
 
-		int finalcolor = (((int)color.x & 0xff) << 16) | (((int)color.y & 0xff) << 8) | ((int)color.z & 0xff);
+		int finalcolor = (((int)(color.x * 255)) << 16) | (((int)(color.y * 255)) << 8) | ((int)(color.z * 255));
 		output_image[global_id] = finalcolor;
 	}
 }

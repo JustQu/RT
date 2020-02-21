@@ -84,6 +84,7 @@ int		main(int ac, char **av)
 			quit = TRUE;
 		start_render_kernel(&program, &scene, window.image);
 		display_image(&window);
+		sleep(5000);
 	}
 	exit_program(window);
 	return (0);

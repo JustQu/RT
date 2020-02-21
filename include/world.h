@@ -18,8 +18,8 @@
 # define DEFAULT_FOV 90
 # define WORK_GROUP_SIZE 128
 
-# define BOUNCES 1
-# define SAMPLES 1
+//# define BOUNCES 5
+//# define SAMPLES 100
 # define EPSILON  0.00003f /* required to compensate for limited float precision */
 # define PI  3.14159265359f
 
@@ -46,7 +46,8 @@ __declspec(align(8))
 # endif
 struct					s_material //32
 {
-	cl_int				color;
+	cl_float3 			color;
+	cl_float3			emission;
 	cl_float			kd;
 	cl_float			ks;
 	cl_float			n;

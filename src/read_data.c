@@ -49,7 +49,7 @@ static const t_obj		default_plane = {
 	.type = plane,
 	.origin = {
 		.x = 0.0f,
-		.y = -1.0f,
+		.y = 0.0f,
 		.z = 0.0f,
 		.w = 0.0f
 	},
@@ -60,7 +60,11 @@ static const t_obj		default_plane = {
 		.w = 0.0f
 	},
 	.material = {
-		.color = 0x00148869
+		.color = {
+			.x = 1,
+			.y = 1,
+			.z = 1
+		}
 	}
 };
 
@@ -207,6 +211,16 @@ static const t_box	default_box = {
 	}
 };
 
+cl_float3	get_color(float a, float b, float c)
+{
+	cl_float3	clr3;
+
+	clr3.x = a;
+	clr3.y = b;
+	clr3.z = c;
+	return clr3;
+}
+
 /**
 ** @TODO: reading scene from file or default scene
 ** @brief
@@ -217,7 +231,7 @@ static const t_box	default_box = {
 int read_data(t_scene *scene)
 {
 	scene->camera = camera_default;
-	scene->nobjects = 3;
+	scene->nobjects = 7;
 	scene->ntriangles = 1;
 	scene->objects = (t_obj *)malloc(sizeof(t_obj) * scene->nobjects);
 	scene->triangles = (t_triangle *)malloc(sizeof(t_triangle) * scene->ntriangles);
@@ -225,6 +239,7 @@ int read_data(t_scene *scene)
 
 	//default_scene
 	scene->objects[0] = default_plane;
+	scene->objects[0].material.emission = get_color(1, 1, 1);
 
 	scene->objects[1] = default_plane;
 	scene->objects[1].origin.x = 0.0f;
@@ -235,7 +250,7 @@ int read_data(t_scene *scene)
 	scene->objects[1].direction.y = 0.0f;
 	scene->objects[1].direction.z = 1.0f;
 	scene->objects[1].direction.w = 0.0f;
-	scene->objects[1].material.color = 0x00fa00af;
+	scene->objects[1].material.color = get_color(1, 0, 0);
 
 	scene->objects[2] = default_plane;
 	scene->objects[2].origin.x = 3.0f;
@@ -246,9 +261,9 @@ int read_data(t_scene *scene)
 	scene->objects[2].direction.y = 0.0f;
 	scene->objects[2].direction.z = 0.5f;
 	scene->objects[2].direction.w = 0.0f;
-	scene->objects[2].material.color = 0x0000afaf;
+	scene->objects[2].material.color = get_color(0, 1, 0);
 
-/*	scene->objects[3] = default_plane;
+	scene->objects[3] = default_plane;
 	scene->objects[3].origin.x = -3.0f;
 	scene->objects[3].origin.y = 0.0f;
 	scene->objects[3].origin.z = 0.0f;
@@ -257,7 +272,7 @@ int read_data(t_scene *scene)
 	scene->objects[3].direction.y = 0.0f;
 	scene->objects[3].direction.z = 0.5f;
 	scene->objects[3].direction.w = 0.0f;
-	scene->objects[3].material.color = 0x00af0f00;
+	scene->objects[3].material.color = get_color(0, 0, 1);
 
 	scene->objects[4] = default_sphere;
 	scene->objects[4].origin.x = 5.0f;
@@ -265,15 +280,21 @@ int read_data(t_scene *scene)
 	scene->objects[4].origin.z = 7.0f;
 	scene->objects[4].r = 2.0f;
 	scene->objects[4].r2 = 4.0f;
-	scene->objects[4].material.color = 0x003846b0;
+	scene->objects[4].material.color = get_color(1,0,1);
 
 	scene->objects[5] = default_sphere;
 	scene->objects[5].origin.x = 5.0f;
 	scene->objects[5].origin.y = 8.0f;
-	scene->objects[5].origin.z = 10.0f;
+	scene->objects[5].origin.z = 5.0f;
 	scene->objects[5].r = 2.0f;
 	scene->objects[5].r2 = 4.0f;
-	scene->objects[5].material.color = 0x00000000;
+	scene->objects[5].material.color = get_color(1,1,0);
+
+	scene->objects[6] = default_plane;
+	scene->objects[6].origin.y = 10.0f;
+	scene->objects[6].material.emission = get_color(1, 1, 1);
+
+	/*
 
 	scene->objects[5] = default_cylinder;
 	scene->objects[5].origin.x = -1.0f;
