@@ -217,11 +217,11 @@ static const t_box	default_box = {
 int read_data(t_scene *scene)
 {
 	scene->camera = camera_default;
-	scene->nobjects = 10;
+	scene->nobjects = 3;
 	scene->ntriangles = 1;
 	scene->objects = (t_obj *)malloc(sizeof(t_obj) * scene->nobjects);
 	scene->triangles = (t_triangle *)malloc(sizeof(t_triangle) * scene->ntriangles);
-	scene->boxes = (t_box *)malloc(sizeof(t_box));
+//	scene->boxes = (t_box *)malloc(sizeof(t_box));
 
 	//default_scene
 	scene->objects[0] = default_plane;
@@ -248,7 +248,7 @@ int read_data(t_scene *scene)
 	scene->objects[2].direction.w = 0.0f;
 	scene->objects[2].material.color = 0x0000afaf;
 
-	scene->objects[3] = default_plane;
+/*	scene->objects[3] = default_plane;
 	scene->objects[3].origin.x = -3.0f;
 	scene->objects[3].origin.y = 0.0f;
 	scene->objects[3].origin.z = 0.0f;
@@ -266,6 +266,14 @@ int read_data(t_scene *scene)
 	scene->objects[4].r = 2.0f;
 	scene->objects[4].r2 = 4.0f;
 	scene->objects[4].material.color = 0x003846b0;
+
+	scene->objects[5] = default_sphere;
+	scene->objects[5].origin.x = 5.0f;
+	scene->objects[5].origin.y = 8.0f;
+	scene->objects[5].origin.z = 10.0f;
+	scene->objects[5].r = 2.0f;
+	scene->objects[5].r2 = 4.0f;
+	scene->objects[5].material.color = 0x00000000;
 
 	scene->objects[5] = default_cylinder;
 	scene->objects[5].origin.x = -1.0f;
@@ -300,7 +308,7 @@ int read_data(t_scene *scene)
 	scene->objects[9].direction.z = 0;
 	scene->objects[9].r = 1.5f;
 	scene->objects[9].r2 = 0.3f;
-	//
+	*/
 
 	return (0);
 }

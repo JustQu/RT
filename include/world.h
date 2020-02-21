@@ -18,6 +18,11 @@
 # define DEFAULT_FOV 90
 # define WORK_GROUP_SIZE 128
 
+# define BOUNCES 10
+# define SAMPLES 10
+# define EPSILON  0.00003f /* required to compensate for limited float precision */
+# define PI  3.14159265359f
+
 # ifndef __OPENCL_C_VERSION__
 #  ifdef __APPLE__
 #   include "OpenCL/opencl.h"
@@ -122,5 +127,12 @@ struct s_camera
 	cl_float			angle;
 	cl_int				fov;
 };
+
+struct	s_ray
+{
+	cl_float4	origin;
+	cl_float4	direction;
+};
+typedef struct s_ray	t_ray;
 
 #endif

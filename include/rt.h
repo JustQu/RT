@@ -100,7 +100,7 @@ struct					s_scene
 {
 	t_obj				*objects;
 	t_triangle			*triangles;
-	t_box				*boxes; //for test
+//	t_box				*boxes; //for test
 	t_camera			camera;
 	int					nobjects;
 	int					ntriangles;
