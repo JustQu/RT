@@ -1,3 +1,4 @@
+#include "world.h"
 
 static float get_random(unsigned int *seed0, unsigned int *seed1) {
 

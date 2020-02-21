@@ -1,5 +1,4 @@
 #include "world.h"
-#include "get_point_color.cl"
 
 t_ray	cast_primal_ray(t_camera camera, int x, int y)
 {
@@ -15,15 +14,15 @@ t_ray	cast_primal_ray(t_camera camera, int x, int y)
 	return ray;
 }
 
-__kernel void main(
+__kernel void ray_tracer(
 				__global uint *output_image,
 				__constant t_obj *objects, int nobjects,
 				t_camera camera,
 				__constant t_triangle *triangles)
 {
 	private int		global_id = get_global_id(0);
-	private int		x = global_id % DEFAULT_WIDTH;
-	private int		y = global_id / DEFAULT_WIDTH;
+	int		x = global_id % DEFAULT_WIDTH;
+	int		y = global_id / DEFAULT_WIDTH;
 
 	if (global_id < DEFAULT_WIDTH * DEFAULT_HEIGHT)
 	{

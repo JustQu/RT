@@ -1,5 +1,4 @@
 #include "world.h"
-#include "solver.cl"
 
 bool	sphere_intersection(t_ray ray, t_obj sphere, float *tr)
 {

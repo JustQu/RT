@@ -18,8 +18,8 @@
 # define DEFAULT_FOV 90
 # define WORK_GROUP_SIZE 128
 
-# define BOUNCES 10
-# define SAMPLES 10
+# define BOUNCES 1
+# define SAMPLES 1
 # define EPSILON  0.00003f /* required to compensate for limited float precision */
 # define PI  3.14159265359f
 
