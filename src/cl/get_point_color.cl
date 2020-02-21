@@ -4,27 +4,27 @@ bool	intersection(t_ray ray, t_obj obj, float *tr)
 {
 	if (obj.type == sphere)
 	{
-		return (sphere_intersection(ray, obj, &tr));
+		return (sphere_intersection(ray, obj, tr));
 	}
 	else if (obj.type == plane)
 	{
-		return (plane_intersection(ray, obj, &tr));
+		return (plane_intersection(ray, obj, tr));
 	}
 	else if (obj.type == cylinder)
 	{
-		return cylinder_intersection(ray, obj, &tr);
+		return cylinder_intersection(ray, obj, tr);
 	}
 	else if (obj.type == cone)
 	{
-		return (cone_intersection(ray, obj, &tr));
+		return (cone_intersection(ray, obj, tr));
 	}
 	else if (obj.type == paraboloid)
 	{
-		return (paraboloid_intersection(ray, obj, &tr));
+		return (paraboloid_intersection(ray, obj, tr));
 	}
 	else if (obj.type == torus)
 	{
-		return torus_intersecion(ray, obj, &tr);
+		return torus_intersecion(ray, obj, tr);
 	}
 	return (false);
 }
@@ -70,7 +70,7 @@ float3		get_point_color(t_ray camray,
 	for (int bounces = 0; bounces < BOUNCES; bounces++)
 	{
 		if (!intersect_scene(objects, ray, &t, &hitobj_id, nobjects))
-			return accum_color += mask * (float3)(100.15f, 100.15f, 100.25f);
+			return accum_color += mask * (float3)(100.15f, 100.15f, 100.25f); // серый экран - нет объектов
 		else
 		{
 			accum_color.x = (objects[hitobj_id].material.color >> 16) & 0xff;
@@ -80,5 +80,5 @@ float3		get_point_color(t_ray camray,
 		}
 	}
 
-	return (float3)(255.0f, 255.0f, 255.0f);
+	return accum_color;
 }
