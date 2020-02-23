@@ -95,6 +95,9 @@ struct					s_cl_program
 	size_t				work_group_size;
 };
 
+#define NUM_OF_TYPES 5
+#define TRIANGLE "triangle"
+
 typedef struct s_scene	t_scene;
 struct					s_scene
 {
@@ -103,16 +106,24 @@ struct					s_scene
 	t_box				*boxes; //for test
 	t_camera			camera;
 	int					nobjects;
+	char				*obj_name[NUM_OF_TYPES];
 	int					ntriangles;
 };
 
+/**			functions for scene initialization			*/
+void		init_camera(char *line, t_scene *scene);
+void		init_object(char *line, t_scene *scene, int type);
+void		init_triangle(char *line, t_scene *scene);
+char		*find_file_name(char *str);
+int			fd_return(char *file_name);
+void		read_data(t_scene *scene, char *name);
+
 cl_program	create_program(cl_context context);
-int			read_data(t_scene *scene);
 int			init_window(t_window *window);
-int 		init(t_window *window, t_cl_program *cl_program, t_scene *scene);
+int 		init(t_window *window, t_cl_program
+				*cl_program, t_scene *scene, char *file);
 
 int			catch_event();
-
 void		cl_error(t_cl_program *program, t_clp *clp, int code);
 
 #endif

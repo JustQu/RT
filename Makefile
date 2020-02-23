@@ -62,7 +62,8 @@ INCS := $(addprefix $(INCDIR), $(INCS))
 
 SRCSDIR	= ./src/
 SRCS =	main.c init.c init_window.c catch_event.c\
-		read_data.c create_program.c error_handling.c
+		read_data.c create_program.c error_handling.c\
+		Fd_ret_Find_file.c objects_initialization.c
 
 OBJSDIR = ./obj/
 OBJS = $(addprefix $(OBJSDIR), $(SRCS:.c=.o))
