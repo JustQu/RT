@@ -95,6 +95,7 @@ struct					s_cl_program
 	size_t				work_group_size;
 };
 
+/** names of types -> read_data() -> init_func() */
 #define NUM_OF_TYPES 5
 #define TRIANGLE "triangle"
 
@@ -106,8 +107,8 @@ struct					s_scene
 	t_box				*boxes; //for test
 	t_camera			camera;
 	int					nobjects;
-	char				*obj_name[NUM_OF_TYPES];
 	int					ntriangles;
+	char				*obj_name[NUM_OF_TYPES];
 };
 
 /**			functions for scene initialization			*/
