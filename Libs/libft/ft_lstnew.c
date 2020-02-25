@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   ft_lstnew.c                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: dwalda-r <dwalda-r@student.42.fr>          +#+  +:+       +#+        */
+/*   By: mfalkrea <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2019/02/06 04:47:48 by dmelessa          #+#    #+#             */
-/*   Updated: 2019/09/10 18:03:23 by dwalda-r         ###   ########.fr       */
+/*   Created: 2019/09/20 16:33:46 by mfalkrea          #+#    #+#             */
+/*   Updated: 2019/09/20 17:24:56 by mfalkrea         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,22 +14,26 @@
 
 t_list	*ft_lstnew(void const *content, size_t content_size)
 {
-	t_list *node;
+	t_list	*new;
 
-	if (!(node = (t_list *)malloc(sizeof(t_list))))
+	new = (t_list*)malloc(sizeof(t_list));
+	if (!new)
 		return (NULL);
-	if (!(unsigned char *)content)
-		ft_bzero(node, sizeof(t_list));
-	else
+	if (content)
 	{
-		if (!(node->content = malloc(content_size)))
+		new->content = ft_strdup((void*)content);
+		if (!new->content)
 		{
-			free(node);
+			free(new);
 			return (NULL);
 		}
-		ft_memcpy(node->content, content, content_size);
-		node->content_size = content_size;
+		new->content_size = content_size;
 	}
-	node->next = NULL;
-	return (node);
+	else
+	{
+		new->content = NULL;
+		new->content_size = 0;
+	}
+	new->next = NULL;
+	return (new);
 }

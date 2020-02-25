@@ -3,44 +3,28 @@
 /*                                                        :::      ::::::::   */
 /*   ft_strstr.c                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: dwalda-r <dwalda-r@student.42.fr>          +#+  +:+       +#+        */
+/*   By: mfalkrea <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2019/02/06 01:54:32 by dmelessa          #+#    #+#             */
-/*   Updated: 2019/09/10 17:32:27 by dwalda-r         ###   ########.fr       */
+/*   Created: 2019/09/13 19:01:47 by mfalkrea          #+#    #+#             */
+/*   Updated: 2019/09/13 19:02:12 by mfalkrea         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "libft.h"
 
-/*
-** Determine length of NEEDLE, and in the process, make sure
-** HAYSTACK is at least as long (no point processing all of a long
-** NEEDLE if HAYSTACK is too short).
-*/
-
 char	*ft_strstr(const char *haystack, const char *needle)
 {
-	const char	*pneedle;
-	const char	*phaystack;
-	int			ok;
+	size_t	i;
 
-	ok = 1;
-	pneedle = needle;
-	phaystack = haystack;
-	while (*phaystack && *pneedle)
-		ok &= *phaystack++ == *pneedle++;
-	if (*pneedle)
-		return (NULL);
-	if (ok)
-		return ((char *)(haystack));
-	pneedle = needle;
-	while (*haystack && *needle)
-		if (*haystack++ == *needle)
-			needle++;
-		else
-		{
-			haystack -= needle - pneedle;
-			needle = pneedle;
-		}
-	return (*(needle) ? NULL : (char *)(haystack - (needle - pneedle)));
+	i = 0;
+	if (needle[0] == '\0')
+		return ((char*)haystack);
+	while (haystack[i] != '\0')
+	{
+		if (haystack[i] == needle[0] && ft_strncmp((char*)(haystack + i),
+					needle, ft_strlen((char*)needle)) == 0)
+			return ((char*)(haystack + i));
+		i++;
+	}
+	return (NULL);
 }

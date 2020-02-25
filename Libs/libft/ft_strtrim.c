@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   ft_strtrim.c                                       :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: dmelessa <dmelessa@student.42.fr>          +#+  +:+       +#+        */
+/*   By: mfalkrea <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2019/02/06 04:14:34 by dmelessa          #+#    #+#             */
-/*   Updated: 2019/09/14 16:46:34 by dmelessa         ###   ########.fr       */
+/*   Created: 2019/09/13 19:03:50 by mfalkrea          #+#    #+#             */
+/*   Updated: 2019/09/19 12:41:50 by mfalkrea         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,27 +14,28 @@
 
 char	*ft_strtrim(char const *s)
 {
-	char		*p;
-	const char	*sp;
-	const char	*ep;
+	int		i;
+	int		j;
+	int		len;
+	char	*new;
 
+	i = 0;
+	j = 0;
 	if (!s)
 		return (NULL);
-	while (ft_isspace(*s))
-		s++;
-	sp = s;
-	ep = sp;
-	while (*sp)
-	{
-		while (*sp && !ft_isspace(*sp))
-			sp++;
-		ep = sp;
-		while (*sp && ft_isspace(*sp))
-			sp++;
-	}
-	sp = s;
-	if (!(p = ft_strnew(ep - s)))
+	len = ft_strlen((char*)s);
+	while (s[i] == ' ' || s[i] == '\n' || s[i] == '\t')
+		i++;
+	while ((s[len - 1] == ' ' ||
+			s[len - 1] == '\n' || s[len - 1] == '\t') && len > 0)
+		len--;
+	new = ft_strnew((len > i) ? (len - i) : 0);
+	if (!new)
 		return (NULL);
-	ft_strncpy(p, s, ep - s);
-	return (p);
+	while (i < len)
+	{
+		new[j++] = s[i++];
+		new[j] = '\0';
+	}
+	return (new);
 }

@@ -1,30 +1,28 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   ft_strndup.c                                       :+:      :+:    :+:   */
+/*   ft_intlen.c                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: dmelessa <marvin@42.fr>                    +#+  +:+       +#+        */
+/*   By: mfalkrea <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2019/02/17 15:27:44 by dmelessa          #+#    #+#             */
-/*   Updated: 2019/02/17 15:50:19 by dmelessa         ###   ########.fr       */
+/*   Created: 2019/09/15 13:55:09 by mfalkrea          #+#    #+#             */
+/*   Updated: 2019/09/15 13:55:12 by mfalkrea         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "libft.h"
 
-char	*ft_strndup(const char *s1, size_t n)
+int		ft_intlen(int n)
 {
-	char *p;
-	char *rp;
+	int		i;
 
-	if (!(p = ft_strnew(n + 1)))
-		return (NULL);
-	rp = p;
-	while ((*p = *s1) && (size_t)(p - rp) < n)
+	i = 1;
+	if (n == -2147483648)
+		return (10);
+	while (ft_abs(n) > 9)
 	{
-		p++;
-		s1++;
+		n = n / 10;
+		i++;
 	}
-	ft_memset(p, 0, 1 + n - (p - rp));
-	return (rp);
+	return (i);
 }

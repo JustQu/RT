@@ -49,8 +49,9 @@ endif
 LIBSDIR = $(CURRENTDIR)/Libs
 
 LIBFT = $(LIBFTDIR)/libft.a
-LIBFTDIR = $(LIBSDIR)/libft
-LIBFTINC = $(LIBFTDIR)/includes
+LIBFTDIR = $(LIBSDIR)/libft/
+LIBFTINC = $(LIBFTDIR)
+LIBFTHEAD = $(LIBFTINC)libft.h $(LIBFTINC)get_next_line.h
 
 #MACOS
 SDL2DIR = $(LIBSDIR)/SDL2.framework
@@ -70,7 +71,7 @@ OBJS = $(addprefix $(OBJSDIR), $(SRCS:.c=.o))
 
 all: $(LIBFT) $(NAME)
 
-$(NAME): $(OBJS) $(INCS)
+$(NAME): $(OBJS) $(INCS) $(LIBFTHEAD)
 	@echo 'making executable'
 	$(CC) -o $@ $(OBJS) $(LDLIBS) $(LDFLAGS)
 	@echo DONE!
