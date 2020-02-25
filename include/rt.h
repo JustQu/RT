@@ -112,6 +112,9 @@ struct					s_scene
 };
 
 /**			functions for scene initialization			*/
+cl_float4	get_vector(int f, int l, char *line);
+float		get_number(int f, int l, char *line);
+int			find_parentheses(char *line, char *param, int *f, int *l);
 void		init_camera(char *line, t_scene *scene);
 void		init_object(char *line, t_scene *scene, int type);
 void		init_triangle(char *line, t_scene *scene);
