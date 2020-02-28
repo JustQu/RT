@@ -100,6 +100,7 @@ void	read_data(t_scene *scene, char *file_name)
 	scene->nobjects = 0;
 	scene->ntriangles = 0;
 	read_file(scene, file_name);
+	/* delete all of next */
 	printf("cam: origin");
 	print_vector(scene->camera.origin);
 	printf(" direction");
