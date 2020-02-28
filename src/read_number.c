@@ -52,6 +52,7 @@ float		get_number(int *f, int *l, char *line)
 	int		unit;
 	int		mantissa;
 	float	number;
+	int		len = 0;
 
 	*f += 1;
 	unit = ft_atoi(line + *f);
@@ -66,8 +67,11 @@ float		get_number(int *f, int *l, char *line)
 		*f += 1;
 		mantissa = ft_atoi(line + *f);
 		while (line[*f] >= '0' && line[*f] <= '9')
+		{
 			*f += 1;
-		number = (float)mantissa / pow(10, ft_intlen(mantissa));
+			len++;
+		}
+		number = (float)mantissa / pow(10, len);
 		number =  (unit < 0) ? unit - number : unit + number;
 		return number;
 	}

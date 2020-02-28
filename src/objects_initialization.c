@@ -39,6 +39,20 @@ void	init_object(char *line, t_scene *scene, int type)
 	if (find_parentheses(line, "angle", &first, &last))
 		obj->angle = get_number(&first, &last, line);
 
+	if (find_parentheses(line, "radius2", &first, &last))
+		obj->r2 = get_number(&first, &last, line);
+	else
+		obj->r2 = obj->r * obj->r;
+
+	if (find_parentheses(line, "color", &first, &last))
+		obj->material.color = get_number(&first, &last, line);
+
+	if (find_parentheses(line, "minm", &first, &last))
+		obj->minm = get_number(&first, &last, line);
+
+	if (find_parentheses(line, "maxm", &first, &last))
+		obj->maxm = get_number(&first, &last, line);
+
 	scene->nobjects += 1;
 }
 
@@ -58,6 +72,8 @@ void	init_triangle(char *line, t_scene *scene)
 
 	find_parentheses(line, "vertex3", &first, &last);
 	obj->vertex3 = get_vector(&first, &last, line);
+
+	/** difine vector1, vector2, normal */
 
 	scene->ntriangles += 1;
 }
