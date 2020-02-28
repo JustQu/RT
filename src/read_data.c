@@ -94,4 +94,7 @@ void	read_data(t_scene *scene, char *file_name)
 	scene->nobjects = 0;
 	scene->ntriangles = 0;
 	read_file(scene, file_name);
+	printf("cam origin(%f, %f, %f)\n", scene->camera.origin.x, scene->camera.origin.y, scene->camera.origin.z);
+	printf("cam direction(%f, %f, %f)\n", scene->camera.direction.x, scene->camera.direction.y, scene->camera.direction.z);
+	printf("cam fov(%d)\n", scene->camera.fov);
 }

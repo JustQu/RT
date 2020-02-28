@@ -2,20 +2,20 @@
 
 void	init_camera(char *line, t_scene *scene)
 {
-	t_camera	cam;
+	t_camera	*cam;
 	int			first;
 	int			last;
 
-	cam = scene->camera;
+	cam = &scene->camera;
 
 	find_parentheses(line, "origin", &first, &last);
-	cam.origin = get_vector(first, last, line);
+	cam->origin = get_vector(&first, &last, line);
 
 	find_parentheses(line, "orientation", &first, &last);
-	cam.direction = get_vector(first, last, line);
+	cam->direction = get_vector(&first, &last, line);
 
 	find_parentheses(line, "fov", &first, &last);
-	cam.fov = get_number(first, last, line);
+	cam->fov = get_number(&first, &last, line);
 }
 
 void	init_object(char *line, t_scene *scene, int type)
