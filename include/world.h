@@ -50,13 +50,13 @@ struct					s_material //32
 
 enum	e_types
 {
-	sphere,
-	plane,
 	cone,
 	cylinder,
 	paraboloid,
-	triangle,
-	torus
+	plane,
+	sphere,
+	torus,
+	triangle
 };
 typedef enum e_types	t_type;
 

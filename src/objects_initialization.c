@@ -36,6 +36,9 @@ void	init_object(char *line, t_scene *scene, int type)
 	if (find_parentheses(line, "radius", &first, &last))
 		obj->r = get_number(&first, &last, line);
 
+	if (find_parentheses(line, "angle", &first, &last))
+		obj->angle = get_number(&first, &last, line);
+
 	scene->nobjects += 1;
 }
 
@@ -46,5 +49,15 @@ void	init_triangle(char *line, t_scene *scene)
 	int			last;
 
 	obj = &scene->triangles[scene->ntriangles];
+
+	find_parentheses(line, "vertex1", &first, &last);
+	obj->vertex1 = get_vector(&first, &last, line);
+
+	find_parentheses(line, "vertex2", &first, &last);
+	obj->vertex2 = get_vector(&first, &last, line);
+
+	find_parentheses(line, "vertex3", &first, &last);
+	obj->vertex3 = get_vector(&first, &last, line);
+
 	scene->ntriangles += 1;
 }

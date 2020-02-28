@@ -6,9 +6,10 @@ void	init_func(t_scene *scene)
 {
 	scene->obj_name[0] = ft_strdup("cone");
 	scene->obj_name[1] = ft_strdup("cylinder");
-	scene->obj_name[2] = ft_strdup("plane");
-	scene->obj_name[3] = ft_strdup("sphere");
-	scene->obj_name[4] = ft_strdup("lightsource");
+	scene->obj_name[2] = ft_strdup("paraboloid");
+	scene->obj_name[3] = ft_strdup("plane");
+	scene->obj_name[4] = ft_strdup("sphere");
+	scene->obj_name[5] = ft_strdup("torus");
 /**		don't forget change NUM_OF_TYPES	*/
 	scene->nobjects = 0;
 	scene->ntriangles = 0;

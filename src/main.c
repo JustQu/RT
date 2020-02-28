@@ -84,13 +84,13 @@ int		main(int ac, char **av)
 		return (-1);
 	}
 	init(&window, &program, &scene, av[1]);
-	while (!quit)
+/*	while (!quit)
 	{
 		if (catch_event() == 1)
 			quit = TRUE;
 		start_render_kernel(&program, &scene, window.image);
 		display_image(&window);
 	}
-	exit_program(window);
+	exit_program(window);*/
 	return (0);
 }

@@ -96,7 +96,7 @@ struct					s_cl_program
 };
 
 /** names of types -> read_data() -> init_func() */
-#define NUM_OF_TYPES 5
+#define NUM_OF_TYPES 6
 #define TRIANGLE "triangle"
 
 typedef struct s_scene	t_scene;
