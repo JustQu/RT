@@ -11,7 +11,7 @@ void	init_camera(char *line, t_scene *scene)
 	find_parentheses(line, "origin", &first, &last);
 	cam->origin = get_vector(&first, &last, line);
 
-	find_parentheses(line, "orientation", &first, &last);
+	find_parentheses(line, "direction", &first, &last);
 	cam->direction = get_vector(&first, &last, line);
 
 	find_parentheses(line, "fov", &first, &last);
@@ -20,16 +20,31 @@ void	init_camera(char *line, t_scene *scene)
 
 void	init_object(char *line, t_scene *scene, int type)
 {
-	t_obj	obj;
+	t_obj	*obj;
+	int			first;
+	int			last;
 
-	obj = scene->objects[scene->nobjects];
-	scene->objects += 1;
+	obj = &scene->objects[scene->nobjects];
+	obj->type = type;
+
+	find_parentheses(line, "origin", &first, &last);
+	obj->origin = get_vector(&first, &last, line);
+
+	if (find_parentheses(line, "direction", &first, &last))
+		obj->direction = get_vector(&first, &last, line);
+
+	if (find_parentheses(line, "radius", &first, &last))
+		obj->r = get_number(&first, &last, line);
+
+	scene->nobjects += 1;
 }
 
 void	init_triangle(char *line, t_scene *scene)
 {
-	t_triangle	obj;
+	t_triangle	*obj;
+	int			first;
+	int			last;
 
-	obj = scene->triangles[scene->ntriangles];
+	obj = &scene->triangles[scene->ntriangles];
 	scene->ntriangles += 1;
 }
