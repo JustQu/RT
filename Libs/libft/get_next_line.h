@@ -1,18 +1,21 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   ft_islower.c                                       :+:      :+:    :+:   */
+/*   get_next_line.h                                    :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: dmelessa <marvin@42.fr>                    +#+  +:+       +#+        */
+/*   By: mfalkrea <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2019/02/06 03:25:00 by dmelessa          #+#    #+#             */
-/*   Updated: 2019/02/06 03:25:57 by dmelessa         ###   ########.fr       */
+/*   Created: 2019/09/26 14:51:16 by mfalkrea          #+#    #+#             */
+/*   Updated: 2019/10/01 13:04:12 by mfalkrea         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "libft.h"
+#ifndef GET_NEXT_LINE_H
+# define GET_NEXT_LINE_H
 
-int	ft_islower(int c)
-{
-	return (c >= 'a' && c <= 'z' ? 1 : 0);
-}
+# include "libft.h"
+# define BUFF_SIZE 1
+
+int		get_next_line(const int fd, char **line);
+
+#endif

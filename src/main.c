@@ -76,8 +76,14 @@ int		main(int ac, char **av)
 	t_cl_program	program;
 	t_scene			scene;
 	t_bool			quit;
+
 	quit = FALSE;
-	init(&window, &program, &scene);
+	if (ac != 2)
+	{
+		ft_putendl_fd("usage: ./RT [scene.scene]", 2);
+		return (-1);
+	}
+	init(&window, &program, &scene, av[1]);
 	while (!quit)
 	{
 		if (catch_event() == 1)

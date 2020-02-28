@@ -3,27 +3,36 @@
 /*                                                        :::      ::::::::   */
 /*   ft_atoi.c                                          :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: dmelessa <marvin@42.fr>                    +#+  +:+       +#+        */
+/*   By: mfalkrea <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2019/02/06 02:58:41 by dmelessa          #+#    #+#             */
-/*   Updated: 2019/02/19 16:13:31 by dmelessa         ###   ########.fr       */
+/*   Created: 2019/09/13 18:50:33 by mfalkrea          #+#    #+#             */
+/*   Updated: 2019/09/13 18:50:39 by mfalkrea         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "libft.h"
 
-int	ft_atoi(const char *str)
+int		ft_atoi(char const *s)
 {
-	int	a;
-	int	sign;
+	int		i;
+	int		log;
+	int		n;
 
-	a = 0;
-	sign = 0;
-	while (ft_isspace((int)*str))
-		str++;
-	if (*str == '-' || *str == '+')
-		sign = *str++ == '-' ? 1 : 0;
-	while (ft_isdigit(*str))
-		a = a * 10 + (*str++ - '0');
-	return (sign ? -a : a);
+	i = 0;
+	n = 0;
+	log = 1;
+	while ((s[i] >= 9 && s[i] <= 13) || s[i] == 32)
+		i++;
+	if (s[i] == '-' || s[i] == '+')
+	{
+		if (s[i] == '-')
+			log = -1;
+		i++;
+	}
+	while (s[i] >= '0' && s[i] <= '9')
+	{
+		n = n * 10 + s[i] - '0';
+		i++;
+	}
+	return (n * log);
 }

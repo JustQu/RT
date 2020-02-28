@@ -35,7 +35,7 @@
 #  define DEFAULT_KERNEL_FILE "ray_tracer.cl"
 # endif
 
-# define DEFAULT_KERNEL_NAME "ray_tracer"
+# define DEFAULT_KERNEL_NAME "raytrace"
 
 # define DEFAULT_KERNEL_INCLUDE "-I ./include -I ./src/cl"
 # define DEFAULT_WORK_SIZE DEFAULT_WIDTH * DEFAULT_HEIGHT
@@ -95,6 +95,10 @@ struct					s_cl_program
 	size_t				work_group_size;
 };
 
+/** names of types -> read_data() -> init_func() */
+#define NUM_OF_TYPES 6
+#define TRIANGLE "triangle"
+
 typedef struct s_scene	t_scene;
 struct					s_scene
 {
@@ -104,15 +108,26 @@ struct					s_scene
 	t_camera			camera;
 	int					nobjects;
 	int					ntriangles;
+	char				*obj_name[NUM_OF_TYPES];
 };
 
+/**			functions for scene initialization			*/
+cl_float4	get_vector(int *f, int *l, char *line);
+float		get_number(int *f, int *l, char *line);
+int			find_parentheses(char *line, char *param, int *f, int *l);
+void		init_camera(char *line, t_scene *scene);
+void		init_object(char *line, t_scene *scene, int type);
+void		init_triangle(char *line, t_scene *scene);
+char		*find_file_name(char *str);
+int			fd_return(char *file_name);
+void		read_data(t_scene *scene, char *name);
+
 cl_program	create_program(cl_context context);
-int			read_data(t_scene *scene);
 int			init_window(t_window *window);
-int 		init(t_window *window, t_cl_program *cl_program, t_scene *scene);
+int 		init(t_window *window, t_cl_program
+				*cl_program, t_scene *scene, char *file);
 
 int			catch_event();
-
 void		cl_error(t_cl_program *program, t_clp *clp, int code);
 
 #endif

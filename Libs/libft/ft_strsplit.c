@@ -3,54 +3,99 @@
 /*                                                        :::      ::::::::   */
 /*   ft_strsplit.c                                      :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: dmelessa <dmelessa@student.42.fr>          +#+  +:+       +#+        */
+/*   By: mfalkrea <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2019/02/06 04:19:30 by dmelessa          #+#    #+#             */
-/*   Updated: 2019/07/28 16:45:33 by dmelessa         ###   ########.fr       */
+/*   Created: 2019/09/13 19:03:19 by mfalkrea          #+#    #+#             */
+/*   Updated: 2019/09/20 14:33:49 by mfalkrea         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "libft.h"
 
-static unsigned int	ft_wc1(char const *s, char c)
+static int	mlc_size(char const *s, char c)
 {
-	unsigned int wc;
+	int		i;
+	int		log;
+	int		mlc;
 
-	wc = 0;
-	while (*s && *s == c)
-		s++;
-	while (*s)
+	i = 0;
+	log = 0;
+	mlc = 0;
+	while (s[i] != '\0')
 	{
-		while (*s && *s != c)
-			s++;
-		wc++;
-		while (*s && *s == c)
-			s++;
+		if (s[i] == c)
+		{
+			if (log == 0)
+			{
+				mlc++;
+				log = 1;
+			}
+		}
+		else
+			log = 0;
+		i++;
 	}
-	return (wc);
+	return (mlc);
 }
 
-char				**ft_strsplit(char const *s, char c)
+static int	join_str(char const *s, struct s_split *r, char **sp)
 {
-	char		**p;
-	const char	*estr;
-	size_t		i;
-
-	if (!s || !(p = (char **)malloc((ft_wc1(s, c) + 1) * sizeof(char *))))
-		return (NULL);
-	i = 0;
-	while (*s && *s == c)
-		s++;
-	while (*s)
+	sp[r->mlc] = ft_strsub(s, r->start, r->i - r->start);
+	if (!sp[r->mlc])
 	{
-		estr = s;
-		while (*estr && *estr != c)
-			estr++;
-		*(p + i++) = ft_strsub(s, 0, estr - s);
-		s = estr;
-		while (*s && *s == c)
-			s++;
+		r->mlc++;
+		while (--r->mlc)
+		{
+			free(sp[r->mlc]);
+		}
+		return (1);
 	}
-	*(p + i) = NULL;
-	return (p);
+	r->mlc++;
+	return (0);
+}
+
+static int	split(char const *s, char c, char **sp)
+{
+	struct s_split	r;
+	int				before_is_sim;
+
+	before_is_sim = 0;
+	r.i = -1;
+	r.mlc = 0;
+	while (s[++r.i] != '\0')
+	{
+		if (before_is_sim == 0)
+			r.start = r.i;
+		if (s[r.i] != c)
+			before_is_sim = 1;
+		else
+		{
+			if (before_is_sim == 1 && join_str(s, &r, sp))
+				return (1);
+			before_is_sim = 0;
+		}
+	}
+	if (r.i != 0 && s[r.i - 1] != c && join_str(s, &r, sp))
+		return (1);
+	sp[r.mlc] = NULL;
+	return (0);
+}
+
+char		**ft_strsplit(char const *s, char c)
+{
+	int		mlc;
+	char	**sp;
+
+	if (!s)
+		return (NULL);
+	mlc = mlc_size(s, c);
+	sp = (char**)malloc(sizeof(char*) * (mlc + 2));
+	if (!sp)
+		return (NULL);
+	if (split(s, c, sp))
+	{
+		free(sp);
+		return (NULL);
+	}
+	return (sp);
 }

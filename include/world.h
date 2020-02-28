@@ -56,13 +56,13 @@ struct					s_material //32
 
 enum	e_types
 {
-	sphere,
-	plane,
 	cone,
 	cylinder,
 	paraboloid,
-	triangle,
-	torus
+	plane,
+	sphere,
+	torus,
+	triangle
 };
 typedef enum e_types	t_type;
 
@@ -100,6 +100,7 @@ __declspec(align(8))
 # endif
 struct	s_triangle
 {
+	t_material	material;
 	cl_float4	vertex1;
 	cl_float4	vertex2;
 	cl_float4	vertex3;
