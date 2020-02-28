@@ -94,6 +94,7 @@ __declspec(align(8))
 # endif
 struct	s_triangle
 {
+	t_material	material;
 	cl_float4	vertex1;
 	cl_float4	vertex2;
 	cl_float4	vertex3;

@@ -105,4 +105,13 @@ void	read_data(t_scene *scene, char *file_name)
 	printf(" direction");
 	print_vector(scene->camera.direction);
 	printf(" fov(%d)\n", scene->camera.fov);
+	for (int n = 0; n < scene->nobjects; n++)
+	{
+		printf("type (%d): origin", scene->objects[n].type);
+		print_vector(scene->objects[n].origin);
+		printf(" direction");
+		print_vector(scene->objects[n].direction);
+		printf(" radius(%f)", scene->objects[n].r);
+		printf(" color(%d)\n", scene->objects[n].material.color);
+	}
 }

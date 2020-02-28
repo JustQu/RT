@@ -82,10 +82,10 @@ int		init_renderer(t_cl_program *program, t_scene *scene)
 int		init(t_window *window, t_cl_program *cl_program,
 						t_scene *scene, char *file)
 {
-	read_data(scene, file);/*
+	read_data(scene, file);
 	init_window(window);
 	cl_program->work_size = DEFAULT_WORK_SIZE;
 	cl_program->work_group_size = WORK_GROUP_SIZE;
-	init_renderer(cl_program, scene);*/
+	init_renderer(cl_program, scene);
 	return 0;
 }

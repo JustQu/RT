@@ -73,6 +73,9 @@ void	init_triangle(char *line, t_scene *scene)
 	find_parentheses(line, "vertex3", &first, &last);
 	obj->vertex3 = get_vector(&first, &last, line);
 
+	if (find_parentheses(line, "color", &first, &last))
+		obj->material.color = get_number(&first, &last, line);
+
 	/** difine vector1, vector2, normal */
 
 	scene->ntriangles += 1;
