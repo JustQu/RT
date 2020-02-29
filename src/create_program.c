@@ -46,7 +46,7 @@ cl_program	create_program(cl_context context)
 	source_buf = get_source_buf(ft_strjoin(DEFAULT_KERNEL_DIR, DEFAULT_KERNEL_FILE));
 	program = clCreateProgramWithSource(context, 1,
 			(const char**)&source_buf, NULL, &ret);
-	assert(!ret);
+	ft_clerror(ret);
 	free(source_buf);
 	return (program);
 }
