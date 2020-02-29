@@ -45,7 +45,10 @@ void	init_object(char *line, t_scene *scene, int type)
 		obj->r2 = obj->r * obj->r;
 
 	if (find_parentheses(line, "color", &first, &last))
-		obj->material.color = get_number(&first, &last, line);
+		obj->material.color = get_vector(&first, &last, line);
+
+	if (find_parentheses(line, "emission", &first, &last))
+		obj->material.emission = get_vector(&first, &last, line);
 
 	if (find_parentheses(line, "minm", &first, &last))
 		obj->minm = get_number(&first, &last, line);
@@ -74,7 +77,10 @@ void	init_triangle(char *line, t_scene *scene)
 	obj->vertex3 = get_vector(&first, &last, line);
 
 	if (find_parentheses(line, "color", &first, &last))
-		obj->material.color = get_number(&first, &last, line);
+		obj->material.color = get_vector(&first, &last, line);
+
+	if (find_parentheses(line, "emission", &first, &last))
+		obj->material.emission = get_vector(&first, &last, line);
 
 	/** difine vector1, vector2, normal */
 

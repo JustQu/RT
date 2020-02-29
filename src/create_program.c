@@ -69,7 +69,7 @@ cl_program	create_program(cl_context context)
 	create_source(source_buf, NUM_FILES);
 	program = clCreateProgramWithSource(context, NUM_FILES,
 			(const char**)source_buf, NULL, &ret);
-	assert(!ret);
+	ft_clerror(ret);
 	free(source_buf);
 	return (program);
 }
