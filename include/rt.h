@@ -17,7 +17,6 @@
 # include <stdio.h>
 # include <stdint.h>
 # include <fcntl.h>
-# include <assert.h>
 # include <math.h>
 
 # ifdef __unix__
@@ -122,6 +121,7 @@ char		*find_file_name(char *str);
 int			fd_return(char *file_name);
 void		read_data(t_scene *scene, char *name);
 
+void		ft_clerror(cl_int ret);
 cl_program	create_program(cl_context context);
 int			init_window(t_window *window);
 int 		init(t_window *window, t_cl_program

@@ -63,11 +63,11 @@ void	start_render_kernel(t_cl_program *program,
 	clSetKernelArg(program->kernel, 4, sizeof(cl_mem), (void *)&program->triangles);
 	err_code = clEnqueueNDRangeKernel(program->clp.queue, program->kernel, 1,
 		NULL, &program->work_size, &program->work_group_size, 0, NULL, NULL);
-	assert(!err_code);
+	ft_clerror(err_code);
 	err_code = clEnqueueReadBuffer(program->clp.queue, program->output_image,
 		CL_TRUE, 0, program->work_size * sizeof(uint32_t),
 		image, 0, NULL, NULL);
-	assert(!err_code);
+	ft_clerror(err_code);
 }
 
 int		main(int ac, char **av)
