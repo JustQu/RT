@@ -15,7 +15,7 @@ t_ray	cast_primal_ray(t_camera camera, int x, int y)
 	return ray;
 }
 
-__kernel void raytracer(
+__kernel void ray_tracer(
 				__global uint *output_image,
 				__constant t_obj *objects, int nobjects,
 				t_camera camera,
