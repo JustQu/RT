@@ -1,6 +1,20 @@
 #include "world.h"
 # define BOUNCES 10
 
+cl_float4 get_obj_normal(cl_float4 hitpoint, t_obj obj)
+{
+	int		type = obj.type;
+
+	if (type == sphere)
+	{
+		return normalize(hitpoint - obj.origin);
+	}
+	else if (type == plane)
+	{
+		return normalize(obj.direction);
+	}
+}
+
 bool	intersection(t_ray ray, t_obj obj, float *tr)
 {
 	if (obj.type == sphere)
@@ -71,7 +85,7 @@ float3		get_point_color(t_ray camray,
 		float	t;
 		int		hitobj_id = 0;
 		if (!intersect_scene(objects, ray, &t, &hitobj_id, nobjects))
-			return accum_color += mask * (float3)(0.15f, 0.15f, 0.15f);
+			return accum_color += mask * (float3)(0.05f, 0.05f, 0.05f);
 		
 		t_obj	hit_obj = objects[hitobj_id];
 		//return hit_obj.material.color;
@@ -79,7 +93,7 @@ float3		get_point_color(t_ray camray,
 		float4	hitpoint = ray.origin + ray.direction * t;
 		
 		/* compute the surface normal and flip it if necessary to face the incoming ray */
-		float4 normal = normalize(hitpoint - hit_obj.origin); 
+		float4 normal = get_obj_normal(hitpoint, hit_obj);
 		float4 normal_facing = dot(normal, ray.direction) < 0.0f ? normal : normal * (-1.0f);
 
 		/* compute two random numbers to pick a random point on the hemisphere above the hitpoint*/
