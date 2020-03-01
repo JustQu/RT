@@ -16,6 +16,9 @@ void	init_camera(char *line, t_scene *scene)
 
 	find_parentheses(line, "fov", &first, &last);
 	cam->fov = get_number(&first, &last, line);
+
+	cam->angle = tan((cam->fov * PI) / 360);
+	cam->ratio = (float)DEFAULT_WIDTH / DEFAULT_HEIGHT;
 }
 
 void	init_object(char *line, t_scene *scene, int type)
@@ -41,20 +44,22 @@ void	init_object(char *line, t_scene *scene, int type)
 
 	if (find_parentheses(line, "radius2", &first, &last))
 		obj->r2 = get_number(&first, &last, line);
+	else if (obj->type == 0) /* cone */
+		obj->r2 = obj->r * obj->r + 1;
 	else
 		obj->r2 = obj->r * obj->r;
-
-	if (find_parentheses(line, "color", &first, &last))
-		obj->material.color = get_vector(&first, &last, line);
-
-	if (find_parentheses(line, "emission", &first, &last))
-		obj->material.emission = get_vector(&first, &last, line);
 
 	if (find_parentheses(line, "minm", &first, &last))
 		obj->minm = get_number(&first, &last, line);
 
 	if (find_parentheses(line, "maxm", &first, &last))
 		obj->maxm = get_number(&first, &last, line);
+
+	if (find_parentheses(line, "color", &first, &last))
+		obj->material.color = get_vector(&first, &last, line);
+
+	if (find_parentheses(line, "emission", &first, &last))
+		obj->material.emission = get_vector(&first, &last, line);
 
 	scene->nobjects += 1;
 }
@@ -82,7 +87,14 @@ void	init_triangle(char *line, t_scene *scene)
 	if (find_parentheses(line, "emission", &first, &last))
 		obj->material.emission = get_vector(&first, &last, line);
 
-	/** difine vector1, vector2, normal */
+	/** difine vector1, vector2 */
+	obj->vector1.x = obj->vertex2.x - obj->vertex1.x;
+	obj->vector1.y = obj->vertex2.y - obj->vertex1.y;
+	obj->vector1.z = obj->vertex2.z - obj->vertex1.z;
+
+	obj->vector2.x = obj->vertex3.x - obj->vertex1.x;
+	obj->vector2.y = obj->vertex3.y - obj->vertex1.y;
+	obj->vector2.z = obj->vertex3.z - obj->vertex1.z;
 
 	scene->ntriangles += 1;
 }

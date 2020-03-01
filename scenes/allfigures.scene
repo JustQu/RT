@@ -1,2 +1,0 @@
-sphere: radius(0.2) origin(0.1, 0.1, 0)
-lightsource: origin(1.000, 0.000, 5.000) intensity(0.500)

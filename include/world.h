@@ -15,7 +15,6 @@
 
 # define DEFAULT_WIDTH 1200
 # define DEFAULT_HEIGHT 720
-# define DEFAULT_FOV 90
 # define WORK_GROUP_SIZE 128
 
 //# define BOUNCES 5

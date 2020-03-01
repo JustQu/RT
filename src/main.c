@@ -16,6 +16,11 @@
 ** @brief
 ** L1 Cache = Local Memory(OpenCL) = Shared Memory(CUDA)
 */
+void	print_vector(cl_float4 vec)
+{
+	printf("(%f, %f, %f)", vec.x, vec.y, vec.z);
+}
+
 
 void	exit_program(t_window window)
 {
@@ -84,6 +89,20 @@ int		main(int ac, char **av)
 		return (-1);
 	}
 	init(&window, &program, &scene, av[1]);
+	/* delete all of next printf */
+	printf("cam: origin");
+	print_vector(scene.camera.origin);
+	printf(" direction");
+	print_vector(scene.camera.direction);
+	printf(" fov(%d)\n", scene.camera.fov);
+	for (int n = 0; n < scene.nobjects; n++)
+	{
+		printf("type (%d): emission", scene.objects[n].type);
+		print_vector(scene.objects[n].material.emission);
+		printf(" color");
+		print_vector(scene.objects[n].material.color);
+		printf("\n");
+	}
 	while (!quit)
 	{
 		if (catch_event() == 1)

@@ -2,11 +2,6 @@
 #define CAMERA "camera"
 #define ADD_FILE "add file"
 
-void	print_vector(cl_float4 vec)
-{
-	printf("(%f, %f, %f)", vec.x, vec.y, vec.z);
-}
-
 void	init_func(t_scene *scene)
 {
 	scene->obj_name[0] = ft_strdup("cone");
@@ -100,18 +95,4 @@ void	read_data(t_scene *scene, char *file_name)
 	scene->nobjects = 0;
 	scene->ntriangles = 0;
 	read_file(scene, file_name);
-	/* delete all of next */
-	printf("cam: origin");
-	print_vector(scene->camera.origin);
-	printf(" direction");
-	print_vector(scene->camera.direction);
-	printf(" fov(%d)\n", scene->camera.fov);
-	for (int n = 0; n < scene->nobjects; n++)
-	{
-		printf("type (%d): emission", scene->objects[n].type);
-		print_vector(scene->objects[n].material.emission);
-		printf(" color");
-		print_vector(scene->objects[n].material.color);
-		printf("\n");
-	}
 }

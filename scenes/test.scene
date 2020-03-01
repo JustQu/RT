@@ -1,3 +1,3 @@
-plane: origin(0.000, -2.000, 0.000) direction(000, 0.000, 1.000) color(0.5, 0.5, 1) emission(1, 1, 1)
-sphere: origin(0.000, 0.000, 0.000) radius(3.198) emission(1, 1, 1) color(1, 0, 0)
-camera: origin(50, 50, 50) direction(-5, -5, -5) fov(45.000)
+plane: origin(0.000, 0.000, 0.000) direction(0, 1, 0) color(1, 0, 1)
+sphere: origin(0.000, 0.000, 0.000) radius(10) emission(1, 1, 1) color(1, 0, 0)
+camera: origin(15, 15, 15) direction(-3, -3, -3) fov(90)

@@ -71,7 +71,7 @@ float3		get_point_color(t_ray camray,
 		float	t;
 		int		hitobj_id = 0;
 		if (!intersect_scene(objects, ray, &t, &hitobj_id, nobjects))
-			return accum_color += mask * (float3)(0.5f, 0.5f, 0.5f);
+			return accum_color += mask * (float3)(0.15f, 0.15f, 0.15f);
 		
 		t_obj	hit_obj = objects[hitobj_id];
 		return hit_obj.material.color;
