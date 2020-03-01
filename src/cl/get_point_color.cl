@@ -74,7 +74,7 @@ float3		get_point_color(t_ray camray,
 			return accum_color += mask * (float3)(0.15f, 0.15f, 0.15f);
 		
 		t_obj	hit_obj = objects[hitobj_id];
-		return hit_obj.material.color;
+		//return hit_obj.material.color;
 		/* compute the hitpoint using the ray equation */
 		float4	hitpoint = ray.origin + ray.direction * t;
 		

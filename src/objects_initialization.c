@@ -21,6 +21,16 @@ void	init_camera(char *line, t_scene *scene)
 	cam->ratio = (float)DEFAULT_WIDTH / DEFAULT_HEIGHT;
 }
 
+void	InitObjToZero(t_obj	*obj)
+{
+	obj->material.emission.x = 0;
+	obj->material.emission.y = 0;
+	obj->material.emission.z = 0;
+	obj->material.color.x = 0;
+	obj->material.color.y = 0;
+	obj->material.color.z = 0;
+}
+
 void	init_object(char *line, t_scene *scene, int type)
 {
 	t_obj	*obj;
@@ -28,6 +38,9 @@ void	init_object(char *line, t_scene *scene, int type)
 	int			last;
 
 	obj = &scene->objects[scene->nobjects];
+
+	InitObjToZero(obj);
+
 	obj->type = type;
 
 	find_parentheses(line, "origin", &first, &last);
