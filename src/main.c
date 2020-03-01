@@ -18,7 +18,7 @@
 */
 void	print_vector(cl_float4 vec)
 {
-	printf("(%f, %f, %f)", vec.x, vec.y, vec.z);
+	printf("(%.1f, %.1f, %.1f)", vec.x, vec.y, vec.z);
 }
 
 
@@ -89,20 +89,28 @@ int		main(int ac, char **av)
 		return (-1);
 	}
 	init(&window, &program, &scene, av[1]);
+
+
 	/* delete all of next printf */
+	printf("nobjects = %d; ntriangles = %d;\n", scene.nobjects, scene.ntriangles);//delete later
 	printf("cam: origin");
 	print_vector(scene.camera.origin);
 	printf(" direction");
 	print_vector(scene.camera.direction);
-	printf(" fov(%d)\n", scene.camera.fov);
+	printf(" angle(%f) ratio(%f)\n\n", scene.camera.angle, scene.camera.ratio);
 	for (int n = 0; n < scene.nobjects; n++)
 	{
-		printf("type (%d): emission", scene.objects[n].type);
-		print_vector(scene.objects[n].material.emission);
+		t_obj obj = scene.objects[n];
+		printf("obj type(%d): emission", obj.type);
+		print_vector(obj.material.emission);
 		printf(" color");
-		print_vector(scene.objects[n].material.color);
+		print_vector(obj.material.color);
+		printf(" r(%.1f) r2(%.1f) angle(%f) maxm(%.1f) minm(%.1f)", obj.r, obj.r2, obj.angle, obj.maxm, obj.minm);
 		printf("\n");
 	}
+
+
+
 	while (!quit)
 	{
 		if (catch_event() == 1)
