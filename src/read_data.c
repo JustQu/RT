@@ -91,6 +91,7 @@ void	read_data(t_scene *scene, char *file_name)
 	count(scene, file_name);
 	scene->objects = malloc(sizeof(t_obj) * scene->nobjects);
 	scene->triangles = malloc(sizeof(t_obj) * scene->ntriangles);
+	printf("obj = %d; tri = %d\n", scene->nobjects, scene->ntriangles);//delete later
 	scene->nobjects = 0;
 	scene->ntriangles = 0;
 	read_file(scene, file_name);
