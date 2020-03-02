@@ -1,5 +1,5 @@
 #include "world.h"
-# define SAMPLES 100
+# define SAMPLES 500
 
 t_ray	cast_primal_ray(t_camera camera, int x, int y)
 {

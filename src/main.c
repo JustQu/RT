@@ -18,7 +18,7 @@
 */
 void	print_vector(cl_float4 vec)
 {
-	printf("(%f, %f, %f)", vec.x, vec.y, vec.z);
+	printf("(%.1f, %.1f, %.1f)", vec.x, vec.y, vec.z);
 }
 
 
@@ -89,7 +89,10 @@ int		main(int ac, char **av)
 		return (-1);
 	}
 	init(&window, &program, &scene, av[1]);
+
+
 	/* delete all of next printf */
+	printf("obj = %d; tri = %d\n", scene.nobjects, scene.ntriangles);//delete later
 	printf("cam: origin");
 	print_vector(scene.camera.origin);
 	printf(" direction");
@@ -97,19 +100,18 @@ int		main(int ac, char **av)
 	printf(" fov(%d)\n", scene.camera.fov);
 	for (int n = 0; n < scene.nobjects; n++)
 	{
-		printf("type (%d): emission", scene.objects[n].type);
-		print_vector(scene.objects[n].material.emission);
-		printf(" color");
-		print_vector(scene.objects[n].material.color);
-		printf("\n");
+		t_obj obj = scene.objects[n];
+		printf("%s: r(%.1f) r2(%.1f) angle(%.3f) maxm(%.1f) minm(%.1f)\n",
+		 scene.obj_name[obj.type], obj.r, obj.r2, obj.angle, obj.maxm, obj.minm);
 	}
+
+
+	start_render_kernel(&program, &scene, window.image);
+	display_image(&window);
 	while (!quit)
 	{
 		if (catch_event() == 1)
 			quit = TRUE;
-		start_render_kernel(&program, &scene, window.image);
-		display_image(&window);
-		sleep(5000);
 	}
 	exit_program(window);
 	return (0);

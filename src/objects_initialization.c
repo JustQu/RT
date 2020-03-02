@@ -29,6 +29,11 @@ void	InitObjToZero(t_obj	*obj)
 	obj->material.color.x = 0;
 	obj->material.color.y = 0;
 	obj->material.color.z = 0;
+	obj->r = 0;
+	obj->r2 = 0;
+	obj->angle = 0;
+	obj->maxm = 0;
+	obj->minm = 0;
 }
 
 void	init_object(char *line, t_scene *scene, int type)

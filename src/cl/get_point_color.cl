@@ -1,18 +1,14 @@
 #include "world.h"
-# define BOUNCES 10
+# define BOUNCES 8
 
 cl_float4 get_obj_normal(cl_float4 hitpoint, t_obj obj)
 {
 	int		type = obj.type;
 
 	if (type == sphere)
-	{
 		return normalize(hitpoint - obj.origin);
-	}
 	else if (type == plane)
-	{
 		return normalize(obj.direction);
-	}
 }
 
 bool	intersection(t_ray ray, t_obj obj, float *tr)
