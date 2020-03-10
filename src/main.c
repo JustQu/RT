@@ -6,7 +6,7 @@
 /*   By: dmelessa <dmelessa@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2020/01/28 15:18:45 by dmelessa          #+#    #+#             */
-/*   Updated: 2020/02/16 18:17:27 by dmelessa         ###   ########.fr       */
+/*   Updated: 2020/03/09 22:34:46 by dmelessa         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -56,11 +56,17 @@ void	start_render_kernel(t_cl_program *program,
 
 	err_code = 0;
 	clSetKernelArg(program->kernel, 0, sizeof(cl_mem), (void *)&program->output_image);
-	clSetKernelArg(program->kernel, 1, sizeof(cl_mem), (void *)&program->objects);
+	clSetKernelArg(program->kernel, 1, sizeof(cl_mem),
+		(void *)&program->objects);
 	clSetKernelArg(program->kernel, 2, sizeof(cl_int),
 		(void *)&scene->nobjects);
-	clSetKernelArg(program->kernel, 3, sizeof(t_camera), &scene->camera);
-	clSetKernelArg(program->kernel, 4, sizeof(cl_mem), (void *)&program->triangles);
+	clSetKernelArg(program->kernel, 3, sizeof(cl_mem),
+		(void *)&program->lights);
+	clSetKernelArg(program->kernel, 4, sizeof(cl_int), (void *)&scene->nlights);
+	clSetKernelArg(program->kernel, 5, sizeof(t_camera), &scene->camera);
+	clSetKernelArg(program->kernel, 6, sizeof(t_light), &scene->ambient_light);
+	clSetKernelArg(program->kernel, 7, sizeof(cl_mem),
+		(void *)&program->triangles);
 	err_code = clEnqueueNDRangeKernel(program->clp.queue, program->kernel, 1,
 		NULL, &program->work_size, &program->work_group_size, 0, NULL, NULL);
 	assert(!err_code);
@@ -76,14 +82,19 @@ int		main(int ac, char **av)
 	t_cl_program	program;
 	t_scene			scene;
 	t_bool			quit;
+	int				value;
 	quit = FALSE;
 	init(&window, &program, &scene);
 	while (!quit)
 	{
-		if (catch_event() == 1)
+		value = catch_event();
+		if (value == 1)
 			quit = TRUE;
-		start_render_kernel(&program, &scene, window.image);
-		display_image(&window);
+		else if (value == 0)
+		{
+			start_render_kernel(&program, &scene, window.image);
+			display_image(&window);
+		}
 	}
 	exit_program(window);
 	return (0);

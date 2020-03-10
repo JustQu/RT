@@ -88,9 +88,10 @@ struct					s_cl_program
 	t_clp				clp;
 	cl_program			program;
 	cl_kernel			kernel;
-	cl_mem				objects;
 	cl_mem				output_image;
+	cl_mem				objects;
 	cl_mem				triangles;
+	cl_mem				lights;
 	size_t				work_size;
 	size_t				work_group_size;
 };
@@ -100,9 +101,12 @@ struct					s_scene
 {
 	t_obj				*objects;
 	t_triangle			*triangles;
+	t_light				ambient_light;
+	t_light				*lights;
 	t_box				*boxes; //for test
 	t_camera			camera;
 	int					nobjects;
+	int					nlights;
 	int					ntriangles;
 };
 

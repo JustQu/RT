@@ -6,7 +6,7 @@
 /*   By: dmelessa <dmelessa@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2020/02/10 17:43:55 by dmelessa          #+#    #+#             */
-/*   Updated: 2020/02/16 19:07:10 by dmelessa         ###   ########.fr       */
+/*   Updated: 2020/03/09 12:31:43 by dmelessa         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -61,6 +61,9 @@ int		init_renderer(t_cl_program *program, t_scene *scene)
 		CL_MEM_COPY_HOST_PTR, sizeof(t_triangle) * scene->ntriangles,
 		scene->triangles, &ret);
 	cl_error(program, &program->clp, ret);
+	program->lights = clCreateBuffer(program->clp.context, CL_MEM_READ_WRITE |
+	CL_MEM_COPY_HOST_PTR, sizeof(t_light) * scene->nlights, scene->lights,
+	&ret);
 	program->program = create_program(program->clp.context);
 	cl_error(program, &program->clp, ret);
 	ret = clBuildProgram(program->program, 1, &program->clp.de_id,

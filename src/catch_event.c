@@ -50,6 +50,7 @@ int catch_event()
 		}
 		//check input
 		//switch kernel here?
+		return -1;
 	}
 	return 0;
 }

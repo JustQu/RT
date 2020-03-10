@@ -6,7 +6,7 @@
 /*   By: dmelessa <dmelessa@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2020/02/10 19:36:22 by dmelessa          #+#    #+#             */
-/*   Updated: 2020/02/10 19:44:38 by dmelessa         ###   ########.fr       */
+/*   Updated: 2020/03/10 22:31:28 by dmelessa         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -33,7 +33,28 @@
 #  define cl_int4 int4
 #  define cl_int3 int3
 #  define cl_int int
+#  define cl_char char
+#  define cl_uchar uchar
 # endif
+
+union s_color {
+	cl_int value;
+	struct
+	{
+		cl_uchar r;
+		cl_uchar g;
+		cl_uchar b;
+		cl_uchar a;
+	};
+};
+typedef union s_color t_color;
+
+enum e_material_type
+{
+	matte, //kd, ka
+	phong
+};
+typedef enum e_material_type t_material_type;
 
 typedef struct s_material	t_material;
 # ifdef _WIN64
@@ -41,9 +62,10 @@ __declspec(align(8))
 # endif
 struct					s_material //32
 {
-	cl_int				color;
-	cl_float			kd;
-	cl_float			ks;
+	t_material_type		type;
+	t_color				color;
+	cl_float			kd; //diffuse reflection coefficient [0, 1]
+	cl_float			ka;
 	cl_float			n;
 	void				*texture;
 };
@@ -59,6 +81,27 @@ enum	e_types
 	torus
 };
 typedef enum e_types	t_type;
+
+enum	e_light_types
+{
+	ambient,
+	ambient_occluder,
+	directional,
+	point,
+	area,
+	enviromental
+};
+typedef enum e_light_types	t_light_type;
+
+struct	s_light
+{
+	cl_float4		origin;
+	cl_float4		direction;
+	t_color			color;
+	cl_float		ls; //radiance scaling factor [0, inf)
+	t_light_type	type;
+};
+typedef struct s_light t_light;
 
 typedef struct s_box	t_box;
 #ifdef _WIN64
