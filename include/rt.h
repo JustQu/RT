@@ -28,6 +28,7 @@
 
 # include "libft.h"
 # include "world.h"
+# include "bool.h"
 
 # ifdef _WIN64
 #  define DEFAULT_KERNEL_FILE "ray_tracer.cl"
@@ -35,26 +36,16 @@
 #  define DEFAULT_KERNEL_FILE "ray_tracer.cl"
 # endif
 
-# define DEFAULT_KERNEL_NAME "main"
+# define DEFAULT_KERNEL_NAME "main" //NOTE: нельзя сделать кернел с именем 'main'\
+											на встроенной видеокарте intel
 
 # define DEFAULT_KERNEL_INCLUDE "-I. -I./include -I./src/cl"
 # define DEFAULT_WORK_SIZE DEFAULT_WIDTH * DEFAULT_HEIGHT
-# define DEFAULT_WIDTH 1200
-# define DEFAULT_HEIGHT 720
 
 # ifdef _WIN64
 #	define DEFAULT_KERNEL_DIR "./src/cl/"
 # else
 #	define DEFAULT_KERNEL_DIR "./src/cl/"
-# endif
-
-
-typedef int	t_bool;
-# ifndef TRUE
-#  define TRUE 1
-# endif
-# ifndef FALSE
-#  define FALSE 0
 # endif
 
 /**
@@ -72,6 +63,10 @@ typedef struct			s_clp
 	cl_command_queue	queue;
 }						t_clp;
 
+/**
+** @brief
+** to manipulate sdl windos
+*/
 typedef struct			s_window
 {
 	SDL_Window			*ptr;
@@ -82,6 +77,10 @@ typedef struct			s_window
 	int					height;
 }						t_window;
 
+/**
+** @brief
+** all information needed to start our kernel
+*/
 typedef struct s_cl_program	t_cl_program;
 struct					s_cl_program
 {
@@ -96,6 +95,10 @@ struct					s_cl_program
 	size_t				work_group_size;
 };
 
+/**
+** @brief
+** struct containing information about scene: camera, objects, triangles and light sources
+*/
 typedef struct s_scene	t_scene;
 struct					s_scene
 {
@@ -103,7 +106,6 @@ struct					s_scene
 	t_triangle			*triangles;
 	t_light				ambient_light;
 	t_light				*lights;
-	t_box				*boxes; //for test
 	t_camera			camera;
 	int					nobjects;
 	int					nlights;

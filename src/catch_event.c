@@ -1,6 +1,6 @@
 #include "rt.h"
 
-int catch_event()
+int catch_event(t_options *options)
 {
 	SDL_Event event;
 
@@ -37,6 +37,10 @@ int catch_event()
 		{
 			if (event.key.keysym.sym == SDLK_ESCAPE)
 				exit(0);
+			else if (event.key.keysym.sym == SDLK_p)
+			{
+				options->shadows = ~options->shadows;
+			}
 		}
 		if (event.type == SDL_KEYUP)
 		{

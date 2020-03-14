@@ -1,69 +1,90 @@
 #include "world.h"
 #include "solver.cl"
+#include "cl_rt.h"
 
-struct	s_ray
+#define EPSILON 1e-5
+#define K_HUGE_VALUE 1e10f
+
+/******************************** OBJECT INTERSECTION **************************************/
+
+static inline bool	bbox_intersection(t_ray ray, t_bbox bbox)
 {
-	float4	origin;
-	float4	direction;
-};
-typedef struct s_ray	t_ray;
+	float ox = ray.origin.x;
+	float oy = ray.origin.y;
+	float oz = ray.origin.z;
+	float dx = ray.direction.x;
+	float dy = ray.direction.y;
+	float dz = ray.direction.z;
+	float tx_min, ty_min, tz_min;
+	float tx_max, ty_max, tz_max;
+	float a = 1.0f / dx;
+	if (a >= 0.0f)
+	{
+		tx_min = (bbox.min.x - ox) * a;
+		tx_max = (bbox.max.x - ox) * a;
+	}
+	else
+	{
+		tx_min = (bbox.max.x - ox) * a;
+		tx_max = (bbox.min.x - ox) * a;
+	}
+	float b = 1.0 / dy;
+	if (b >= 0.0f)
+	{
+		ty_min = (bbox.min.y - oy) * b;
+		ty_max = (bbox.max.y - oy) * b;
+	}
+	else
+	{
+		ty_min = (bbox.max.y - oy) * b;
+		ty_max = (bbox.min.y - oy) * b;
+	}
 
-struct	s_hit_information
-{
-	float	t;	//ray distance
-	float	m;
-	float	dv; //dot(ray.direction, object.direction)
-	float	xv; //dot(ray.origin - object.origin, object.direction)
-	int		id;	//surface id
-};
-typedef struct s_hit_information t_hit_info;
+	float c = 1.0 / dz;
+	if (c >= 0.0f)
+	{
+		tz_min = (bbox.min.z - oz) * c;
+		tz_max = (bbox.max.z - oz) * c;
+	}
+	else
+	{
+		tz_min = (bbox.max.z - oz) * c;
+		tz_max = (bbox.min.z - oz) * c;
+	}
+	float t0, t1;
+	if (tx_min > ty_min)
+		t0 = tx_min;
+	else
+		t0 = ty_min;
 
-//TODO(dmelessa): change later
-typedef struct	s_shade_rec
-{
-	bool		hit_an_object;		//did the ray hit an object?
-	float4		hit_point;			//world coordinates of hit point
-	float4		local_hit_point;	//for attaching textures to objects
-	float4		normal;				//normal at hit point
-	int			color;
-	int			id;
-	t_ray		ray;				//for specular highlights
-	t_hit_info	hit_info;			//hit info for calculating hit point and normal
-	int			depth;				//recursion depth
-	float4		direction;			//for area lights
-}				t_shade_rec;
+	if (tz_min > t0)
+		t0 = tz_min;
 
-/**
-** @brief
-** cast ray from camera to x,y pos where x,y pixel position of our screen
-*/
-t_ray	cast_camera_ray(t_camera camera, int x, int y)
-{
-	t_ray	ray;
-	float	px;
-	float	py;
+	if (tx_max < ty_max)
+		t1 = tx_max;
+	else
+		t1 = ty_max;
+	if (tz_max < t1)
+		t1 = tz_max;
 
-	px = (2 * ((x + 0.5f) / DEFAULT_WIDTH) - 1) * camera.angle * camera.ratio;
-	py = (1 - 2 * (y + 0.5f) / DEFAULT_HEIGHT) * camera.angle;
-	ray.origin = camera.origin;
-	ray.direction = (float4)(px, py, 1.0f, 0.0f);//need to rotate vector if we have rotated camera
-	ray.direction = normalize(ray.direction);
-	return ray;
+	return (t0 < t1 && t1 > 1e-6);
 }
 
-bool	sphere_intersection(t_ray ray, t_obj sphere, t_hit_info *hit_info)
+static inline bool	sphere_intersection(t_ray ray, t_obj sphere, t_hit_info *hit_info)
 {
-#if 0 // geometric solution
+#if 1 // geometric solution
 
-	float4 L = sphere.origin - ray.origin;
-	float tca = dot(L, ray.direction);
+	float4	L = sphere.origin - ray.origin;
+	float	tca = dot(L, ray.direction);
 	if (tca < 0.0f)
 		return false;
-	float d2 = dot(L, L) - tca * tca;
+
+	float	d2 = dot(L, L) - tca * tca;
 	if (d2 > sphere.r2) //r^2 should be precomputed
 		return false;
-	float thc = sqrt(sphere.r2 - d2);
-	float t = tca - thc;
+
+	float	thc = sqrt(sphere.r2 - d2);
+	float	t = tca - thc;
 	if (t < 0.0f)
 	{
 		t = tca + thc;
@@ -71,7 +92,7 @@ bool	sphere_intersection(t_ray ray, t_obj sphere, t_hit_info *hit_info)
 			return false;
 	}
 	hit_info->t = t;
-	return true;
+	return (true);
 
 #elif 1// analytic solution
 
@@ -99,7 +120,7 @@ bool	sphere_intersection(t_ray ray, t_obj sphere, t_hit_info *hit_info)
 ** there could be mistake
 ** need some tests
 */
-bool	plane_intersection(t_ray ray, t_obj plane, t_hit_info *hit_info)
+static inline bool	plane_intersection(t_ray ray, t_obj plane, t_hit_info *hit_info)
 {
 	float4	a;
 	float	t;
@@ -119,8 +140,9 @@ bool	plane_intersection(t_ray ray, t_obj plane, t_hit_info *hit_info)
 		else
 		{
 			hit_info->t = t / denom;
-			if (hit_info->t >= 0)
+			if (hit_info->t >= EPSILON)
 			{
+				hit_info->dv = denom;
 				return (true);
 			}
 		}
@@ -132,7 +154,7 @@ bool	plane_intersection(t_ray ray, t_obj plane, t_hit_info *hit_info)
 /*
 ** TODO(dmelessa): cap cylinder with discs
 */
-bool cylinder_intersection(t_ray ray, t_obj cylinder, t_hit_info *hit_info)
+static inline bool cylinder_intersection(t_ray ray, t_obj cylinder, t_hit_info *hit_info)
 {
 	float4	x;
 	float	a, b, c, dv, xv, disc;
@@ -144,19 +166,19 @@ bool cylinder_intersection(t_ray ray, t_obj cylinder, t_hit_info *hit_info)
 	b = 2.0f * (dot(ray.direction, x) - dv * xv);
 	c = dot(x, x) - xv * xv - cylinder.r2;
 	disc = b * b - 4.0f * a * c;
-	if (disc >= 0.0f)
+	if (disc >= EPSILON)
 	{
 		a *= 2.0f;
 		disc = sqrt(disc);
 		hit_info->t = (-b - disc) / a;
-		if (hit_info->t < 0.0f)
+		if (hit_info->t < EPSILON)
 			hit_info->t = (-b + disc) / a;
-		if (hit_info->t > 0.0f)
+		if (hit_info->t > EPSILON)
 		{
 			if (cylinder.maxm > 0.0f)
 			{
 				float m1 = dv * hit_info->t + xv;
-				if (m1 < cylinder.maxm && m1 > 0.0f)
+				if (m1 < cylinder.maxm && m1 > EPSILON)
 				{
 					hit_info->m = m1;
 					hit_info->dv = dv;
@@ -178,7 +200,7 @@ bool cylinder_intersection(t_ray ray, t_obj cylinder, t_hit_info *hit_info)
 /*
 ** TODO(dmelessa): cap cone with disc
 */
-bool	cone_intersection(t_ray ray, t_obj cone, t_hit_info *hit_info)
+static inline bool	cone_intersection(t_ray ray, t_obj cone, t_hit_info *hit_info)
 {
 	float4	x;
 	float	dv, xv, a, b, c, disc;
@@ -190,19 +212,19 @@ bool	cone_intersection(t_ray ray, t_obj cone, t_hit_info *hit_info)
 	b = 2.0f * (dot(ray.direction, x) - cone.r2 * dv * xv);
 	c = dot(x, x) - cone.r2 * xv * xv;
 	disc = b * b - 4 * a * c;
-	if (disc >= 0.0f)
+	if (disc >= EPSILON)
 	{
 		a *= 2.0f;
 		disc = sqrt(disc);
 		hit_info->t = (-b - disc) / a;
 		if (hit_info->t < 0.0f)
 			hit_info->t = (-b + disc) / a;
-		if (hit_info->t > 0.0f)
+		if (hit_info->t > EPSILON)
 		{
 			if (cone.maxm != 0.0f || cone.minm != 0)
 			{
 				hit_info->m = dv * hit_info->t + xv;
-				if (hit_info->m >= cone.minm && hit_info->m <= cone.maxm)
+				if (hit_info->m >= cone.minm + EPSILON && hit_info->m <= cone.maxm)
 				{
 					hit_info->dv = dv;
 					hit_info->xv = xv;
@@ -210,7 +232,7 @@ bool	cone_intersection(t_ray ray, t_obj cone, t_hit_info *hit_info)
 				}
 				hit_info->t = (-b + disc) / a;
 				hit_info->m = dv * hit_info->t + xv;
-				if (hit_info->m >= cone.minm && hit_info->m <= cone.maxm)
+				if (hit_info->m >= cone.minm + EPSILON && hit_info->m <= cone.maxm)
 				{
 					hit_info->dv = dv;
 					hit_info->xv = xv;
@@ -228,7 +250,7 @@ bool	cone_intersection(t_ray ray, t_obj cone, t_hit_info *hit_info)
 	return (false);
 }
 
-bool	paraboloid_intersection(t_ray ray, t_obj paraboloid, t_hit_info *hit_info)
+static inline bool	paraboloid_intersection(t_ray ray, t_obj paraboloid, t_hit_info *hit_info)
 {
 	float4	x;
 	float	a, b, c, dv, xv, disc;
@@ -240,14 +262,14 @@ bool	paraboloid_intersection(t_ray ray, t_obj paraboloid, t_hit_info *hit_info)
 	b = 2.0f * (dot(ray.direction, x) - dv * (xv + 2.0f * paraboloid.r));
 	c = dot(x, x) - xv * (xv + 4.0f * paraboloid.r);
 	disc = b * b - 4.0f * a * c;
-	if (disc >= 0.0f)
+	if (disc >= EPSILON)
 	{
 		a *= 2;
 		disc = sqrt(disc);
 		hit_info->t = (-b - disc) / a;
 		if (hit_info->t < 0.0f)
 			hit_info->t = (-b + disc) / a;
-		if (hit_info->t > 0.0f)
+		if (hit_info->t > EPSILON)
 		{
 			if (paraboloid.maxm > 0.0f)
 			{
@@ -270,8 +292,10 @@ bool	paraboloid_intersection(t_ray ray, t_obj paraboloid, t_hit_info *hit_info)
 	return (false);
 }
 
-bool	torus_intersecion(t_ray ray, t_obj torus, t_hit_info *hit_info)
+static inline bool	torus_intersecion(t_ray ray, t_obj torus, t_hit_info *hit_info)
 {
+	if (!bbox_intersection(ray, torus.bounding_box))
+		return false;
 	double	coeffs[5];
 	double	roots[4];
 	float4	x;
@@ -295,13 +319,14 @@ bool	torus_intersecion(t_ray ray, t_obj torus, t_hit_info *hit_info)
 	num_real_roots = SolveQuartic(coeffs, roots);
 	bool	intersect = false;
 	float	t;
+
 	if (num_real_roots == 0)
 		return false;
 
 	t = 1000.0f;
 	for (int j = 0; j < num_real_roots; j++)
 	{
-		if (roots[j] > 0.0f)
+		if (roots[j] > EPSILON)
 		{
 			intersect = true;
 			if (roots[j] < t)
@@ -312,7 +337,6 @@ bool	torus_intersecion(t_ray ray, t_obj torus, t_hit_info *hit_info)
 	}
 	if (!intersect)
 		return false;
-	hit_info->m = m;
 	hit_info->t = t;
 	return (intersect);
 }
@@ -320,114 +344,29 @@ bool	torus_intersecion(t_ray ray, t_obj torus, t_hit_info *hit_info)
 /*
 ** TODO(dmelessa): change later
 */
-float	triangle_intersection(t_ray ray, t_triangle triangle, t_hit_info *hit_info)
+static inline float	triangle_intersection(t_ray ray, t_triangle triangle, t_hit_info *hit_info)
 {
 	float4	pvec = cross(ray.direction, triangle.vector2);
 	float	det = dot(triangle.vector1, pvec);
 
 	if (det < 1e-8 && det > -1e-8)
-	{
 		return 0.0f;
-	}
 
 	float	inv_det = 1.0f / det;
 	float4	tvec = ray.origin - triangle.vertex1;
 	float	u = dot(tvec, pvec) * inv_det;
-	if (u < 0 || u > 1)
-	{
+	if (u < EPSILON || u > 1)
 		return 0.0f;
-	}
 
 	float4	qvec = cross(tvec, triangle.vector1);
 	float	v = dot(ray.direction, qvec) * inv_det;
-	if (v < 0 || u + v > 1)
-	{
+	if (v < EPSILON || u + v > 1)
 		return 0;
-	}
-	return dot(triangle.vector2,qvec) * inv_det;
+	hit_info->t = dot(triangle.vector2, qvec) * inv_det;
+	return hit_info->t > EPSILON;
 }
 
-float4	get_sphere_normal(float4 point, t_obj *sphere)
-{
-	return (normalize(point - sphere->origin));
-}
-
-float4	get_plane_normal(t_obj *plane)
-{
-	return (plane->direction);
-}
-
-float4	get_cylinder_normal(float4 point, t_obj *cylinder, t_hit_info *hit_info)
-{
-	float m;
-	m = hit_info->dv * hit_info->t + hit_info->xv;
-	if (cylinder->maxm > 0.0f) // if cylinder is not infinite
-		return (normalize(point - cylinder->origin - cylinder->direction * m));
-	return (normalize(point - cylinder->origin - cylinder->direction * m));
-}
-
-float4	get_cone_normal(float4 point, t_obj *cone, t_hit_info *hit_info)
-{
-	float m = hit_info->dv * hit_info->t + hit_info->xv;
-	return (normalize(point - cone->origin - cone->r2 * cone->direction * m));
-}
-
-float4	get_paraboloid_normal(float4 point, t_obj *paraboloid, t_hit_info *hit_info)
-{
-	if (paraboloid->maxm > 0.0f)
-		return (normalize(point - paraboloid->origin - paraboloid->direction *
-			(hit_info->m + paraboloid->r)));
-	float m = hit_info->dv * hit_info->t + hit_info->xv;
-	return (normalize(point - paraboloid->origin - paraboloid->direction * (m +
-		paraboloid->r)));
-}
-
-float4	get_triangle_normal(t_triangle *triangle)
-{
-}
-
-float4	get_torus_normal(float4 point, t_obj *torus, t_hit_info *hit_info)
-{
-	float	k;
-	float	m;
-	float4	A;
-
-	//point = 1.001f * point;
-	k = dot(point - torus->origin, torus->direction);
-	A = point - k * torus->direction;
-	m = sqrt(torus->r2 * torus->r2 - k * k);
-	return normalize(point - A - (torus->origin - A) * (m / (torus->r + m)));
-}
-
-float4	get_object_normal(float4 point, t_obj *object, t_hit_info *hit_info)
-{
-	if (object->type == sphere)
-	{
-		return get_sphere_normal(point, object);
-	}
-	else if (object->type == plane)
-	{
-		return (get_plane_normal(object));
-	}
-	else if (object->type == cylinder)
-	{
-		return (get_cylinder_normal(point, object, hit_info));
-	}
-	else if (object->type == cone)
-	{
-		return (get_cone_normal(point, object, hit_info));
-	}
-	else if (object->type == paraboloid)
-	{
-		return (get_paraboloid_normal(point, object, hit_info));
-	}
-	else if (object->type == torus)
-	{
-		return (get_torus_normal(point, object, hit_info));
-	}
-}
-
-bool	is_intersect(t_ray ray, t_obj obj, t_hit_info *hit_info)
+static inline bool	is_intersect(t_ray ray, t_obj obj, t_hit_info *hit_info)
 {
 	if (obj.type == sphere)
 	{
@@ -456,7 +395,117 @@ bool	is_intersect(t_ray ray, t_obj obj, t_hit_info *hit_info)
 	return (false);
 }
 
-void	swap(float *a, float *b)
+/*******************************************************************************************/
+
+/************** NORMAL TO OBJECT ******************************/
+static inline float4	get_sphere_normal(float4 point, t_obj sphere)
+{
+	return (normalize(point - sphere.origin));
+}
+
+static inline float4	get_plane_normal(t_obj plane, t_hit_info hit_info)
+{
+	if (hit_info.dv < 0.0f)
+		return plane.direction;
+	else
+		return -(plane.direction);
+}
+
+static inline float4	get_cylinder_normal(float4 point, t_obj cylinder, t_hit_info hit_info)
+{
+	float m = hit_info.dv * hit_info.t + hit_info.xv;
+	return (normalize(point - cylinder.origin - cylinder.direction * m));
+}
+
+static inline float4	get_cone_normal(float4 point, t_obj cone, t_hit_info hit_info)
+{
+	float m = hit_info.dv * hit_info.t + hit_info.xv;
+	return (normalize(point - cone.origin - cone.r2 * cone.direction * m));
+}
+
+static inline float4	get_paraboloid_normal(float4 point, t_obj paraboloid, t_hit_info hit_info)
+{
+	if (paraboloid.maxm > 0.0f)
+		return (normalize(point - paraboloid.origin - paraboloid.direction *
+			(hit_info.m + paraboloid.r)));
+	float m = hit_info.dv * hit_info.t + hit_info.xv;
+	return (normalize(point - paraboloid.origin - paraboloid.direction * (m +
+		paraboloid.r)));
+}
+
+inline float4	get_triangle_normal(t_triangle triangle)
+{
+	return (triangle.normal);
+}
+
+static inline float4	get_torus_normal(float4 point, t_obj torus, t_hit_info hit_info)
+{
+	float	k;
+	float	m;
+	float4	A;
+
+	point = 1.0001f * point;
+	k = dot(point - torus.origin, torus.direction);
+	A = point - k * torus.direction;
+	m = sqrt(torus.r2 * torus.r2 - k * k);
+	return normalize(point - A - (torus.origin - A) * (m / (torus.r + m)));
+}
+
+static inline float4	get_object_normal(float4 point, t_obj object, t_hit_info hit_info)
+{
+	if (object.type == sphere)
+	{
+		return get_sphere_normal(point, object);
+	}
+	else if (object.type == plane)
+	{
+		return (get_plane_normal(object, hit_info));
+	}
+	else if (object.type == cylinder)
+	{
+		return (get_cylinder_normal(point, object, hit_info));
+	}
+	else if (object.type == cone)
+	{
+		return (get_cone_normal(point, object, hit_info));
+	}
+	else if (object.type == paraboloid)
+	{
+		return (get_paraboloid_normal(point, object, hit_info));
+	}
+	else if (object.type == torus)
+	{
+		return (get_torus_normal(point, object, hit_info));
+	}
+}
+/*******************************************************************************/
+
+/**
+** @brief
+** cast ray from camera to x,y pos where x,y pixel position of our screen
+*/
+static inline t_ray	cast_camera_ray(t_camera camera, int x, int y)
+{
+
+	t_ray	ray;
+	float	px;
+	float	py;
+#if 0 //pinhole camera
+	px = (2 * ((x + 0.5f) / DEFAULT_WIDTH) - 1) * camera.angle * camera.ratio;
+	py = (1 - 2 * (y + 0.5f) / DEFAULT_HEIGHT) * camera.angle;
+#else
+	px = ((2.0f * x) / DEFAULT_WIDTH) - 1;
+	py = ((2.0f * y) / DEFAULT_HEIGHT) - 1;
+	py = -py;
+#endif
+	ray.origin = camera.origin;
+	ray.direction = (float4)(px, py, 1.0f, 0.0f);//need to rotate vector if we have rotated camera
+
+	ray.direction = normalize(ray.direction);
+	return ray;
+}
+
+static inline void	swap(float *a, float *b)
 {
 	float tmp;
 
@@ -465,70 +514,7 @@ void	swap(float *a, float *b)
 	*b = tmp;
 }
 
-bool	bbox_intersection(t_ray ray, t_box box)
-{
-	float ox = ray.origin.x;
-	float oy = ray.origin.y;
-	float oz = ray.origin.z;
-	float dx = ray.direction.x;
-	float dy = ray.direction.y;
-	float dz = ray.direction.z;
-	float tx_min, ty_min, tz_min;
-	float tx_max, ty_max, tz_max;
-	float a = 1.0f / dx;
-	if (a >= 0.0f)
-	{
-		tx_min = (box.min.x - ox) * a;
-		tx_max = (box.max.x - ox) * a;
-	}
-	else
-	{
-		tx_min = (box.max.x - ox) * a;
-		tx_max = (box.min.x - ox) * a;
-	}
-	float b = 1.0 / dy;
-	if (b >= 0.0f)
-	{
-		ty_min = (box.min.y - oy) * b;
-		ty_max = (box.max.y - oy) * b;
-	}
-	else
-	{
-		ty_min = (box.max.y - oy) * b;
-		ty_max = (box.min.y - oy) * b;
-	}
-
-	float c = 1.0 / dz;
-	if (c >= 0.0f)
-	{
-		tz_min = (box.min.z - oz) * c;
-		tz_max = (box.max.z - oz) * c;
-	}
-	else
-	{
-		tz_min = (box.max.z - oz) * c;
-		tz_max = (box.min.z - oz) * c;
-	}
-	float t0, t1;
-	if (tx_min > ty_min)
-		t0 = tx_min;
-	else
-		t0 = ty_min;
-
-	if (tz_min > t0)
-		t0 = tz_min;
-
-	if (tx_max < ty_max)
-		t1 = tx_max;
-	else
-		t1 = ty_max;
-	if (tz_max < t1)
-		t1 = tz_max;
-
-	return (t0 < t1 && t1 > 1e-6);
-}
-
-t_color	color_sum(t_color a, t_color b)
+static inline t_color	color_sum(t_color a, t_color b)
 {
 	t_color res;
 	res.b = clamp(a.b + b.b, 0, 255);
@@ -537,7 +523,9 @@ t_color	color_sum(t_color a, t_color b)
 	return (res);
 }
 
-t_color	color_multi(t_color a, t_color b)
+//NOTE: probably not needed
+// component-wise colors multiplication
+inline t_color	color_multi(t_color a, t_color b)
 {
 	t_color	res;
 
@@ -547,7 +535,7 @@ t_color	color_multi(t_color a, t_color b)
 	return (res);
 }
 
-t_color	float_color_multi(float	c, t_color color)
+inline t_color	float_color_multi(float	c, t_color color)
 {
 	t_color	res;
 
@@ -557,18 +545,34 @@ t_color	float_color_multi(float	c, t_color color)
 	return (res);
 }
 
-t_color	lambertian_f(float kd, t_color color)
+inline float4	get_reflected_vector(float4 l, float4 n)
 {
-	return (float_color_multi(kd * (float)M_1_PI, color));
-	// t_color	res;
+	float4	r;
 
-	// res.r = clamp(kd * color.r * (float) M_1_PI, 0.0f, 255.0f);
-	// res.g = clamp(kd * color.g * (float) M_1_PI, 0.0f, 255.0f);
-	// res.b = clamp(kd * color.b * (float) M_1_PI, 0.0f, 255.0f);
-	// return (res);
+	r = -l + 2 * dot(l, n) * n;
+	return normalize(r);
 }
 
-t_color	lambertian_rho(float kd, t_color color)
+// float
+static inline t_color
+lambertian_f(float kd, t_color color)
+{
+	return (float_color_multi(kd * (float)M_1_PI, color));
+	// return (kd * M_1_PI);
+}
+
+static inline float	glossy_specular_f(float4 camera_direction, float4 normal, float4 light_direction, float ks, float exp)
+{
+	float		res = 0;
+	float4	r = get_reflected_vector(light_direction, normal);
+	float	rdotdir = dot(r, camera_direction);
+
+	if (rdotdir > 0)
+		res = ks * pow(rdotdir, exp);
+	return res;
+}
+
+static inline t_color	lambertian_rho(float kd, t_color color)
 {
 	t_color	res;
 
@@ -576,15 +580,17 @@ t_color	lambertian_rho(float kd, t_color color)
 	return (res);
 }
 
-float4	get_light_direction(t_light light, t_shade_rec *shade_rec)
+static inline float4	get_light_direction(t_light light, t_shade_rec shade_rec)
 {
 	if (light.type == ambient)
 		return ((float4)(0.0f, 0.0f, 0.0f, 0.0f));
 	else if (light.type == point)
-		return (normalize(light.origin - shade_rec->hit_point));
+		return (normalize(light.origin - shade_rec.hit_point));
+	else if (light.type == directional)
+		return normalize(light.direction);
 }
 
-t_color	get_light_radiance(t_light light)
+static inline t_color	get_light_radiance(t_light light)
 {
 	t_color	color;
 
@@ -597,60 +603,135 @@ t_color	get_light_radiance(t_light light)
 	}
 }
 
-//matte coloring
-int		shade_object(t_obj object, t_shade_rec *shade_rec, __constant t_light *lights, int nlights, t_light ambient_light)
+static inline bool	shadow_hit_object(t_ray shadow_ray, t_obj obj, t_hit_info *hit_info)
+{
+	if (!obj.shadows)
+		return false;
+	return (is_intersect(shadow_ray, obj, hit_info));
+}
+
+static inline bool	shadow_hit(t_light light, t_ray shadow_ray, t_shade_rec shade_rec, __constant t_obj *objects, int nobjects, __constant t_triangle *triangles, int ntriangles)
+{
+	float	t;
+	float	d = distance(light.origin, shadow_ray.origin);
+
+	for (int i = 0; i < nobjects; i++)
+	{
+		if (shadow_hit_object(shadow_ray, objects[i], &shade_rec.hit_info) &&
+			shade_rec.hit_info.t < d)
+			return (true);
+	}
+	return (false);
+}
+
+/*
+lights can optionally cast shadows
+objects can optionally cast shadows
+materials can optionally cast shadows
+*/
+//TODO(dmelessa): light colors
+//note we don't need an object. We should pass only material nad compute normal
+//in function before
+static inline int		shade_object(t_material material, t_shade_rec shade_rec,
+	__constant t_light *lights, int nlights, t_light ambient_light,
+	__constant t_obj *objects, int nobjects,
+	__constant t_triangle *triangles, int ntriangles)
 {
 	float4	normal;
 	float4	light_direction;
 	float	dirdotn;
-	t_color	color;
 	t_color	color_tmp;
+	t_color	color;
 
-	shade_rec->ray.direction = -shade_rec->ray.direction;
-	color_tmp = float_color_multi(ambient_light.ls, lambertian_rho(object.material.ka, object.material.color));
-	color_tmp.value = 0;
-	light_direction = get_light_direction(lights[0], shade_rec);
-	normal = get_object_normal(shade_rec->hit_point, &object, &shade_rec->hit_info);
-	// if (dot(normal, shade_rec->ray.direction) < 0) normal = -normal;
-	dirdotn = dot(normal, light_direction);
-	if (dirdotn >= 0.0f)
+	//revert camera ray for specular light
+	shade_rec.ray.direction = -shade_rec.ray.direction;
+
+	//compute ambient light using ka coefficent of the materail
+	color = float_color_multi(ambient_light.ls,
+					lambertian_rho(material.ka, material.color));
+
+	//compute sahding for each light source
+	for (int i = 0; i < nlights; i++)
 	{
-		color = lambertian_f(object.material.kd, object.material.color);
-		color = float_color_multi(lights[0].ls * dirdotn, color);
-		color = color_sum(color_tmp, color);
+		bool	in_shadow = false;
+
+		//compute light direction at hit point
+		light_direction = get_light_direction(lights[i], shade_rec);
+
+		//multiplying by 0.999f to avoid self shadowing error
+		t_ray	shadow_ray = {.origin = shade_rec.hit_point * 0.999f, .direction = light_direction };
+
+		in_shadow = shadow_hit(lights[i], shadow_ray, shade_rec, objects, nobjects, triangles, ntriangles);
+
+		if (!in_shadow)
+		{
+
+			//compute angle between normal at the hit point and light direction
+			dirdotn = dot(shade_rec.normal, light_direction);
+
+			//if angle > 0 then hit point is receivingl light
+			if (dirdotn > 0.0f)
+			{
+				//compute glossy_specular coefficient
+				float a = glossy_specular_f(shade_rec.ray.direction, shade_rec.normal, light_direction, material.	ks, material.exp) ;
+
+				//compute lambertian color
+				color_tmp = lambertian_f(material.kd, material.color);
+
+				//sum lambertian color and glossy specular color
+				color_tmp = color_sum(color_tmp, float_color_multi(a, (t_color){.value=0x00ffffff}));
+
+				//compute how much light the point receives depends on angle between the normal at this point and 	light direction
+				color_tmp = float_color_multi(lights[i].ls * (dirdotn), color_tmp);
+				color = color_sum(color_tmp, color);
+			}
+		}
 	}
-	else
-		color = color_tmp;
 	return (color.value);
 }
 
-bool	hit_objects(t_ray ray, t_shade_rec *shade_rec, __constant t_obj *objects, int nobjects)
+//TODO(dmelessa): shading both sides of surface §14
+static inline bool	hit_nearest_object(t_ray ray, t_shade_rec *shade_rec,
+					 __constant t_obj *objects, int nobjects,
+					 __constant t_triangle *triangles, int ntriangles)
 {
 	float		t;
-	float		tmin = 10001.0f; //huge value
+	t_hit_info	last_rec;
 
+	last_rec.t = K_HUGE_VALUE;
 	shade_rec->hit_an_object = false;
+	shade_rec->hit_an_triangle = false;
 	for (int i = 0; i < nobjects; i++)
 	{
-		shade_rec->hit_info.t = tmin;
 		if (is_intersect(ray, objects[i], &shade_rec->hit_info) &&
-			shade_rec->hit_info.t < tmin)
+			shade_rec->hit_info.t < last_rec.t)
 		{
 			shade_rec->hit_an_object = true;
-			tmin = shade_rec->hit_info.t;
+			last_rec = shade_rec->hit_info;
 			shade_rec->id = i;
 		}
 	}
-	shade_rec->hit_info.t = tmin;
-	return (shade_rec->hit_an_object);
+	for (int i = 0; i < ntriangles; i++)
+	{
+		if (triangle_intersection(ray, triangles[i], &shade_rec->hit_info) &&
+			shade_rec->hit_info.t < last_rec.t)
+		{
+			shade_rec->hit_an_triangle = true;
+			last_rec = shade_rec->hit_info;
+			shade_rec->id = i;
+		}
+	}
+	shade_rec->hit_info = last_rec;
+	return (shade_rec->hit_an_object || shade_rec->hit_an_triangle);
 }
 
 /**
 **@brief
 ** получить цвет пикселя в позиции x,y экрана, используя камеру camera
 */
-int		trace_ray(t_camera camera,
+static inline int		trace_ray(t_camera camera,
 					__constant t_obj *objects, int nobjects,
+					__constant t_triangle *triangles, int ntriangles,
 					__constant t_light *lights, int nlights,
 					t_light ambient_light,
 					int x, int y)
@@ -660,16 +741,26 @@ int		trace_ray(t_camera camera,
 	t_shade_rec	shade_rec;
 
 	ray = cast_camera_ray(camera, x, y);
-	if (hit_objects(ray, &shade_rec, objects, nobjects))
+	if (hit_nearest_object(ray, &shade_rec, objects, nobjects, triangles, ntriangles))
 	{
 		shade_rec.ray = ray;	//for specular reflection
-		// shade_rec.hit_info.t += 0.0005;
-		shade_rec.hit_point = shade_rec.hit_info.t * shade_rec.ray.direction + shade_rec.ray.origin;
-		return (shade_object(objects[shade_rec.id],
-							&shade_rec,
-							lights, nlights,
-							ambient_light));
-	//	return (objects[shade_rec.hit_info.id].material.color);
+		shade_rec.hit_point = (shade_rec.hit_info.t) *
+			shade_rec.ray.direction + shade_rec.ray.origin;
+		if (shade_rec.hit_an_triangle)
+		{
+			shade_rec.normal = get_triangle_normal(triangles[shade_rec.id]);
+			return shade_object(triangles[shade_rec.id].material,
+						shade_rec, lights, nlights, ambient_light,
+						objects, nobjects, triangles, ntriangles);
+		}
+		else
+		{
+			shade_rec.normal = get_object_normal(shade_rec.hit_point,
+				objects[shade_rec.id], shade_rec.hit_info);
+			return (shade_object(objects[shade_rec.id].material,
+						shade_rec, lights, nlights,	ambient_light,
+						objects, nobjects, triangles, ntriangles));
+		}
 	}
 	else
 		return 0x000000af;
@@ -700,13 +791,11 @@ int		trace_ray(t_camera camera,
 
 __kernel void main(
 				__global uint *output_image,
-				__constant t_obj *objects,
-				int nobjects,
-				__constant t_light *lights,
-				int nlights,
+				__constant t_obj *objects, int nobjects,
+				__constant t_light *lights, int nlights,
 				t_camera camera,
 				t_light ambient_light,
-				__constant t_triangle *triangles)
+				__constant t_triangle *triangles, int ntriangles)
 {
 	private int		global_id = get_global_id(0);
 	private int		x = global_id % DEFAULT_WIDTH;
@@ -714,5 +803,5 @@ __kernel void main(
 
 	if (global_id < DEFAULT_WIDTH * DEFAULT_HEIGHT)
 		output_image[global_id] = trace_ray(camera, objects, nobjects,
-			lights, nlights, ambient_light, x, y);
+			triangles, ntriangles, lights, nlights, ambient_light, x, y);
 }

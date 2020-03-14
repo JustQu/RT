@@ -6,7 +6,7 @@
 /*   By: dmelessa <dmelessa@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2020/01/28 15:18:45 by dmelessa          #+#    #+#             */
-/*   Updated: 2020/03/09 22:34:46 by dmelessa         ###   ########.fr       */
+/*   Updated: 2020/03/13 17:25:58 by dmelessa         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -67,6 +67,7 @@ void	start_render_kernel(t_cl_program *program,
 	clSetKernelArg(program->kernel, 6, sizeof(t_light), &scene->ambient_light);
 	clSetKernelArg(program->kernel, 7, sizeof(cl_mem),
 		(void *)&program->triangles);
+	clSetKernelArg(program->kernel, 8, sizeof(cl_int), &scene->ntriangles);
 	err_code = clEnqueueNDRangeKernel(program->clp.queue, program->kernel, 1,
 		NULL, &program->work_size, &program->work_group_size, 0, NULL, NULL);
 	assert(!err_code);

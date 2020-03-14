@@ -6,15 +6,15 @@
 /*   By: dmelessa <dmelessa@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2020/02/10 19:36:22 by dmelessa          #+#    #+#             */
-/*   Updated: 2020/03/10 22:31:28 by dmelessa         ###   ########.fr       */
+/*   Updated: 2020/03/14 15:13:31 by dmelessa         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #ifndef WORLD_H
 # define WORLD_H
 
-# define DEFAULT_WIDTH 1200
-# define DEFAULT_HEIGHT 720
+# define DEFAULT_WIDTH 896
+# define DEFAULT_HEIGHT 896
 # define DEFAULT_FOV 90
 # define WORK_GROUP_SIZE 128
 
@@ -35,19 +35,29 @@
 #  define cl_int int
 #  define cl_char char
 #  define cl_uchar uchar
+#  define cl_bool bool
 # endif
 
+typedef union s_color t_color;
 union s_color {
 	cl_int value;
 	struct
 	{
-		cl_uchar r;
-		cl_uchar g;
 		cl_uchar b;
+		cl_uchar g;
+		cl_uchar r;
 		cl_uchar a;
 	};
 };
-typedef union s_color t_color;
+
+struct s_options
+{
+	cl_int	depth;
+	cl_bool	shadows;
+	t_color	backgorund_color;
+
+};
+typedef struct s_options	t_options;
 
 enum e_material_type
 {
@@ -60,13 +70,14 @@ typedef struct s_material	t_material;
 # ifdef _WIN64
 __declspec(align(8))
 # endif
-struct					s_material //32
+struct					s_material //kd + ks < 1.0
 {
 	t_material_type		type;
 	t_color				color;
 	cl_float			kd; //diffuse reflection coefficient [0, 1]
 	cl_float			ka;
-	cl_float			n;
+	cl_float			ks; //coefficient of specularreflection [0, 1]
+	cl_float			exp;
 	void				*texture;
 };
 
@@ -82,6 +93,7 @@ enum	e_types
 };
 typedef enum e_types	t_type;
 
+//NOTE: some types will be removed from that list
 enum	e_light_types
 {
 	ambient,
@@ -103,11 +115,15 @@ struct	s_light
 };
 typedef struct s_light t_light;
 
-typedef struct s_box	t_box;
+/**
+** @brief
+** axis-aligned bounding box for object
+*/
+typedef struct s_bbox	t_bbox;
 #ifdef _WIN64
 __declspec(align(8))
 #endif
-struct					s_box
+struct					s_bbox
 {
 	cl_float4			min;
 	cl_float4			max;
@@ -117,11 +133,11 @@ typedef struct s_obj	t_obj;
 # ifdef _WIN64
 __declspec(align(8))
 # endif
-struct					s_obj		//140
+struct					s_obj
 {
 	t_type				type;
 	t_material			material;
-	t_box				bounding_box;
+	t_bbox				bounding_box;
 	cl_float4			origin;
 	cl_float4			direction;
 	cl_float			r;
@@ -129,6 +145,7 @@ struct					s_obj		//140
 	cl_float			angle;
 	cl_float			maxm;
 	cl_float			minm;
+	cl_bool				shadows;
 };
 
 typedef struct s_triangle	t_triangle;
@@ -137,11 +154,12 @@ __declspec(align(8))
 # endif
 struct	s_triangle
 {
+	t_material	material;
 	cl_float4	vertex1;
 	cl_float4	vertex2;
 	cl_float4	vertex3;
-	cl_float4	vector1;
-	cl_float4	vector2;
+	cl_float4	vector1; //vertex2 - vertex1
+	cl_float4	vector2; // vertex3 - vertex1
 	cl_float4	normal;
 };
 
