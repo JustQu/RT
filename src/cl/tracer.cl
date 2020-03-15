@@ -1,7 +1,7 @@
 #include "world.h"
 # define SAMPLES 500
 # define BOUNCES 8
-# define TRACING 1
+# define TRACING 0
 
 float3		path_traycing(t_ray camray,
 						__constant t_obj *objects, int nobjects,
@@ -58,6 +58,19 @@ float3		path_traycing(t_ray camray,
 	return accum_color;
 }
 
+float3		ray_tracing(t_ray camray, const t_camera cam,
+						__constant t_obj *objects, int nobjects)
+{
+	t_ray	ray = camray;
+	float	t;
+	int		hitobj_id = 0;
+	if (!intersect_scene(objects, ray, &t, &hitobj_id, nobjects))
+		return (float3)(0.05f, 0.05f, 0.05f);
+
+	t_obj	hit_obj = objects[hitobj_id];
+	return hit_obj.material.color;
+}
+
 t_ray	cast_primal_ray(t_camera camera, int x, int y)
 {
 	t_ray	ray;
@@ -90,16 +103,15 @@ __kernel void tracer(
 		if (TRACING)
 		{
 			float invSamples = 1.0f / SAMPLES;
-
 			for (int i = 0; i < SAMPLES; i++)
 				color += path_traycing(camray, objects, nobjects, &x, &y) * invSamples;
-
-			int finalcolor = (((int)(color.x * 255)) << 16) | (((int)(color.y * 255)) << 8) | ((int)(color.z * 255));
-			output_image[global_id] = finalcolor;
 		}
 		else
 		{
-			output_image[global_id] = ray_tracing(camray, objects, nobjects);
+			color = ray_tracing(camray, camera, objects, nobjects);
 		}
+
+		int finalcolor = (((int)(color.x * 255)) << 16) | (((int)(color.y * 255)) << 8) | ((int)(color.z * 255));
+		output_image[global_id] = finalcolor;
 	}
 }
