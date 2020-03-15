@@ -2,6 +2,8 @@
 #include "solver.cl"
 #include "cl_rt.h"
 
+#include "color.cl"
+
 #define EPSILON 1e-5
 #define K_HUGE_VALUE 1e4f
 
@@ -23,21 +25,7 @@ static float get_random(unsigned int *seed0, unsigned int *seed1) {
 	return (res.f - 2.0f) / 2.0f;
 }
 
-// int rand(int* seed) // 1 <= *seed < m
-// {
-//     int const a = 16807; //ie 7**5
-//     int const m = 2147483647; //ie 2**31-1
-
-//     *seed = ((long)(*seed * a)) % m;
-//     return (*seed);
-// }
-
-// float	get_float_rand()
-// {
-// 	return ((float)rand(&seed) / (float)2147483647);
-// }
-
-/******************************** OBJECT INTERSECTION **************************************/
+/******************** OBJECT INTERSECTION **************************************/
 
  bool	bbox_intersection(t_ray ray, t_bbox bbox)
 {
@@ -157,30 +145,25 @@ static float get_random(unsigned int *seed0, unsigned int *seed1) {
 	float4	a;
 	float	t;
 	float	denom;
+	bool	ret;
 
+	ret = false;
 	denom = dot(ray.direction, plane.direction);
 	if (denom != 0)
 	{
 		a = plane.origin - ray.origin;
 		t = dot(a, plane.direction);
-		if (t * denom < 0.0f) //different signes
-		{
-			return (false);
-			// *tr = t / denom;
-			// return (*tr >= 0);
-		}
-		else
+		if (t * denom > 0.0f) //different signes
 		{
 			hit_info->t = t / denom;
 			if (hit_info->t >= EPSILON)
 			{
 				hit_info->dv = denom;
-				return (true);
+				ret = true;
 			}
 		}
-		return false;
 	}
-	return (false);
+	return (ret);
 }
 
 /*
@@ -219,7 +202,8 @@ static float get_random(unsigned int *seed0, unsigned int *seed1) {
 				}
 				hit_info->t = (-b + disc) / a;
 				hit_info->m = dv * hit_info->t + xv;
-				if (hit_info->m >= cylinder.minm + EPSILON && hit_info->m <= cylinder.maxm)
+				if (hit_info->m >= cylinder.minm + EPSILON &&
+					hit_info->m <= cylinder.maxm)
 				{
 					hit_info->dv = dv;
 					hit_info->xv = xv;
@@ -256,12 +240,6 @@ static float get_random(unsigned int *seed0, unsigned int *seed1) {
 	{
 		a *= 2.0f;
 		disc = sqrt(disc);
-		float t1 = (-b - disc) / a;
-		float t2 = (-b - disc) / a;
-		if (t1 < 0)
-			hit_info->t = t2;
-		else if (t2 > 0 && t2 < t1)
-			hit_info->t = t2;
 		hit_info->t = (-b - disc) / a;
 		if (hit_info->t < EPSILON)
 			hit_info->t = (-b + disc) / a;
@@ -270,7 +248,8 @@ static float get_random(unsigned int *seed0, unsigned int *seed1) {
 			if (cone.maxm != 0.0f || cone.minm != 0)
 			{
 				hit_info->m = dv * hit_info->t + xv;
-				if (hit_info->m >= cone.minm + EPSILON && hit_info->m <= cone.maxm)
+				if (hit_info->m >= cone.minm + EPSILON &&
+					hit_info->m <= cone.maxm)
 				{
 					hit_info->dv = dv;
 					hit_info->xv = xv;
@@ -278,7 +257,8 @@ static float get_random(unsigned int *seed0, unsigned int *seed1) {
 				}
 				hit_info->t = (-b + disc) / a;
 				hit_info->m = dv * hit_info->t + xv;
-				if (hit_info->m >= cone.minm + EPSILON && hit_info->m <= cone.maxm)
+				if (hit_info->m >= cone.minm + EPSILON &&
+					hit_info->m <= cone.maxm)
 				{
 					hit_info->dv = dv;
 					hit_info->xv = xv;
@@ -313,18 +293,20 @@ static float get_random(unsigned int *seed0, unsigned int *seed1) {
 		a *= 2;
 		disc = sqrt(disc);
 		hit_info->t = (-b - disc) / a;
-		if (hit_info->t < 0.0f)
+		if (hit_info->t < EPSILON)
 			hit_info->t = (-b + disc) / a;
 		if (hit_info->t > EPSILON)
 		{
 			if (paraboloid.maxm > 0.0f)
 			{
 				hit_info->m = dv * hit_info->t + xv;
-				if (hit_info->m >= paraboloid.minm && hit_info->m <= paraboloid.maxm)
+				if (hit_info->m >= paraboloid.minm &&
+					hit_info->m <= paraboloid.maxm)
 					return true;
 				hit_info->t = (-b + disc) / a;
 				hit_info->m = dv * hit_info->t + xv;
-				if (hit_info->m >= paraboloid.minm && hit_info->m <= paraboloid.maxm)
+				if (hit_info->m >= paraboloid.minm &&
+					hit_info->m <= paraboloid.maxm)
 					return true;
 			}
 			else
@@ -390,29 +372,30 @@ static float get_random(unsigned int *seed0, unsigned int *seed1) {
 /*
 ** TODO(dmelessa): change later
 */
- float	triangle_intersection(t_ray ray, t_triangle triangle, t_hit_info *hit_info)
+bool	triangle_intersection(t_ray ray, t_triangle triangle,
+								t_hit_info *hit_info)
 {
 	float4	pvec = cross(ray.direction, triangle.vector2);
 	float	det = dot(triangle.vector1, pvec);
 
 	if (det < 1e-8 && det > -1e-8)
-		return 0.0f;
+		return false;
 
 	float	inv_det = 1.0f / det;
 	float4	tvec = ray.origin - triangle.vertex1;
 	float	u = dot(tvec, pvec) * inv_det;
 	if (u < EPSILON || u > 1)
-		return 0.0f;
+		return false;
 
 	float4	qvec = cross(tvec, triangle.vector1);
 	float	v = dot(ray.direction, qvec) * inv_det;
 	if (v < EPSILON || u + v > 1)
-		return 0;
+		return false;
 	hit_info->t = dot(triangle.vector2, qvec) * inv_det;
 	return hit_info->t > EPSILON;
 }
 
- bool	is_intersect(t_ray ray, t_obj obj, t_hit_info *hit_info)
+bool	is_intersect(t_ray ray, t_obj obj, t_hit_info *hit_info)
 {
 	if (obj.type == sphere)
 	{
@@ -441,9 +424,9 @@ static float get_random(unsigned int *seed0, unsigned int *seed1) {
 	return (false);
 }
 
-/*******************************************************************************************/
+/********************************************************************************/
 
-/************** NORMAL TO OBJECT ******************************/
+/********************** NORMAL TO OBJECT ****************************************/
  float4	get_sphere_normal(float4 point, t_obj sphere)
 {
 	return (normalize(point - sphere.origin));
@@ -541,15 +524,7 @@ inline float4	get_triangle_normal(t_triangle triangle)
 	px = (2.0f * ((x + 0.5f) / DEFAULT_WIDTH) - 1.0f) * camera.angle * camera.ratio;
 	py = (1.0f - 2.0f * (y + 0.5f) / DEFAULT_HEIGHT) * camera.angle;
 	ray.origin = camera.origin;
-	ray.direction = (float4)(px, py, 1.0f, 0.0f);//need to rotate vector if we have rotated camera
-	ray.direction = normalize(ray.direction);
-#elif 0
-	px = 1.0f * (x - 0.5 * (DEFAULT_WIDTH - 1));
-	py = 1.0f * (y - 0.5 * (DEFAULT_HEIGHT - 1));
-	ray.origin.z = 100;
-	ray.origin.x = 0;
-	ray.origin.y = 0;
-	ray.direction = (float4)(px, py, 1.0f, 0.0f);//need to rotate vector if we have rotated camera
+	ray.direction = (float4)(px, py, 1.0f, 0.0f);/
 	ray.direction = normalize(ray.direction);
 #else
 	px = 1.0f /*pixel_size*/ *(x - 0.5f * (DEFAULT_WIDTH));
@@ -569,37 +544,6 @@ inline float4	get_triangle_normal(t_triangle triangle)
 	*b = tmp;
 }
 
- t_color	color_sum(t_color a, t_color b)
-{
-	t_color res;
-	res.b = clamp(a.b + b.b, 0, 255);
-	res.g = clamp(a.g + b.g, 0, 255);
-	res.r = clamp(a.r + b.r, 0, 255);
-	return (res);
-}
-
-//NOTE: probably not needed
-// component-wise colors multiplication
-inline t_color	color_multi(t_color a, t_color b)
-{
-	t_color	res;
-
-	res.r = (uchar)clamp(a.r * b.r, 0, 255);
-	res.g = (uchar)clamp(a.g * b.g, 0, 255);
-	res.b = (uchar)clamp(a.b * b.b, 0, 255);
-	return (res);
-}
-
-inline t_color	float_color_multi(float	c, t_color color)
-{
-	t_color	res;
-
-	res.b = clamp(c * color.b, 0.0f, 255.0f);
-	res.g = clamp(c * color.g, 0.0f, 255.0f);
-	res.r = clamp(c * color.r, 0.0f, 255.0f);
-	return (res);
-}
-
 inline float4	get_reflected_vector(float4 l, float4 n)
 {
 	float4	r;
@@ -608,17 +552,15 @@ inline float4	get_reflected_vector(float4 l, float4 n)
 	return normalize(r);
 }
 
-// float
- t_color
+t_color
 lambertian_f(float kd, t_color color)
 {
 	return (float_color_multi(kd * (float)M_1_PI, color));
-	// return (kd * M_1_PI);
 }
 
  float	glossy_specular_f(float4 camera_direction, float4 normal, float4 light_direction, float ks, float exp)
 {
-	float		res = 0;
+	float	res = 0;
 	float4	r = get_reflected_vector(light_direction, normal);
 	float	rdotdir = dot(r, camera_direction);
 
@@ -904,22 +846,6 @@ float2	sample_unit_square(__global float2 *sampler_set, t_render_options options
 		color.r = test.x / options.sampler_info.num_samples;
 		color.g = test.y / options.sampler_info.num_samples;
 		color.b = test.z / options.sampler_info.num_samples;
-		// int xx = x;
-		// int yy = y;
-		// for (int i = 0; i < n; i++)
-		// 	for (int j = 0; j < n; j++)
-		// {
-		// 	float	dx = (x + get_random(&xx, &yy));
-		// 	float	dy = (y + get_random(&yy, &xx));
-		// 	ray = cast_camera_ray(camera, dx, dy);
-		// 	acc = get_ray_color(ray, objects, nobjects, triangles, ntriangles, lights, nlights, ambient_light, options);
-		// 	test.x += acc.r;
-		// 	test.y += acc.g;
-		// 	test.z += acc.b;
-		// }
-		// color.r = test.x / options.sampler_info.num_samples;
-		// color.g = test.y / options.sampler_info.num_samples;
-		// color.b = test.z / options.sampler_info.num_samples;
 	}
 	else if (options.sampler_info.type == none)
 	{
@@ -955,10 +881,10 @@ float2	sample_unit_square(__global float2 *sampler_set, t_render_options options
 __kernel void main(
 				__global uint *output_image,
 				__constant t_obj *objects, int nobjects,
+				__constant t_triangle *triangles, int ntriangles,
 				__constant t_light *lights, int nlights,
 				t_camera camera,
 				t_light ambient_light,
-				__constant t_triangle *triangles, int ntriangles,
 				t_render_options options,
 				__global float2 *samples)
 {

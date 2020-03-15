@@ -48,6 +48,12 @@
 #	define DEFAULT_KERNEL_DIR "./src/cl/"
 # endif
 
+typedef struct	s_renderer
+{
+	t_render_options	options;
+	cl_float2			*sample_set;
+}				t_renderer;
+
 /**
 ** @brief
 ** информация о opencl
@@ -116,12 +122,12 @@ struct					s_scene
 cl_program	create_program(cl_context context);
 int			read_data(t_scene *scene);
 int			init_window(t_window *window);
-int 		init(t_window *window, t_cl_program *cl_program, t_scene *scene, t_render_options *options);
+int 		init_rt(t_window *window, t_cl_program *cl_program, t_scene *scene, t_renderer *options);
 
 int			catch_event();
 
 void		cl_error(t_cl_program *program, t_clp *clp, int code);
 
-cl_float2 *generate_samples(t_render_options options);
+cl_float2	*generate_samples(t_render_options options);
 
 #endif

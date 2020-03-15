@@ -6,7 +6,7 @@
 /*   By: dmelessa <dmelessa@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2020/01/28 15:18:45 by dmelessa          #+#    #+#             */
-/*   Updated: 2020/03/15 20:17:36 by dmelessa         ###   ########.fr       */
+/*   Updated: 2020/03/15 23:25:00 by dmelessa         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -52,24 +52,24 @@ void	display_image(t_window *w)
 void	start_render_kernel(t_cl_program *program,
 							t_scene *scene,
 							uint32_t *image,
-							t_render_options *options)
+							t_renderer renderer)
 {
 	int			err_code;
 
 	err_code = 0;
-	printf("trying\n");
 	clSetKernelArg(program->kernel, 0, sizeof(cl_mem), &program->output_image);
 	clSetKernelArg(program->kernel, 1, sizeof(cl_mem), &program->objects);
 	clSetKernelArg(program->kernel, 2, sizeof(cl_int), &scene->nobjects);
-	clSetKernelArg(program->kernel, 3, sizeof(cl_mem), &program->lights);
-	clSetKernelArg(program->kernel, 4, sizeof(cl_int), &scene->nlights);
-	clSetKernelArg(program->kernel, 5, sizeof(t_camera), &scene->camera);
-	clSetKernelArg(program->kernel, 6, sizeof(t_light), &scene->ambient_light);
-	clSetKernelArg(program->kernel, 7, sizeof(cl_mem), &program->triangles);
-	clSetKernelArg(program->kernel, 8, sizeof(cl_int), &scene->ntriangles);
-	clSetKernelArg(program->kernel, 9, sizeof(t_render_options), options);
+	clSetKernelArg(program->kernel, 3, sizeof(cl_mem), &program->triangles);
+	clSetKernelArg(program->kernel, 4, sizeof(cl_int), &scene->ntriangles);
+	clSetKernelArg(program->kernel, 5, sizeof(cl_mem), &program->lights);
+	clSetKernelArg(program->kernel, 6, sizeof(cl_int), &scene->nlights);
+	clSetKernelArg(program->kernel, 7, sizeof(t_camera), &scene->camera);
+	clSetKernelArg(program->kernel, 8, sizeof(t_light), &scene->ambient_light);
+	clSetKernelArg(program->kernel, 9, sizeof(t_render_options),
+												&renderer.options);
 	clSetKernelArg(program->kernel, 10, sizeof(cl_mem), &program->samples);
-	printf("trying\n");
+
 	err_code = clEnqueueNDRangeKernel(program->clp.queue, program->kernel, 1,
 		NULL, &program->work_size, &program->work_group_size, 0, NULL, NULL);
 	assert(!err_code);
@@ -118,24 +118,22 @@ void	copy_to_device(t_cl_program program, cl_float2 *sampler_sets, t_render_opti
 
 int		main(int ac, char **av)
 {
-	t_window			window;
-	t_cl_program		program;
-	t_scene				scene;
-	t_render_options	options;
-	cl_float2			*sp;
-	int					value;
+	t_window		window;
+	t_cl_program	program;
+	t_scene			scene;
+	t_renderer		renderer;
+	int				value;
 
-	init(&window, &program, &scene, &options);
-	// sp = generate_samples(options);
-	// copy_to_device(program, sp, options);
+	init_rt(&window, &program, &scene, &renderer);
+
 	while (1)
 	{
-		value = catch_event(&options);
+		value = catch_event(&renderer);
 		if (value == 1)
 			break;
 		else if (value == 0)
 		{
-			start_render_kernel(&program, &scene, window.image, &options);
+			start_render_kernel(&program, &scene, window.image, renderer);
 			display_image(&window);
 		}
 	}

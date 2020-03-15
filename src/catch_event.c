@@ -1,6 +1,18 @@
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   catch_event.c                                      :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: dmelessa <dmelessa@student.42.fr>          +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2020/03/15 23:21:28 by dmelessa          #+#    #+#             */
+/*   Updated: 2020/03/15 23:21:28 by dmelessa         ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
 #include "rt.h"
 
-int catch_event(t_render_options *options)
+int catch_event(t_renderer *renderer)
 {
 	SDL_Event event;
 
@@ -39,7 +51,7 @@ int catch_event(t_render_options *options)
 				return 1;
 			else if (event.key.keysym.sym == SDLK_p)
 			{
-				options->shadows = ~options->shadows;
+				renderer->options.shadows = !renderer->options.shadows;
 			}
 		}
 		if (event.type == SDL_KEYUP)
