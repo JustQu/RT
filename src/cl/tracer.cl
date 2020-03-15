@@ -1,7 +1,13 @@
+/**
+	SAMPLES - number of calls for path tracing
+	BOUNCES - number of reflections/refractions
+	boolean TRACING - 1: pathtracing; 0: raytracing
+ */
+
 #include "world.h"
 # define SAMPLES 500
 # define BOUNCES 8
-# define TRACING 0
+# define TRACING 0 
 
 float3		path_traycing(t_ray camray,
 						__constant t_obj *objects, int nobjects,
