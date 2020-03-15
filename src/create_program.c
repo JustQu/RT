@@ -48,7 +48,7 @@ void	create_source(char **source_buf, int num)
 	file_names[0] = "solver.cl";
 	file_names[1] = "object_intersection.cl";
 	file_names[2] = "get_random.cl";
-	file_names[3] = "get_point_color.cl";
+	file_names[3] = "intersect_scene.cl";
 	file_names[4] = DEFAULT_KERNEL_FILE;
 	while (i < num)
 	{

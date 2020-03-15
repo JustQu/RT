@@ -29,12 +29,12 @@
 # include "world.h"
 
 # ifdef _WIN64
-#  define DEFAULT_KERNEL_FILE "ray_tracer.cl"
+#  define DEFAULT_KERNEL_FILE "tracer.cl"
 # else
-#  define DEFAULT_KERNEL_FILE "ray_tracer.cl"
+#  define DEFAULT_KERNEL_FILE "tracer.cl"
 # endif
 
-# define DEFAULT_KERNEL_NAME "ray_tracer"
+# define DEFAULT_KERNEL_NAME "tracer"
 
 # define DEFAULT_KERNEL_INCLUDE "-I ./include -I ./src/cl"
 # define DEFAULT_WORK_SIZE DEFAULT_WIDTH * DEFAULT_HEIGHT
