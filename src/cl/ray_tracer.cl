@@ -3,11 +3,43 @@
 #include "cl_rt.h"
 
 #define EPSILON 1e-5
-#define K_HUGE_VALUE 1e10f
+#define K_HUGE_VALUE 1e4f
+
+static float get_random(unsigned int *seed0, unsigned int *seed1) {
+
+	/* hash the seeds using bitwise AND operations and bitshifts */
+	*seed0 = 36969 * ((*seed0) & 65535) + ((*seed0) >> 16);
+	*seed1 = 18000 * ((*seed1) & 65535) + ((*seed1) >> 16);
+
+	unsigned int ires = ((*seed0) << 16) + (*seed1);
+
+	/* use union struct to convert int to float */
+	union {
+		float f;
+		unsigned int ui;
+	} res;
+
+	res.ui = (ires & 0x007fffff) | 0x40000000;  /* bitwise AND, bitwise OR */
+	return (res.f - 2.0f) / 2.0f;
+}
+
+// int rand(int* seed) // 1 <= *seed < m
+// {
+//     int const a = 16807; //ie 7**5
+//     int const m = 2147483647; //ie 2**31-1
+
+//     *seed = ((long)(*seed * a)) % m;
+//     return (*seed);
+// }
+
+// float	get_float_rand()
+// {
+// 	return ((float)rand(&seed) / (float)2147483647);
+// }
 
 /******************************** OBJECT INTERSECTION **************************************/
 
-static inline bool	bbox_intersection(t_ray ray, t_bbox bbox)
+ bool	bbox_intersection(t_ray ray, t_bbox bbox)
 {
 	float ox = ray.origin.x;
 	float oy = ray.origin.y;
@@ -70,7 +102,7 @@ static inline bool	bbox_intersection(t_ray ray, t_bbox bbox)
 	return (t0 < t1 && t1 > 1e-6);
 }
 
-static inline bool	sphere_intersection(t_ray ray, t_obj sphere, t_hit_info *hit_info)
+ bool	sphere_intersection(t_ray ray, t_obj sphere, t_hit_info *hit_info)
 {
 #if 1 // geometric solution
 
@@ -120,18 +152,18 @@ static inline bool	sphere_intersection(t_ray ray, t_obj sphere, t_hit_info *hit_
 ** there could be mistake
 ** need some tests
 */
-static inline bool	plane_intersection(t_ray ray, t_obj plane, t_hit_info *hit_info)
+ bool	plane_intersection(t_ray ray, t_obj plane, t_hit_info *hit_info)
 {
 	float4	a;
 	float	t;
 	float	denom;
 
-	denom = dot(plane.direction, ray.direction);
+	denom = dot(ray.direction, plane.direction);
 	if (denom != 0)
 	{
 		a = plane.origin - ray.origin;
 		t = dot(a, plane.direction);
-		if (t * denom < 0) //different signes
+		if (t * denom < 0.0f) //different signes
 		{
 			return (false);
 			// *tr = t / denom;
@@ -154,7 +186,7 @@ static inline bool	plane_intersection(t_ray ray, t_obj plane, t_hit_info *hit_in
 /*
 ** TODO(dmelessa): cap cylinder with discs
 */
-static inline bool cylinder_intersection(t_ray ray, t_obj cylinder, t_hit_info *hit_info)
+ bool cylinder_intersection(t_ray ray, t_obj cylinder, t_hit_info *hit_info)
 {
 	float4	x;
 	float	a, b, c, dv, xv, disc;
@@ -185,6 +217,14 @@ static inline bool cylinder_intersection(t_ray ray, t_obj cylinder, t_hit_info *
 					hit_info->xv = xv;
 					return true;
 				}
+				hit_info->t = (-b + disc) / a;
+				hit_info->m = dv * hit_info->t + xv;
+				if (hit_info->m >= cylinder.minm + EPSILON && hit_info->m <= cylinder.maxm)
+				{
+					hit_info->dv = dv;
+					hit_info->xv = xv;
+					return true;
+				}
 			}
 			else
 			{
@@ -200,7 +240,7 @@ static inline bool cylinder_intersection(t_ray ray, t_obj cylinder, t_hit_info *
 /*
 ** TODO(dmelessa): cap cone with disc
 */
-static inline bool	cone_intersection(t_ray ray, t_obj cone, t_hit_info *hit_info)
+ bool	cone_intersection(t_ray ray, t_obj cone, t_hit_info *hit_info)
 {
 	float4	x;
 	float	dv, xv, a, b, c, disc;
@@ -216,8 +256,14 @@ static inline bool	cone_intersection(t_ray ray, t_obj cone, t_hit_info *hit_info
 	{
 		a *= 2.0f;
 		disc = sqrt(disc);
+		float t1 = (-b - disc) / a;
+		float t2 = (-b - disc) / a;
+		if (t1 < 0)
+			hit_info->t = t2;
+		else if (t2 > 0 && t2 < t1)
+			hit_info->t = t2;
 		hit_info->t = (-b - disc) / a;
-		if (hit_info->t < 0.0f)
+		if (hit_info->t < EPSILON)
 			hit_info->t = (-b + disc) / a;
 		if (hit_info->t > EPSILON)
 		{
@@ -250,7 +296,7 @@ static inline bool	cone_intersection(t_ray ray, t_obj cone, t_hit_info *hit_info
 	return (false);
 }
 
-static inline bool	paraboloid_intersection(t_ray ray, t_obj paraboloid, t_hit_info *hit_info)
+ bool	paraboloid_intersection(t_ray ray, t_obj paraboloid, t_hit_info *hit_info)
 {
 	float4	x;
 	float	a, b, c, dv, xv, disc;
@@ -292,7 +338,7 @@ static inline bool	paraboloid_intersection(t_ray ray, t_obj paraboloid, t_hit_in
 	return (false);
 }
 
-static inline bool	torus_intersecion(t_ray ray, t_obj torus, t_hit_info *hit_info)
+ bool	torus_intersecion(t_ray ray, t_obj torus, t_hit_info *hit_info)
 {
 	if (!bbox_intersection(ray, torus.bounding_box))
 		return false;
@@ -344,7 +390,7 @@ static inline bool	torus_intersecion(t_ray ray, t_obj torus, t_hit_info *hit_inf
 /*
 ** TODO(dmelessa): change later
 */
-static inline float	triangle_intersection(t_ray ray, t_triangle triangle, t_hit_info *hit_info)
+ float	triangle_intersection(t_ray ray, t_triangle triangle, t_hit_info *hit_info)
 {
 	float4	pvec = cross(ray.direction, triangle.vector2);
 	float	det = dot(triangle.vector1, pvec);
@@ -366,7 +412,7 @@ static inline float	triangle_intersection(t_ray ray, t_triangle triangle, t_hit_
 	return hit_info->t > EPSILON;
 }
 
-static inline bool	is_intersect(t_ray ray, t_obj obj, t_hit_info *hit_info)
+ bool	is_intersect(t_ray ray, t_obj obj, t_hit_info *hit_info)
 {
 	if (obj.type == sphere)
 	{
@@ -398,32 +444,32 @@ static inline bool	is_intersect(t_ray ray, t_obj obj, t_hit_info *hit_info)
 /*******************************************************************************************/
 
 /************** NORMAL TO OBJECT ******************************/
-static inline float4	get_sphere_normal(float4 point, t_obj sphere)
+ float4	get_sphere_normal(float4 point, t_obj sphere)
 {
 	return (normalize(point - sphere.origin));
 }
 
-static inline float4	get_plane_normal(t_obj plane, t_hit_info hit_info)
+ float4	get_plane_normal(t_obj plane, t_hit_info hit_info)
 {
-	if (hit_info.dv < 0.0f)
+	if (hit_info.dv < 0.0F)
 		return plane.direction;
 	else
 		return -(plane.direction);
 }
 
-static inline float4	get_cylinder_normal(float4 point, t_obj cylinder, t_hit_info hit_info)
+ float4	get_cylinder_normal(float4 point, t_obj cylinder, t_hit_info hit_info)
 {
 	float m = hit_info.dv * hit_info.t + hit_info.xv;
 	return (normalize(point - cylinder.origin - cylinder.direction * m));
 }
 
-static inline float4	get_cone_normal(float4 point, t_obj cone, t_hit_info hit_info)
+ float4	get_cone_normal(float4 point, t_obj cone, t_hit_info hit_info)
 {
 	float m = hit_info.dv * hit_info.t + hit_info.xv;
 	return (normalize(point - cone.origin - cone.r2 * cone.direction * m));
 }
 
-static inline float4	get_paraboloid_normal(float4 point, t_obj paraboloid, t_hit_info hit_info)
+ float4	get_paraboloid_normal(float4 point, t_obj paraboloid, t_hit_info hit_info)
 {
 	if (paraboloid.maxm > 0.0f)
 		return (normalize(point - paraboloid.origin - paraboloid.direction *
@@ -438,7 +484,7 @@ inline float4	get_triangle_normal(t_triangle triangle)
 	return (triangle.normal);
 }
 
-static inline float4	get_torus_normal(float4 point, t_obj torus, t_hit_info hit_info)
+ float4	get_torus_normal(float4 point, t_obj torus, t_hit_info hit_info)
 {
 	float	k;
 	float	m;
@@ -451,7 +497,7 @@ static inline float4	get_torus_normal(float4 point, t_obj torus, t_hit_info hit_
 	return normalize(point - A - (torus.origin - A) * (m / (torus.r + m)));
 }
 
-static inline float4	get_object_normal(float4 point, t_obj object, t_hit_info hit_info)
+ float4	get_object_normal(float4 point, t_obj object, t_hit_info hit_info)
 {
 	if (object.type == sphere)
 	{
@@ -484,28 +530,37 @@ static inline float4	get_object_normal(float4 point, t_obj object, t_hit_info hi
 ** @brief
 ** cast ray from camera to x,y pos where x,y pixel position of our screen
 */
-static inline t_ray	cast_camera_ray(t_camera camera, int x, int y)
+ t_ray	cast_camera_ray(t_camera camera, float x, float y)
 {
 
 	t_ray	ray;
 	float	px;
 	float	py;
 #if 0 //pinhole camera
-	px = (2 * ((x + 0.5f) / DEFAULT_WIDTH) - 1) * camera.angle * camera.ratio;
-	py = (1 - 2 * (y + 0.5f) / DEFAULT_HEIGHT) * camera.angle;
-#else
-	px = ((2.0f * x) / DEFAULT_WIDTH) - 1;
-	py = ((2.0f * y) / DEFAULT_HEIGHT) - 1;
-	py = -py;
-#endif
+
+	px = (2.0f * ((x + 0.5f) / DEFAULT_WIDTH) - 1.0f) * camera.angle * camera.ratio;
+	py = (1.0f - 2.0f * (y + 0.5f) / DEFAULT_HEIGHT) * camera.angle;
 	ray.origin = camera.origin;
 	ray.direction = (float4)(px, py, 1.0f, 0.0f);//need to rotate vector if we have rotated camera
-
 	ray.direction = normalize(ray.direction);
+#elif 0
+	px = 1.0f * (x - 0.5 * (DEFAULT_WIDTH - 1));
+	py = 1.0f * (y - 0.5 * (DEFAULT_HEIGHT - 1));
+	ray.origin.z = 100;
+	ray.origin.x = 0;
+	ray.origin.y = 0;
+	ray.direction = (float4)(px, py, 1.0f, 0.0f);//need to rotate vector if we have rotated camera
+	ray.direction = normalize(ray.direction);
+#else
+	px = 1.0f /*pixel_size*/ *(x - 0.5f * (DEFAULT_WIDTH));
+	py = 1.0f * (-y + 0.5f * (DEFAULT_HEIGHT));
+	ray.origin = (float4)(px, py, 100.0f, 0.0f);
+	ray.direction = (float4)(0.0f, 0.0f, -1.0f, 0.0f);
+#endif
 	return ray;
 }
 
-static inline void	swap(float *a, float *b)
+ void	swap(float *a, float *b)
 {
 	float tmp;
 
@@ -514,7 +569,7 @@ static inline void	swap(float *a, float *b)
 	*b = tmp;
 }
 
-static inline t_color	color_sum(t_color a, t_color b)
+ t_color	color_sum(t_color a, t_color b)
 {
 	t_color res;
 	res.b = clamp(a.b + b.b, 0, 255);
@@ -554,14 +609,14 @@ inline float4	get_reflected_vector(float4 l, float4 n)
 }
 
 // float
-static inline t_color
+ t_color
 lambertian_f(float kd, t_color color)
 {
 	return (float_color_multi(kd * (float)M_1_PI, color));
 	// return (kd * M_1_PI);
 }
 
-static inline float	glossy_specular_f(float4 camera_direction, float4 normal, float4 light_direction, float ks, float exp)
+ float	glossy_specular_f(float4 camera_direction, float4 normal, float4 light_direction, float ks, float exp)
 {
 	float		res = 0;
 	float4	r = get_reflected_vector(light_direction, normal);
@@ -572,7 +627,7 @@ static inline float	glossy_specular_f(float4 camera_direction, float4 normal, fl
 	return res;
 }
 
-static inline t_color	lambertian_rho(float kd, t_color color)
+ t_color	lambertian_rho(float kd, t_color color)
 {
 	t_color	res;
 
@@ -580,17 +635,17 @@ static inline t_color	lambertian_rho(float kd, t_color color)
 	return (res);
 }
 
-static inline float4	get_light_direction(t_light light, t_shade_rec shade_rec)
+ float4	get_light_direction(t_light light, t_shade_rec shade_rec)
 {
 	if (light.type == ambient)
 		return ((float4)(0.0f, 0.0f, 0.0f, 0.0f));
 	else if (light.type == point)
 		return (normalize(light.origin - shade_rec.hit_point));
 	else if (light.type == directional)
-		return normalize(light.direction);
+		return -normalize(light.direction);
 }
 
-static inline t_color	get_light_radiance(t_light light)
+ t_color	get_light_radiance(t_light light)
 {
 	t_color	color;
 
@@ -603,14 +658,15 @@ static inline t_color	get_light_radiance(t_light light)
 	}
 }
 
-static inline bool	shadow_hit_object(t_ray shadow_ray, t_obj obj, t_hit_info *hit_info)
+ bool	shadow_hit_object(t_ray shadow_ray, t_obj obj, t_hit_info *hit_info)
 {
 	if (!obj.shadows)
 		return false;
 	return (is_intersect(shadow_ray, obj, hit_info));
 }
 
-static inline bool	shadow_hit(t_light light, t_ray shadow_ray, t_shade_rec shade_rec, __constant t_obj *objects, int nobjects, __constant t_triangle *triangles, int ntriangles)
+//TODO: triangles
+ bool	shadow_hit(t_light light, t_ray shadow_ray, t_shade_rec shade_rec, __constant t_obj *objects, int nobjects, __constant t_triangle *triangles, int ntriangles)
 {
 	float	t;
 	float	d = distance(light.origin, shadow_ray.origin);
@@ -632,10 +688,11 @@ materials can optionally cast shadows
 //TODO(dmelessa): light colors
 //note we don't need an object. We should pass only material nad compute normal
 //in function before
-static inline int		shade_object(t_material material, t_shade_rec shade_rec,
+ t_color		shade_object(t_material material, t_shade_rec shade_rec,
 	__constant t_light *lights, int nlights, t_light ambient_light,
 	__constant t_obj *objects, int nobjects,
-	__constant t_triangle *triangles, int ntriangles)
+	__constant t_triangle *triangles, int ntriangles,
+	t_render_options options)
 {
 	float4	normal;
 	float4	light_direction;
@@ -644,6 +701,7 @@ static inline int		shade_object(t_material material, t_shade_rec shade_rec,
 	t_color	color;
 
 	//revert camera ray for specular light
+	// return material.color;
 	shade_rec.ray.direction = -shade_rec.ray.direction;
 
 	//compute ambient light using ka coefficent of the materail
@@ -661,11 +719,11 @@ static inline int		shade_object(t_material material, t_shade_rec shade_rec,
 		//multiplying by 0.999f to avoid self shadowing error
 		t_ray	shadow_ray = {.origin = shade_rec.hit_point * 0.999f, .direction = light_direction };
 
-		in_shadow = shadow_hit(lights[i], shadow_ray, shade_rec, objects, nobjects, triangles, ntriangles);
+		if (options.shadows)
+			in_shadow = shadow_hit(lights[i], shadow_ray, shade_rec, objects, nobjects, triangles, ntriangles);
 
 		if (!in_shadow)
 		{
-
 			//compute angle between normal at the hit point and light direction
 			dirdotn = dot(shade_rec.normal, light_direction);
 
@@ -673,7 +731,7 @@ static inline int		shade_object(t_material material, t_shade_rec shade_rec,
 			if (dirdotn > 0.0f)
 			{
 				//compute glossy_specular coefficient
-				float a = glossy_specular_f(shade_rec.ray.direction, shade_rec.normal, light_direction, material.	ks, material.exp) ;
+				float a = glossy_specular_f(shade_rec.ray.direction, shade_rec.normal, light_direction, material.ks, material.exp) ;
 
 				//compute lambertian color
 				color_tmp = lambertian_f(material.kd, material.color);
@@ -687,11 +745,11 @@ static inline int		shade_object(t_material material, t_shade_rec shade_rec,
 			}
 		}
 	}
-	return (color.value);
+	return (color);
 }
 
 //TODO(dmelessa): shading both sides of surface §14
-static inline bool	hit_nearest_object(t_ray ray, t_shade_rec *shade_rec,
+ bool	hit_nearest_object(t_ray ray, t_shade_rec *shade_rec,
 					 __constant t_obj *objects, int nobjects,
 					 __constant t_triangle *triangles, int ntriangles)
 {
@@ -725,45 +783,150 @@ static inline bool	hit_nearest_object(t_ray ray, t_shade_rec *shade_rec,
 	return (shade_rec->hit_an_object || shade_rec->hit_an_triangle);
 }
 
+t_color	get_ray_color(t_ray ray, __constant t_obj *objects, int nobjects,
+					__constant t_triangle *triangles, int ntriangles,
+					__constant t_light *lights, int nlights,
+					t_light ambient_light,
+					t_render_options options)
+{
+	t_shade_rec	shade_rec;
+	t_color		color;
+
+	color.value = 0x000000af;
+	if (hit_nearest_object(ray, &shade_rec, objects, nobjects,
+			triangles, ntriangles))
+		{
+			shade_rec.ray = ray;	//for specular reflection
+			shade_rec.hit_point = (shade_rec.hit_info.t) * shade_rec.ray.direction
+				+ shade_rec.ray.origin;
+			if (shade_rec.hit_an_triangle)
+			{
+				shade_rec.normal = get_triangle_normal(triangles[shade_rec.id]);
+				color = shade_object(triangles[shade_rec.id].material, shade_rec,
+									lights, nlights, ambient_light,
+									objects, nobjects, triangles, ntriangles, options);
+			}
+			else
+			{
+				shade_rec.normal = get_object_normal(shade_rec.hit_point,
+					objects[shade_rec.id], shade_rec.hit_info);
+				color = shade_object(objects[shade_rec.id].material,
+									shade_rec, lights, nlights,	ambient_light,
+									objects, nobjects, triangles, ntriangles, options);
+			}
+		}
+	return (color);
+}
+
+float2	sample_unit_square(__global float2 *sampler_set, t_render_options options, int *count)
+{
+	float2	sp;
+	sp = sampler_set[*count % (options.sampler_info.num_samples * options.sampler_info.num_sets)];
+	*count = *count + 1;
+	return sp;
+}
+
 /**
 **@brief
 ** получить цвет пикселя в позиции x,y экрана, используя камеру camera
 */
-static inline int		trace_ray(t_camera camera,
+ int		get_pixel_color(t_camera camera,
 					__constant t_obj *objects, int nobjects,
 					__constant t_triangle *triangles, int ntriangles,
 					__constant t_light *lights, int nlights,
 					t_light ambient_light,
-					int x, int y)
+					int x, int y,
+					t_render_options options,
+					__global float2 *sampler_set)
 {
 #if 1
 	t_ray		ray;
-	t_shade_rec	shade_rec;
+	t_color		color;
+	t_color		acc;
+	float4		test = 0;
+	int			n = (int)sqrt((float)options.sampler_info.num_samples);
 
-	ray = cast_camera_ray(camera, x, y);
-	if (hit_nearest_object(ray, &shade_rec, objects, nobjects, triangles, ntriangles))
+	color.value = 0;
+	acc.value = 0;
+	if (options.sampler_info.type == jitter)
 	{
-		shade_rec.ray = ray;	//for specular reflection
-		shade_rec.hit_point = (shade_rec.hit_info.t) *
-			shade_rec.ray.direction + shade_rec.ray.origin;
-		if (shade_rec.hit_an_triangle)
+		float jitterMatrix[4 * 2] = {
+			-1.0/4.0,  3.0/4.0,
+	 		3.0/4.0,  1.0/3.0,
+			-3.0/4.0, -1.0/4.0,
+	 		1.0/4.0, -3.0/4.0,
+		};
+		for (int sample = 0; sample < 4; ++sample)
 		{
-			shade_rec.normal = get_triangle_normal(triangles[shade_rec.id]);
-			return shade_object(triangles[shade_rec.id].material,
-						shade_rec, lights, nlights, ambient_light,
-						objects, nobjects, triangles, ntriangles);
+			float dx = (x + jitterMatrix[2 * sample]);
+			float dy = (y + jitterMatrix[2 * sample + 1]);
+			ray = cast_camera_ray(camera, dx, dy);
+			acc = get_ray_color(ray, objects, nobjects, triangles, ntriangles, lights, nlights, ambient_light, options);
+			test.x += acc.r;
+			test.y += acc.g;
+			test.z += acc.b;
 		}
-		else
-		{
-			shade_rec.normal = get_object_normal(shade_rec.hit_point,
-				objects[shade_rec.id], shade_rec.hit_info);
-			return (shade_object(objects[shade_rec.id].material,
-						shade_rec, lights, nlights,	ambient_light,
-						objects, nobjects, triangles, ntriangles));
-		}
+		color.r = test.x / options.sampler_info.num_samples;
+		color.g = test.y / options.sampler_info.num_samples;
+		color.b = test.z / options.sampler_info.num_samples;
 	}
-	else
-		return 0x000000af;
+	else if (options.sampler_info.type == regular_grid)
+	{
+		for (int i = 0; i < n; i++)
+			for (int j = 0; j < n; j++)
+		{
+			float	dx = (x + (j + 0.5f) / n);
+			float	dy = (y + (i + 0.5f) / n);
+			ray = cast_camera_ray(camera, dx, dy);
+			acc = get_ray_color(ray, objects, nobjects, triangles, ntriangles, lights, nlights, ambient_light, options);
+			test.x += acc.r;
+			test.y += acc.g;
+			test.z += acc.b;
+		}
+		color.r = test.x / options.sampler_info.num_samples;
+		color.g = test.y / options.sampler_info.num_samples;
+		color.b = test.z / options.sampler_info.num_samples;
+	}
+	else if (options.sampler_info.type == rand_jitter)
+	{
+		int	count = get_global_id(0) / 25;
+		for (int j = 0; j < options.sampler_info.num_samples; j++)
+		{
+			float2	sp = sample_unit_square(sampler_set, options, &count);
+			float dx = x + sp.x;
+			float dy = y + sp.y;
+			ray = cast_camera_ray(camera, dx, dy);
+			acc = get_ray_color(ray, objects, nobjects, triangles, ntriangles, lights, nlights, ambient_light, options);
+			test.x += acc.r;
+			test.y += acc.g;
+			test.z += acc.b;
+		}
+		color.r = test.x / options.sampler_info.num_samples;
+		color.g = test.y / options.sampler_info.num_samples;
+		color.b = test.z / options.sampler_info.num_samples;
+		// int xx = x;
+		// int yy = y;
+		// for (int i = 0; i < n; i++)
+		// 	for (int j = 0; j < n; j++)
+		// {
+		// 	float	dx = (x + get_random(&xx, &yy));
+		// 	float	dy = (y + get_random(&yy, &xx));
+		// 	ray = cast_camera_ray(camera, dx, dy);
+		// 	acc = get_ray_color(ray, objects, nobjects, triangles, ntriangles, lights, nlights, ambient_light, options);
+		// 	test.x += acc.r;
+		// 	test.y += acc.g;
+		// 	test.z += acc.b;
+		// }
+		// color.r = test.x / options.sampler_info.num_samples;
+		// color.g = test.y / options.sampler_info.num_samples;
+		// color.b = test.z / options.sampler_info.num_samples;
+	}
+	else if (options.sampler_info.type == none)
+	{
+		ray = cast_camera_ray(camera, x, y);
+		color = get_ray_color(ray, objects, nobjects, triangles, ntriangles, lights, nlights, ambient_light, options);
+	}
+	return (color.value);
 #else
 	t_ray		ray;
 	t_hit_info	hit_info;
@@ -795,13 +958,17 @@ __kernel void main(
 				__constant t_light *lights, int nlights,
 				t_camera camera,
 				t_light ambient_light,
-				__constant t_triangle *triangles, int ntriangles)
+				__constant t_triangle *triangles, int ntriangles,
+				t_render_options options,
+				__global float2 *samples)
 {
 	private int		global_id = get_global_id(0);
 	private int		x = global_id % DEFAULT_WIDTH;
 	private int		y = global_id / DEFAULT_WIDTH;
 
 	if (global_id < DEFAULT_WIDTH * DEFAULT_HEIGHT)
-		output_image[global_id] = trace_ray(camera, objects, nobjects,
-			triangles, ntriangles, lights, nlights, ambient_light, x, y);
+	{
+		output_image[global_id] = get_pixel_color(camera, objects, nobjects,
+			triangles, ntriangles, lights, nlights, ambient_light, x, y, options, samples);
+	}
 }

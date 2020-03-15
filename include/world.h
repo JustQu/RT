@@ -6,7 +6,7 @@
 /*   By: dmelessa <dmelessa@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2020/02/10 19:36:22 by dmelessa          #+#    #+#             */
-/*   Updated: 2020/03/14 15:13:31 by dmelessa         ###   ########.fr       */
+/*   Updated: 2020/03/15 17:11:40 by dmelessa         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -50,14 +50,32 @@ union s_color {
 	};
 };
 
-struct s_options
+typedef enum e_sampler_type
 {
-	cl_int	depth;
-	cl_bool	shadows;
-	t_color	backgorund_color;
+	none,
+	regular_grid,
+	jitter,
+	rand_jitter,
+}			t_sampler_type;
 
+typedef struct	s_sampler_info
+{
+	t_sampler_type	type;
+	cl_int			num_samples; /* the number of sample points in a pattern */
+	cl_int			num_sets;	/* the number of sample sets(patterns) stores */
+	cl_int			count;		/* the currenct numer of sample points used */
+	cl_int			jump;		// random index jump
+}				t_sampler_info;
+
+struct s_render_options
+{
+	cl_int			depth;
+	cl_int			shadows;
+	t_color			backgorund_color;
+/*sampler*/
+	t_sampler_info	sampler_info;
 };
-typedef struct s_options	t_options;
+typedef struct s_render_options	t_render_options;
 
 enum e_material_type
 {

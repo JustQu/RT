@@ -1,10 +1,10 @@
 #include "rt.h"
 
-static const t_camera	camera_default = {
+static const t_camera	default_camera = {
 	.origin = {
 		.x = 0.0f,
-		.y = 3.0f,
-		.z = -2.0f,
+		.y = 1.0f,
+		.z = -1.0f,
 		.w = 0.0f
 	},
 	.direction = {
@@ -47,7 +47,8 @@ static const t_obj default_sphere = {
 		.ka = 0.25f,
 		.ks = 0.5,
 		.exp = 10
-	}};
+	},
+	.shadows = CL_TRUE};
 
 static const t_obj default_plane = {
 	.type = plane,
@@ -59,11 +60,11 @@ static const t_obj default_plane = {
 	.direction = {.x = 0.0f, .y = -1.0f, .z = 0.0f, .w = 0.0f},
 	.material = {
 		.type = phong,
-		.color = {.value = 0x00148869},
-		.kd = 0.6f,
+		.color = {.value = 0x00aaaaaa},
+		.kd = 0.8f,
 		.ka = 0.25f,
-		.ks = 0.2f,
-		.exp = 50.0f
+		.ks = 0.05f,
+		.exp = 10.0f
 	},
 	.shadows = CL_TRUE
 };
@@ -78,7 +79,7 @@ static const t_obj default_cylinder = {
 	.direction = {.x = 0.0f, .y = 1.0f, .z = 0.0f, .w = 0.0f},
 	.r = 1.0f,
 	.r2 = 1.0f,
-	.maxm = 0.0f, //max height of cylinder
+	.maxm = 5.0f, //max height of cylinder
 	.material = {.type = phong, .color = {.value = 0x001002af}, .kd = 0.6f, .ka = 0.25f, .ks = 0.2, .exp = 5},
 	.shadows = CL_TRUE
 };
@@ -87,7 +88,7 @@ static const t_obj default_cone = {
 	.type = cone,
 	.origin = {
 		.x = 0.0f,
-		.y = 1.0f,
+		.y = 2.0f,
 		.z = 5.0f,
 		.w = 0.0f,
 	},
@@ -100,8 +101,8 @@ static const t_obj default_cone = {
 	.angle = 60.0f * M_PI / 180.0f, //radians
 	.r = 0.57735026919,
 	.r2 = 1.33333333333, //tan(angle / 2) + 1
-	.maxm = 0.0f,
-	.minm = 0.0f,
+	.maxm = 3.0f,
+	.minm = -3.0f,
 	.material = {.type = phong, .color = {.value = 0x00ffaf}, .kd = 0.6f, .ka = 0.25f, .ks = 0.2f, .exp = 50.0f},
 	.shadows = CL_TRUE};
 
@@ -109,7 +110,7 @@ static const t_obj default_paraboloid = {
 	.type = paraboloid,
 	.origin = {
 		.x = 2.0f,
-		.y = 1.0f,
+		.y = -10.0f,
 		.z = 5.0f,
 		.w = 0.0f},
 	.direction = {.x = 0.0f, .y = 1.0f, .z = 0.0f, .w = 0.0f},
@@ -234,7 +235,7 @@ static const t_light	default_point_light = {
 	.type = point,
 	.origin = {
 		.x = 0.0f,
-		.y = 3.0f,
+		.y = 2.0f,
 		.z = 0.0f,
 		.w = 0.0f
 	},
@@ -251,16 +252,25 @@ static const t_light	default_point_light = {
 */
 int read_data(t_scene *scene)
 {
-	scene->camera = camera_default;
+	scene->camera = default_camera;
 	scene->nobjects = 10;
 	scene->ntriangles = 1;
-	scene->objects = (t_obj *)malloc(sizeof(t_obj) * (scene->nobjects + 9));
-	scene->triangles = (t_triangle *)malloc(sizeof(t_triangle) * scene->ntriangles);
-	scene->nlights = 3;
-	scene->lights = (t_light *)malloc(sizeof(t_light) * (scene->nlights + 1));
+	scene->objects = (t_obj *)malloc(sizeof(t_obj) * (scene->nobjects + 10));
+	scene->triangles = (t_triangle *)malloc(sizeof(t_triangle) * (scene->ntriangles + 10));
+	scene->nlights = 1;
+	scene->lights = (t_light *)malloc(sizeof(t_light) * (scene->nlights + 10));
 
 	//default_scene
+#if 0
 	scene->objects[0] = default_plane;
+
+	// scene->objects[1] = default_sphere;
+	// scene->objects[1].origin.x = 10.0f;
+	// scene->objects[1].origin.y = 10.0f;
+	// scene->objects[1].origin.z = 0.0f;
+	// scene->objects[1].r = 10.0f;
+	// scene->objects[1].r2 = 100.0f;
+	// scene->objects[1].material.color.value = 0x003846b0;
 
 	scene->objects[1] = default_plane;
 	scene->objects[1].origin.x = 0.0f;
@@ -299,8 +309,8 @@ int read_data(t_scene *scene)
 	scene->objects[4].origin.x = 5.0f;
 	scene->objects[4].origin.y = 5.0f;
 	scene->objects[4].origin.z = 7.0f;
-	scene->objects[4].r = 2.0f;
-	scene->objects[4].r2 = 4.0f;
+	scene->objects[4].r = 1.1f;
+	scene->objects[4].r2 = 1.21f;
 	scene->objects[4].material.color.value = 0x003846b0;
 
 	scene->objects[5] = default_cylinder;
@@ -310,7 +320,7 @@ int read_data(t_scene *scene)
 	scene->objects[5].direction.x = 1.0f;
 	scene->objects[5].direction.y = 0.0f;
 	scene->objects[5].direction.z = 0.0f;
-	scene->objects[5].maxm = 0.0f;
+	scene->objects[5].maxm = 5.0f;
 
 	scene->objects[6] = default_cone;
 	scene->objects[6].material.color.value = 0x00ffafff;
@@ -365,7 +375,7 @@ int read_data(t_scene *scene)
 
 	scene->ambient_light = (t_light){
 		.type = ambient,
-		.ls = 0.1f,
+		.ls = 0.0f,
 		.color = {
 			.value = 0x00ffffff
 		}
@@ -373,15 +383,77 @@ int read_data(t_scene *scene)
 	scene->lights[0] = default_point_light;
 
 	scene->lights[1] = default_directional_light;
+	scene->lights[1].ls = 0.0f;
 	scene->lights[1].origin.x = INFINITY;
 	scene->lights[1].origin.y = INFINITY;
 	scene->lights[1].origin.z = INFINITY;
 
 	scene->lights[2] = default_point_light;
 	scene->lights[2].origin.x = -2.0f;
-	scene->lights[2].origin.y = 1.0f;
+	scene->lights[2].origin.y = 5.0f;
 	scene->lights[2].ls = 1.0f;
 	//
 
+#else
+	scene->objects[0] = default_plane;
+	scene->objects[0].origin.x = 0.0f;
+	scene->objects[0].origin.y = 0.0f;
+	scene->objects[0].origin.z = -100.0f;
+	scene->objects[0].direction.x = 0.0f;
+	scene->objects[0].direction.y = 0.0f;
+	scene->objects[0].direction.z = 1.0f;
+	// scene->objects[0].direction.y = 0.999f;
+	// scene->objects[0].direction.z = sqrtf(1.0f - 0.999f * 0.999f);
+	scene->objects[0].material.color.value = 0x0000ff00;
+	scene->objects[0].material.ks = 0.00;
+	scene->objects[0].material.ka = 0.00;
+	scene->objects[0].material.exp = 10000;
+
+	scene->objects[1] = default_sphere;
+	scene->objects[1].origin.x = 0.0f;
+	scene->objects[1].origin.y = 0.0f;
+	scene->objects[1].origin.z = -10.0f;
+	scene->objects[1].r = 50;
+	scene->objects[1].r2 = 2500;
+
+	scene->objects[2] = default_cylinder;
+	scene->objects[2].origin.x = 70.0f;
+	scene->objects[2].origin.y = 0.0f;
+	scene->objects[2].origin.z = 0.0f;
+	scene->objects[2].maxm = 150.0f;
+	scene->objects[2].r = 20.0f;
+	scene->objects[2].r2 = 400.0f;
+
+	scene->objects[3] = default_plane;
+	scene->objects[3].origin.y = -360;
+	scene->objects[3].direction.y = 0.8f;
+	scene->objects[3].direction.z = sqrtf(1.0f - 0.8f * 0.8f);
+
+	scene->lights[0] = default_point_light;
+	scene->lights[0].direction.x = -1.0f;
+	scene->lights[0].direction.y = 1.0f;
+	scene->lights[0].direction.z = 0.0f;
+	scene->lights[0].origin.x = 0.0f;
+	scene->lights[0].origin.y = 500.0f;
+	scene->lights[0].origin.z = 0.0f;
+	scene->lights[0].ls = 4.0f;
+	// scene->lights[0].origin.x = -INFINITY;
+	// scene->lights[0].origin.y = -INFINITY;
+	// scene->lights[0].origin.z = -INFINITY;
+	// scene->lights[0].origin.w = -INFINITY;
+
+	scene->lights[1] = default_point_light;
+	scene->lights[1].origin = default_camera.origin;
+	scene->lights[1].origin.z = -100.0f;
+
+	scene->triangles[0] = default_triangle;
+
+	scene->ambient_light = (t_light){
+		.type = ambient,
+		.ls = 0.3f,
+		.color = {
+			.value = 0x00ffffff}};
+
+#endif
 	return (0);
 }

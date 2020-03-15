@@ -91,6 +91,7 @@ struct					s_cl_program
 	cl_mem				objects;
 	cl_mem				triangles;
 	cl_mem				lights;
+	cl_mem				samples;
 	size_t				work_size;
 	size_t				work_group_size;
 };
@@ -115,10 +116,12 @@ struct					s_scene
 cl_program	create_program(cl_context context);
 int			read_data(t_scene *scene);
 int			init_window(t_window *window);
-int 		init(t_window *window, t_cl_program *cl_program, t_scene *scene);
+int 		init(t_window *window, t_cl_program *cl_program, t_scene *scene, t_render_options *options);
 
 int			catch_event();
 
 void		cl_error(t_cl_program *program, t_clp *clp, int code);
+
+cl_float2 *generate_samples(t_render_options options);
 
 #endif
