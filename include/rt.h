@@ -48,11 +48,11 @@
 #	define DEFAULT_KERNEL_DIR "./src/cl/"
 # endif
 
-typedef struct	s_renderer
+typedef struct	s_sampler
 {
-	t_render_options	options;
-	cl_float2			*sample_set;
-}				t_renderer;
+	t_sampler_info	info;
+	cl_float2		*sample_set;
+}			t_sampler;
 
 /**
 ** @brief
@@ -119,15 +119,28 @@ struct					s_scene
 	int					ntriangles;
 };
 
+typedef struct	s_rt
+{
+	t_cl_program		program;
+	t_window			window;
+	t_scene				scene;
+	t_sampler			sampler;
+	t_render_options	options;
+}				t_rt;
+
 cl_program	create_program(cl_context context);
 int			read_data(t_scene *scene);
 int			init_window(t_window *window);
-int 		init_rt(t_window *window, t_cl_program *cl_program, t_scene *scene, t_renderer *options);
+int 		init_rt(t_rt *rt);
 
-int			catch_event();
+int			catch_event(t_rt *rt);
 
 void		cl_error(t_cl_program *program, t_clp *clp, int code);
 
-cl_float2	*generate_samples(t_render_options options);
+void		new_sampler(t_sampler *sampler, t_sampler_type type, int num_samples, int num_sets);
+
+cl_float2 *generate_samples(t_sampler_info options);
+
+float		rand_float();
 
 #endif

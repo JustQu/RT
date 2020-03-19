@@ -6,7 +6,7 @@
 /*   By: dmelessa <dmelessa@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2020/02/10 19:36:22 by dmelessa          #+#    #+#             */
-/*   Updated: 2020/03/15 23:09:23 by dmelessa         ###   ########.fr       */
+/*   Updated: 2020/03/16 20:49:20 by dmelessa         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -72,8 +72,6 @@ struct s_render_options
 	cl_int			depth;
 	cl_int			shadows;
 	t_color			backgorund_color;
-/*sampler*/
-	t_sampler_info	sampler_info;
 };
 typedef struct s_render_options	t_render_options;
 
@@ -180,6 +178,12 @@ struct	s_triangle
 	cl_float4	vector2; // vertex3 - vertex1
 	cl_float4	normal;
 };
+
+typedef enum	e_camera_type
+{
+	orthographic,
+	perspective
+}				t_camera_type;
 
 /**
 ** @TODO: make transformation matrix

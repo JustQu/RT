@@ -6,7 +6,7 @@
 /*   By: dmelessa <dmelessa@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2020/02/10 17:43:55 by dmelessa          #+#    #+#             */
-/*   Updated: 2020/03/15 23:19:55 by dmelessa         ###   ########.fr       */
+/*   Updated: 2020/03/19 16:32:23 by dmelessa         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -40,29 +40,36 @@ int		init_cl(t_clp *clp)
 }
 
 void	init_buffers(t_cl_program *program, t_scene *scene,
-	t_renderer *renderer)
+	t_sampler *sampler)
 {
 	int ret;
 
+	printf("!\n");
 	program->objects = clCreateBuffer(program->clp.context, CL_MEM_READ_ONLY
 		| CL_MEM_COPY_HOST_PTR, sizeof(t_obj) * scene->nobjects, scene->objects,
 		&ret);
+	assert(!ret);
+	printf("!!\n");
 	program->output_image = clCreateBuffer(program->clp.context,
 		CL_MEM_READ_WRITE, sizeof(uint32_t) * program->work_size, NULL, &ret);
+	assert(!ret);
 	cl_error(program, &program->clp, ret);
 	program->triangles = clCreateBuffer(program->clp.context, CL_MEM_READ_ONLY |
 		CL_MEM_COPY_HOST_PTR, sizeof(t_triangle) * scene->ntriangles,
 		scene->triangles, &ret);
+	assert(!ret);
 	cl_error(program, &program->clp, ret);
 	program->lights = clCreateBuffer(program->clp.context, CL_MEM_READ_WRITE |
 		CL_MEM_COPY_HOST_PTR, sizeof(t_light) * scene->nlights, scene->lights,
 		&ret);
+	assert(!ret);
+	printf("!!!	\n");
 	program->samples = clCreateBuffer(program->clp.context,
 		CL_MEM_READ_WRITE | CL_MEM_COPY_HOST_PTR, sizeof(cl_float2) *
-		renderer->options.sampler_info.num_sets *
-		renderer->options.sampler_info.num_samples, renderer->sample_set, &ret);
+		sampler->info.num_sets *
+		sampler->info.num_samples, sampler->sample_set, &ret);
+	assert(!ret);
 	cl_error(program, &program->clp, ret);
-
 }
 
 void init_options(t_render_options *options)
@@ -70,9 +77,6 @@ void init_options(t_render_options *options)
 	options->shadows = TRUE;
 	options->backgorund_color.value = 0x000000af;
 	options->depth = 5;
-	options->sampler_info.num_sets = 25;
-	options->sampler_info.num_samples = 25;
-	options->sampler_info.type = rand_jitter;
 }
 
 /**
@@ -83,27 +87,40 @@ void init_options(t_render_options *options)
 ** @return ** int
 */
 int		init_kernel(t_cl_program *program, t_scene *scene,
-	t_renderer *renderer)
+					t_render_options *options, t_sampler *sampler)
 {
-	int		ret;
+	int		ret = 0;
 
+	printf("Initing kernel...\n");
+	printf(" Initing opencl... ");
 	init_cl(&program->clp);
-
-	init_options(&renderer->options);
-	renderer->sample_set = generate_samples(renderer->options);
-
-	init_buffers(program, scene, renderer);
-	program->program = create_program(program->clp.context);
+	printf("done\n");
+	/*init starting render options and generate samples*/
+	printf(" Initing options... ");
+	init_options(options);
+	printf("done\n");
+	printf(" generating sampler... ");
+	new_sampler(sampler, rand_jitter, 25, 83);
+	printf("done\n");
+	/*init buffers for kernel*/
+	printf("Initing buffers... ");
+	init_buffers(program, scene, sampler);
+	printf("done\n");
+	assert(!ret);
 	cl_error(program, &program->clp, ret);
-
+	printf(" Buffer inited\n");
+	program->program = create_program(program->clp.context);
+	printf(" Program created\n");
+	/* build kernel program */
 	ret = clBuildProgram(program->program, 1, &program->clp.de_id,
 		DEFAULT_KERNEL_INCLUDE, NULL, NULL);
 	cl_error(program, &program->clp, ret);
-
+	printf(" Program builded\n");
+	/* create kernel */
 	program->kernel = clCreateKernel(program->program, DEFAULT_KERNEL_NAME,
 		&ret);
 	cl_error(program, &program->clp, ret);
-
+	printf("Kernel inited\n");
 	return (0);
 }
 
@@ -114,14 +131,13 @@ int		init_kernel(t_cl_program *program, t_scene *scene,
 ** @param cl_program
 ** @return ** int
 */
-int		init_rt(t_window *window, t_cl_program *cl_program, t_scene *scene,
-	t_renderer *renderer)
+int		init_rt(t_rt *rt)
 {
-
-	read_data(scene);
-	init_window(window);
-	cl_program->work_size = DEFAULT_WORK_SIZE;
-	cl_program->work_group_size = WORK_GROUP_SIZE;
-	init_kernel(cl_program, scene, renderer);
+	printf("initing\n");
+	read_data(&rt->scene);
+	init_window(&rt->window);
+	rt->program.work_size = DEFAULT_WORK_SIZE;
+	rt->program.work_group_size = WORK_GROUP_SIZE;
+	init_kernel(&rt->program, &rt->scene, &rt->options, &rt->sampler);
 	return 0;
 }

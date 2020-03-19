@@ -760,10 +760,16 @@ t_color	get_ray_color(t_ray ray, __constant t_obj *objects, int nobjects,
 	return (color);
 }
 
-float2	sample_unit_square(__global float2 *sampler_set, t_render_options options, int *count)
+/**
+**TODO: randomness §5
+*/
+float2	sample_unit_square(__global float2 *sampler_set, t_sampler_info info,
+							int *count)
 {
 	float2	sp;
-	sp = sampler_set[*count % (options.sampler_info.num_samples * options.sampler_info.num_sets)];
+
+	sp = sampler_set[*count %
+		(info.num_samples * info.num_sets)];
 	*count = *count + 1;
 	return sp;
 }
@@ -779,6 +785,7 @@ float2	sample_unit_square(__global float2 *sampler_set, t_render_options options
 					t_light ambient_light,
 					int x, int y,
 					t_render_options options,
+					t_sampler_info sampler_info,
 					__global float2 *sampler_set)
 {
 #if 1
@@ -786,11 +793,11 @@ float2	sample_unit_square(__global float2 *sampler_set, t_render_options options
 	t_color		color;
 	t_color		acc;
 	float4		test = 0;
-	int			n = (int)sqrt((float)options.sampler_info.num_samples);
+	int			n = (int)sqrt((float)sampler_info.num_samples);
 
 	color.value = 0;
 	acc.value = 0;
-	if (options.sampler_info.type == jitter)
+	if (sampler_info.type == jitter)
 	{
 		float jitterMatrix[4 * 2] = {
 			-1.0/4.0,  3.0/4.0,
@@ -808,33 +815,21 @@ float2	sample_unit_square(__global float2 *sampler_set, t_render_options options
 			test.y += acc.g;
 			test.z += acc.b;
 		}
-		color.r = test.x / options.sampler_info.num_samples;
-		color.g = test.y / options.sampler_info.num_samples;
-		color.b = test.z / options.sampler_info.num_samples;
+		color.r = test.x / sampler_info.num_samples;
+		color.g = test.y / sampler_info.num_samples;
+		color.b = test.z / sampler_info.num_samples;
 	}
-	else if (options.sampler_info.type == regular_grid)
+	else if (sampler_info.type == none)
 	{
-		for (int i = 0; i < n; i++)
-			for (int j = 0; j < n; j++)
-		{
-			float	dx = (x + (j + 0.5f) / n);
-			float	dy = (y + (i + 0.5f) / n);
-			ray = cast_camera_ray(camera, dx, dy);
-			acc = get_ray_color(ray, objects, nobjects, triangles, ntriangles, lights, nlights, ambient_light, options);
-			test.x += acc.r;
-			test.y += acc.g;
-			test.z += acc.b;
-		}
-		color.r = test.x / options.sampler_info.num_samples;
-		color.g = test.y / options.sampler_info.num_samples;
-		color.b = test.z / options.sampler_info.num_samples;
+		ray = cast_camera_ray(camera, x, y);
+		color = get_ray_color(ray, objects, nobjects, triangles, ntriangles, lights, nlights, ambient_light, options);
 	}
-	else if (options.sampler_info.type == rand_jitter)
+	else
 	{
-		int	count = get_global_id(0) / 25;
-		for (int j = 0; j < options.sampler_info.num_samples; j++)
+		int	count = get_global_id(0) / 83; //???
+		for (int j = 0; j < sampler_info.num_samples; j++)
 		{
-			float2	sp = sample_unit_square(sampler_set, options, &count);
+			float2	sp = sample_unit_square(sampler_set, sampler_info, &count);
 			float dx = x + sp.x;
 			float dy = y + sp.y;
 			ray = cast_camera_ray(camera, dx, dy);
@@ -843,14 +838,9 @@ float2	sample_unit_square(__global float2 *sampler_set, t_render_options options
 			test.y += acc.g;
 			test.z += acc.b;
 		}
-		color.r = test.x / options.sampler_info.num_samples;
-		color.g = test.y / options.sampler_info.num_samples;
-		color.b = test.z / options.sampler_info.num_samples;
-	}
-	else if (options.sampler_info.type == none)
-	{
-		ray = cast_camera_ray(camera, x, y);
-		color = get_ray_color(ray, objects, nobjects, triangles, ntriangles, lights, nlights, ambient_light, options);
+		color.r = test.x / sampler_info.num_samples;
+		color.g = test.y / sampler_info.num_samples;
+		color.b = test.z / sampler_info.num_samples;
 	}
 	return (color.value);
 #else
@@ -878,6 +868,10 @@ float2	sample_unit_square(__global float2 *sampler_set, t_render_options options
 #endif
 }
 
+/**
+**NOTE: сейчас код использвует везде один набор сэмлов
+**		надо будет сделать разные сэмплы в разных местах
+*/
 __kernel void main(
 				__global uint *output_image,
 				__constant t_obj *objects, int nobjects,
@@ -886,15 +880,20 @@ __kernel void main(
 				t_camera camera,
 				t_light ambient_light,
 				t_render_options options,
+				t_sampler_info sampler_info,
 				__global float2 *samples)
 {
-	private int		global_id = get_global_id(0);
-	private int		x = global_id % DEFAULT_WIDTH;
-	private int		y = global_id / DEFAULT_WIDTH;
+	private int	global_id = get_global_id(0);
+	private int	x = global_id % DEFAULT_WIDTH;
+	private int	y = global_id / DEFAULT_WIDTH;
 
 	if (global_id < DEFAULT_WIDTH * DEFAULT_HEIGHT)
 	{
-		output_image[global_id] = get_pixel_color(camera, objects, nobjects,
-			triangles, ntriangles, lights, nlights, ambient_light, x, y, options, samples);
+		// if (global_id == 0)
+		// 	printf("%d\n", sampler_info.num_sets);
+		output_image[global_id] =
+			get_pixel_color(camera, objects, nobjects, triangles, ntriangles,
+							lights, nlights, ambient_light, x, y, options,
+							sampler_info, samples);
 	}
 }

@@ -6,13 +6,13 @@
 /*   By: dmelessa <dmelessa@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2020/03/15 23:21:28 by dmelessa          #+#    #+#             */
-/*   Updated: 2020/03/15 23:21:28 by dmelessa         ###   ########.fr       */
+/*   Updated: 2020/03/18 15:36:04 by dmelessa         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "rt.h"
 
-int catch_event(t_renderer *renderer)
+int catch_event(t_rt *rt)
 {
 	SDL_Event event;
 
@@ -51,7 +51,7 @@ int catch_event(t_renderer *renderer)
 				return 1;
 			else if (event.key.keysym.sym == SDLK_p)
 			{
-				renderer->options.shadows = !renderer->options.shadows;
+				rt->options.shadows = !rt->options.shadows;
 			}
 		}
 		if (event.type == SDL_KEYUP)
