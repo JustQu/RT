@@ -51,7 +51,9 @@
 typedef struct	s_sampler
 {
 	t_sampler_info	info;
-	cl_float2		*sample_set;
+	cl_float3		*hemisphere_samples;
+	cl_float2		*samples;
+	cl_float2		*disk_samples;
 }			t_sampler;
 
 /**

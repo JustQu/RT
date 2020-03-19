@@ -6,7 +6,7 @@
 /*   By: dmelessa <dmelessa@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2020/02/10 17:43:55 by dmelessa          #+#    #+#             */
-/*   Updated: 2020/03/19 16:32:23 by dmelessa         ###   ########.fr       */
+/*   Updated: 2020/03/19 22:58:20 by dmelessa         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -67,7 +67,7 @@ void	init_buffers(t_cl_program *program, t_scene *scene,
 	program->samples = clCreateBuffer(program->clp.context,
 		CL_MEM_READ_WRITE | CL_MEM_COPY_HOST_PTR, sizeof(cl_float2) *
 		sampler->info.num_sets *
-		sampler->info.num_samples, sampler->sample_set, &ret);
+		sampler->info.num_samples, sampler->samples, &ret);
 	assert(!ret);
 	cl_error(program, &program->clp, ret);
 }
