@@ -1,6 +1,6 @@
-#include "world.h"
+// #include "world.h"
 
-inline t_color	color_sum(t_color a, t_color b)
+ t_color	color_sum(t_color a, t_color b)
 {
 	t_color res;
 	res.b = clamp(a.b + b.b, 0, 255);
@@ -11,7 +11,7 @@ inline t_color	color_sum(t_color a, t_color b)
 
 //NOTE: probably not needed
 // component-wise colors multiplication
-inline t_color	color_multi(t_color a, t_color b)
+ t_color	color_multi(t_color a, t_color b)
 {
 	t_color	res;
 
@@ -21,7 +21,7 @@ inline t_color	color_multi(t_color a, t_color b)
 	return (res);
 }
 
-inline t_color	float_color_multi(float	c, t_color color)
+ t_color	float_color_multi(float	c, t_color color)
 {
 	t_color	res;
 

@@ -6,7 +6,7 @@
 /*   By: dmelessa <dmelessa@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2020/02/10 19:36:22 by dmelessa          #+#    #+#             */
-/*   Updated: 2020/03/16 20:49:20 by dmelessa         ###   ########.fr       */
+/*   Updated: 2020/03/29 21:00:03 by dmelessa         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -182,12 +182,23 @@ struct	s_triangle
 typedef enum	e_camera_type
 {
 	orthographic,
-	perspective
+	perspective,
+	thin_lens,
+	fisheye,
+	spherical,
+	stereo
 }				t_camera_type;
+
+typedef struct	s_viewplane
+{
+	cl_float	pixel_size;
+	cl_int		width;
+	cl_int		height;
+}				t_viewplane;
 
 /**
 ** @TODO: make transformation matrix
-**
+** TODO: singularity §9.9
 */
 typedef struct s_camera	t_camera;
 # ifdef _WIN64
@@ -195,13 +206,24 @@ __declspec(align(8))
 # endif
 struct s_camera
 {
-	cl_float4			origin;
-	cl_float4			direction;
+	t_viewplane			viewplane;
+	cl_float4			origin; // eye
+	cl_float4			direction; // lookat - eye
+	cl_float4			up; // (0, 1, 0)
+	cl_float4			u;
+	cl_float4			v; // actually we need only  th3 vectors. the up vector could be hardcodeded and w = -derction
+	cl_float4			w;
+	cl_float			d; //the view-plane distance
+	cl_float			zoom; //zoom factor
+	cl_float			exposure_time; //using somewhere later
+
+	//thin-lens camera
+	cl_float			lens_radius; //lens radius
+	cl_float			f; //focal plane distance
+//note: prob not needed
 	cl_float			ratio;
 	cl_float			inv_w;
 	cl_float			inv_h;
-	cl_float			near_z;
-	cl_float			far_z;
 	cl_float			angle;
 	cl_int				fov;
 };

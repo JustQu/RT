@@ -31,9 +31,9 @@
 # include "bool.h"
 
 # ifdef _WIN64
-#  define DEFAULT_KERNEL_FILE "ray_tracer.cl"
+#  define DEFAULT_KERNEL_FILE "main_kernel.cl"
 # else
-#  define DEFAULT_KERNEL_FILE "ray_tracer.cl"
+#  define DEFAULT_KERNEL_FILE "main_kernel.cl"
 # endif
 
 # define DEFAULT_KERNEL_NAME "main" //NOTE: нельзя сделать кернел с именем 'main'\
@@ -130,18 +130,29 @@ typedef struct	s_rt
 	t_render_options	options;
 }				t_rt;
 
-cl_program	create_program(cl_context context);
-int			read_data(t_scene *scene);
-int			init_window(t_window *window);
-int 		init_rt(t_rt *rt);
+/**			functions for scene initialization			*/
+cl_float4	get_vector(int *f, int *l, char *line);
+float		get_number(int *f, int *l, char *line);
+int			find_parentheses(char *line, char *param, int *f, int *l);
+void		init_camera(char *line, t_scene *scene);
+void		init_object(char *line, t_scene *scene, int type);
+void		init_triangle(char *line, t_scene *scene);
+char		*find_file_name(char *str);
+int			fd_return(char *file_name);
+int			read_data(t_scene *scene, const char *scene_file);
 
-int			catch_event(t_rt *rt);
+// cl_program	create_program(cl_context context);
+int			init_window(t_window *window);
+int 		init_rt(t_rt *rt, const char *scene_file);
+cl_program create_program(t_cl_program p, cl_context context);
+
+int catch_event(t_rt *rt);
 
 void		cl_error(t_cl_program *program, t_clp *clp, int code);
 
-void		new_sampler(t_sampler *sampler, t_sampler_type type, int num_samples, int num_sets);
+void		init_sampler(t_sampler *sampler);
 
-cl_float2 *generate_samples(t_sampler_info options);
+cl_float2	*generate_samples(t_sampler_info options);
 
 float		rand_float();
 

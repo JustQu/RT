@@ -1,10 +1,16 @@
 #include "rt.h"
 
+
 static const t_camera	default_camera = {
+	.viewplane = {
+		.pixel_size = 1.0f,
+		.width = DEFAULT_WIDTH,
+		.height = DEFAULT_HEIGHT
+	},
 	.origin = {
 		.x = 0.0f,
 		.y = 1.0f,
-		.z = -1.0f,
+		.z = -3.0f,
 		.w = 0.0f
 	},
 	.direction = {
@@ -13,6 +19,15 @@ static const t_camera	default_camera = {
 		.z = 1.0f,
 		.w = 0.0f
 	},
+	.up = {
+		.x = 0.0f,
+		.y = 1.0f,
+		.z = 0.0f,
+		.w = 0.0f
+	},
+	.d = 1.0f,
+	.zoom = 1.0f,
+
 	.ratio = (float)DEFAULT_WIDTH / (float)DEFAULT_HEIGHT,
 	.inv_w = 1.0f / DEFAULT_WIDTH,
 	.inv_h = 1.0f / DEFAULT_HEIGHT,
@@ -31,7 +46,7 @@ static const t_material	default_matte_material = {
 	.exp = 0.25f
 };
 
-static const t_obj default_sphere = {
+static const t_obj		default_sphere = {
 	.type = sphere,
 	.origin = {
 		.x = 0.0f,
@@ -50,7 +65,7 @@ static const t_obj default_sphere = {
 	},
 	.shadows = CL_TRUE};
 
-static const t_obj default_plane = {
+static const t_obj		default_plane = {
 	.type = plane,
 	.origin = {
 		.x = 0.0f,
@@ -69,7 +84,7 @@ static const t_obj default_plane = {
 	.shadows = CL_TRUE
 };
 
-static const t_obj default_cylinder = {
+static const t_obj		default_cylinder = {
 	.type = cylinder,
 	.origin = {
 		.x = 2.0f,
@@ -84,7 +99,7 @@ static const t_obj default_cylinder = {
 	.shadows = CL_TRUE
 };
 
-static const t_obj default_cone = {
+static const t_obj		default_cone = {
 	.type = cone,
 	.origin = {
 		.x = 0.0f,
@@ -106,11 +121,11 @@ static const t_obj default_cone = {
 	.material = {.type = phong, .color = {.value = 0x00ffaf}, .kd = 0.6f, .ka = 0.25f, .ks = 0.2f, .exp = 50.0f},
 	.shadows = CL_TRUE};
 
-static const t_obj default_paraboloid = {
+static const t_obj		default_paraboloid = {
 	.type = paraboloid,
 	.origin = {
 		.x = 2.0f,
-		.y = -10.0f,
+		.y = 1.0f,
 		.z = 5.0f,
 		.w = 0.0f},
 	.direction = {.x = 0.0f, .y = 1.0f, .z = 0.0f, .w = 0.0f},
@@ -120,7 +135,7 @@ static const t_obj default_paraboloid = {
 	.material = {.type = phong, .color = {.value = 0x05f000f}, .kd = 0.6f, .ka = 0.25f, .ks = 0.2f, .exp = 50.0f},
 	.shadows = CL_TRUE};
 
-static const t_obj default_torus = {
+static const t_obj		default_torus = {
 	.type = torus,
 	.origin = {
 		.x = 0.0f,
@@ -188,7 +203,7 @@ static const t_triangle	default_triangle = {
 	}
 };
 
-static const t_bbox	default_box = {
+static const t_bbox		default_box = {
 	.min ={
 		.x = 0.0f,
 		.y = 0.0f,
@@ -250,19 +265,29 @@ static const t_light	default_point_light = {
 ** @param scene
 ** @return ** int
 */
-int read_data(t_scene *scene)
+int read_data(t_scene *scene, const char *scene_file)
 {
 	scene->camera = default_camera;
+	compute_uvw(&scene->camera);
+
 	scene->nobjects = 10;
 	scene->ntriangles = 1;
 	scene->objects = (t_obj *)malloc(sizeof(t_obj) * (scene->nobjects + 10));
 	scene->triangles = (t_triangle *)malloc(sizeof(t_triangle) * (scene->ntriangles + 10));
-	scene->nlights = 1;
+	scene->nlights = 2;
 	scene->lights = (t_light *)malloc(sizeof(t_light) * (scene->nlights + 10));
 
 	//default_scene
-#if 0
+#if 1
 	scene->objects[0] = default_plane;
+
+	scene->objects[0] = default_sphere;
+	scene->objects[0].origin.x = 0.0f;
+	scene->objects[0].origin.y = 0.0f;
+	scene->objects[0].origin.z = 0.0f;
+	scene->objects[0].r = 0.1f;
+	scene->objects[0].r2 = 0.01f;
+	scene->objects[0].material.color.value = 0x0000ff00;
 
 	// scene->objects[1] = default_sphere;
 	// scene->objects[1].origin.x = 10.0f;
@@ -306,11 +331,11 @@ int read_data(t_scene *scene)
 	scene->objects[3].material.color.value = 0x00af0f00;
 
 	scene->objects[4] = default_sphere;
-	scene->objects[4].origin.x = 5.0f;
-	scene->objects[4].origin.y = 5.0f;
-	scene->objects[4].origin.z = 7.0f;
-	scene->objects[4].r = 1.1f;
-	scene->objects[4].r2 = 1.21f;
+	scene->objects[4].origin.x = 2.0f;
+	scene->objects[4].origin.y = 4.0f;
+	scene->objects[4].origin.z = 0.0f;
+	scene->objects[4].r = 1.0f;
+	scene->objects[4].r2 = 1.0f;
 	scene->objects[4].material.color.value = 0x003846b0;
 
 	scene->objects[5] = default_cylinder;
@@ -412,9 +437,9 @@ int read_data(t_scene *scene)
 	scene->objects[1] = default_sphere;
 	scene->objects[1].origin.x = 0.0f;
 	scene->objects[1].origin.y = 0.0f;
-	scene->objects[1].origin.z = -10.0f;
-	scene->objects[1].r = 50;
-	scene->objects[1].r2 = 2500;
+	scene->objects[1].origin.z = 0.0f;
+	scene->objects[1].r = 10;
+	scene->objects[1].r2 = 100;
 
 	scene->objects[2] = default_cylinder;
 	scene->objects[2].origin.x = 70.0f;

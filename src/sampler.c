@@ -9,12 +9,12 @@ void	setup_shuffled_indices(void)
 
 }
 
-void	new_sampler(t_sampler *sampler, t_sampler_type type, int num_samples, int num_sets)
+void	init_sampler(t_sampler *sampler)
 {
-	sampler->info.num_samples = num_samples;
-	sampler->info.num_sets = num_sets;
-	if (num_samples > 1)
-		sampler->info.type = type;
+	sampler->info.num_samples = 25;
+	sampler->info.num_sets = 83;
+	if (sampler->info.num_samples > 1)
+		sampler->info.type = regular_grid;
 	else
 	{
 		sampler->info.type = regular_grid,
@@ -215,8 +215,8 @@ void	map_samples_to_hemisphere(t_sampler sampler, const float e)
 /* rand jitter */
 cl_float2 *generate_samples(t_sampler_info info)
 {
-	return generate_nrooks_samples(info);
-	return generate_pure_random_samples(info);
+	// return generate_nrooks_samples(info);
+	// return generate_pure_random_samples(info);
 	return generate_regular_samples(info);
 	// return generate_rand_jitter_samples(info);
 }
