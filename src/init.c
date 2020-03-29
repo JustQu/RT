@@ -6,7 +6,7 @@
 /*   By: dmelessa <dmelessa@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2020/02/10 17:43:55 by dmelessa          #+#    #+#             */
-/*   Updated: 2020/02/16 19:07:10 by dmelessa         ###   ########.fr       */
+/*   Updated: 2020/03/29 21:35:28 by dmelessa         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -29,14 +29,52 @@ int		init_cl(t_clp *clp)
 	clp->ret = clGetPlatformIDs(1, &(clp->pl_id), &(clp->ret_num_platforms));
 	ft_clerror(clp->ret);
 	clp->ret = clGetDeviceIDs(clp->pl_id, CL_DEVICE_TYPE_GPU, 1, &(clp->de_id),
-						&(clp->ret_num_devices));
-	ft_clerror(clp->ret);
+		&(clp->ret_num_devices));
+	assert(!clp->ret);
 	clp->context = clCreateContext(NULL, 1, &(clp->de_id), NULL, NULL,
-						&(clp->ret));
-	ft_clerror(clp->ret);
+		&(clp->ret));
+	assert(!clp->ret);
 	clp->queue = clCreateCommandQueue(clp->context, clp->de_id, 0, &(clp->ret));
 	ft_clerror(clp->ret);
 	return (0);
+}
+
+//NOTE: deal with case when there is no objects
+void	init_buffers(t_cl_program *program, t_scene *scene,
+	t_sampler *sampler)
+{
+	int ret;
+
+	program->objects = clCreateBuffer(program->clp.context, CL_MEM_READ_ONLY
+		| CL_MEM_COPY_HOST_PTR, sizeof(t_obj) * scene->nobjects, scene->objects,
+		&ret);
+	assert(!ret);
+	program->output_image = clCreateBuffer(program->clp.context,
+		CL_MEM_READ_WRITE, sizeof(uint32_t) * program->work_size, NULL, &ret);
+	assert(!ret);
+	cl_error(program, &program->clp, ret);
+	program->triangles = clCreateBuffer(program->clp.context, CL_MEM_READ_ONLY |
+		CL_MEM_COPY_HOST_PTR, sizeof(t_triangle) * scene->ntriangles,
+		scene->triangles, &ret);
+	assert(!ret);
+	cl_error(program, &program->clp, ret);
+	program->lights = clCreateBuffer(program->clp.context, CL_MEM_READ_WRITE |
+		CL_MEM_COPY_HOST_PTR, sizeof(t_light) * scene->nlights, scene->lights,
+		&ret);
+	assert(!ret);
+	program->samples = clCreateBuffer(program->clp.context,
+		CL_MEM_READ_WRITE | CL_MEM_COPY_HOST_PTR, sizeof(cl_float2) *
+		sampler->info.num_sets *
+		sampler->info.num_samples, sampler->samples, &ret);
+	assert(!ret);
+	cl_error(program, &program->clp, ret);
+}
+
+void init_options(t_render_options *options)
+{
+	options->shadows = TRUE;
+	options->backgorund_color.value = 0x000000af;
+	options->depth = 5;
 }
 
 /**
@@ -46,26 +84,20 @@ int		init_cl(t_clp *clp)
 ** @param cl_program
 ** @return ** int
 */
-int		init_renderer(t_cl_program *program, t_scene *scene)
+int		init_kernel(t_cl_program *program, t_scene *scene, t_sampler *sampler)
 {
-	int		ret;
+	int		ret = 0;
 
 	init_cl(&program->clp);
-	program->objects = clCreateBuffer(program->clp.context, CL_MEM_READ_ONLY |
-		CL_MEM_COPY_HOST_PTR, sizeof(t_obj) * scene->nobjects, scene->objects,
-		&ret);
-	ft_clerror(program->clp.ret);
-	program->output_image = clCreateBuffer(program->clp.context,
-		CL_MEM_READ_WRITE, sizeof(uint32_t) * program->work_size, NULL, &ret);
-	ft_clerror(program->clp.ret);
-	program->triangles = clCreateBuffer(program->clp.context, CL_MEM_READ_ONLY |
-		CL_MEM_COPY_HOST_PTR, sizeof(t_triangle) * scene->ntriangles,
-		scene->triangles, &ret);
-	ft_clerror(program->clp.ret);
-	program->program = create_program(program->clp.context);
-	ret = clBuildProgram(program->program, 1, &program->clp.de_id,
-							 DEFAULT_KERNEL_INCLUDE, NULL, NULL);
+	/*init buffers for kernel*/
+	init_buffers(program, scene, sampler);
 	cl_error(program, &program->clp, ret);
+	program->program = create_program(program->clp.context);
+	/* build kernel program */
+	ret = clBuildProgram(program->program, 1, &program->clp.de_id,
+		DEFAULT_KERNEL_INCLUDE, NULL, NULL);
+	cl_error(program, &program->clp, ret);
+	/* create kernel */
 	program->kernel = clCreateKernel(program->program, DEFAULT_KERNEL_NAME,
 		&ret);
 	ft_clerror(program->clp.ret);
@@ -79,13 +111,14 @@ int		init_renderer(t_cl_program *program, t_scene *scene)
 ** @param cl_program
 ** @return ** int
 */
-int		init(t_window *window, t_cl_program *cl_program,
-						t_scene *scene, char *file)
+int		init_rt(t_rt *rt, char *scene_file)
 {
-	read_data(scene, file);
-	init_window(window);
-	cl_program->work_size = DEFAULT_WORK_SIZE;
-	cl_program->work_group_size = WORK_GROUP_SIZE;
-	init_renderer(cl_program, scene);
+	read_data(&rt->scene, scene_file);
+	init_window(&rt->window);
+	rt->program.work_size = DEFAULT_WORK_SIZE;
+	rt->program.work_group_size = WORK_GROUP_SIZE;
+	init_options(&rt->options);
+	init_sampler(&rt->sampler);
+	init_kernel(&rt->program, &rt->scene, &rt->sampler);
 	return 0;
 }

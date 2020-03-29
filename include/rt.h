@@ -23,23 +23,24 @@
 # include "SDL2/SDL.h"
 # else
 # include "SDL.h"
+# include "assert.h"
 # endif
 
 # include "libft.h"
 # include "world.h"
+# include "bool.h"
 
 # ifdef _WIN64
-#  define DEFAULT_KERNEL_FILE "ray_tracer.cl"
+#  define DEFAULT_KERNEL_FILE "main_kernel.cl"
 # else
-#  define DEFAULT_KERNEL_FILE "ray_tracer.cl"
+#  define DEFAULT_KERNEL_FILE "main_kernel.cl"
 # endif
 
-# define DEFAULT_KERNEL_NAME "ray_tracer"
+# define DEFAULT_KERNEL_NAME "main" //NOTE: нельзя сделать кернел с именем 'main'\
+											на встроенной видеокарте intel
 
 # define DEFAULT_KERNEL_INCLUDE "-I ./include -I ./src/cl"
 # define DEFAULT_WORK_SIZE DEFAULT_WIDTH * DEFAULT_HEIGHT
-# define DEFAULT_WIDTH 1200
-# define DEFAULT_HEIGHT 720
 
 # ifdef _WIN64
 #	define DEFAULT_KERNEL_DIR "./src/cl/"
@@ -47,14 +48,13 @@
 #	define DEFAULT_KERNEL_DIR "./src/cl/"
 # endif
 
-
-typedef int	t_bool;
-# ifndef TRUE
-#  define TRUE 1
-# endif
-# ifndef FALSE
-#  define FALSE 0
-# endif
+typedef struct	s_sampler
+{
+	t_sampler_info	info;
+	cl_float3		*hemisphere_samples;
+	cl_float2		*samples;
+	cl_float2		*disk_samples;
+}			t_sampler;
 
 /**
 ** @brief
@@ -71,6 +71,10 @@ typedef struct			s_clp
 	cl_command_queue	queue;
 }						t_clp;
 
+/**
+** @brief
+** to manipulate sdl windos
+*/
 typedef struct			s_window
 {
 	SDL_Window			*ptr;
@@ -81,15 +85,21 @@ typedef struct			s_window
 	int					height;
 }						t_window;
 
+/**
+** @brief
+** all information needed to start our kernel
+*/
 typedef struct s_cl_program	t_cl_program;
 struct					s_cl_program
 {
 	t_clp				clp;
 	cl_program			program;
 	cl_kernel			kernel;
-	cl_mem				objects;
 	cl_mem				output_image;
+	cl_mem				objects;
 	cl_mem				triangles;
+	cl_mem				lights;
+	cl_mem				samples;
 	size_t				work_size;
 	size_t				work_group_size;
 };
@@ -98,17 +108,32 @@ struct					s_cl_program
 #define NUM_OF_TYPES 6
 #define TRIANGLE "triangle"
 
+/**
+** @brief
+** struct containing information about scene: camera, objects, triangles and light sources
+*/
 typedef struct s_scene	t_scene;
 struct					s_scene
 {
 	t_obj				*objects;
 	t_triangle			*triangles;
-//	t_box				*boxes; //for test
+	t_light				ambient_light;
+	t_light				*lights;
 	t_camera			camera;
 	int					nobjects;
+	int					nlights;
 	int					ntriangles;
-	char				*obj_name[NUM_OF_TYPES];
+	char				*obj_name[NUM_OF_TYPES]; //????
 };
+
+typedef struct	s_rt
+{
+	t_cl_program		program;
+	t_window			window;
+	t_scene				scene;
+	t_sampler			sampler;
+	t_render_options	options;
+}				t_rt;
 
 /**			functions for scene initialization			*/
 cl_float4	get_vector(int *f, int *l, char *line);
@@ -119,15 +144,21 @@ void		init_object(char *line, t_scene *scene, int type);
 void		init_triangle(char *line, t_scene *scene);
 char		*find_file_name(char *str);
 int			fd_return(char *file_name);
-void		read_data(t_scene *scene, char *name);
+void read_file(t_scene *scene, char *scene_file);
 
-void		ft_clerror(cl_int ret);
+	// cl_program	create_program(cl_context context);
+	int init_window(t_window *window);
+int 		init_rt(t_rt *rt, const char *scene_file);
 cl_program	create_program(cl_context context);
-int			init_window(t_window *window);
-int 		init(t_window *window, t_cl_program
-				*cl_program, t_scene *scene, char *file);
 
-int			catch_event();
+int			catch_event(t_rt *rt);
+
 void		cl_error(t_cl_program *program, t_clp *clp, int code);
+
+void		init_sampler(t_sampler *sampler);
+
+cl_float2	*generate_samples(t_sampler_info options);
+
+float		rand_float();
 
 #endif

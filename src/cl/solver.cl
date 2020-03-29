@@ -221,12 +221,3 @@ int SolveQuartic(double c[5], double s[4])
 
 	return num;
 }
-
-void	swap(float *a, float *b)
-{
-	float tmp;
-
-	tmp = *a;
-	*a = *b;
-	*b = tmp;
-}

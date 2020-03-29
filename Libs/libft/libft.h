@@ -3,17 +3,21 @@
 /*                                                        :::      ::::::::   */
 /*   libft.h                                            :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: mfalkrea <marvin@42.fr>                    +#+  +:+       +#+        */
+/*   By: dmelessa <dmelessa@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2019/09/06 12:04:31 by mfalkrea          #+#    #+#             */
-/*   Updated: 2019/11/05 19:10:07 by mfalkrea         ###   ########.fr       */
+/*   Updated: 2020/03/29 21:39:56 by dmelessa         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #ifndef LIBFT_H
 # define LIBFT_H
 
-# include <unistd.h>
+# ifndef _WIN64
+#  include <unistd.h>
+# else
+#  include <io.h>
+# endif
 # include <string.h>
 # include <stdlib.h>
 # include "get_next_line.h"

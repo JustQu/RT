@@ -37,38 +37,47 @@ char		*get_source_buf(char *file_name)
 	return (source);
 }
 
-void	create_source(char **source_buf, int num)
+static const char const *files[] = {
+	"cl_rt.h",
+	"utils.cl",
+	"solver.cl",
+	"random.cl",
+	"color.cl",
+	"sampler.cl",
+	"camera.cl",
+	"intersection.cl",
+	"normal.cl",
+	"light.cl",
+	"ray_tracer.cl",
+	"path_tracer.cl",
+	"main_kernel.cl",
+	NULL};
+static const int num_files = sizeof(files) / sizeof(char *);
+
+void create_source(char **source_buf)
 {
-	char	*dir;
-	char	*file_names[num];
-	int		i;
+	char *dir;
+	int i;
 
 	i = 0;
 	dir = DEFAULT_KERNEL_DIR;
-	file_names[0] = "solver.cl";
-	file_names[1] = "object_intersection.cl";
-	file_names[2] = "get_random.cl";
-	file_names[3] = "get_point_color.cl";
-	file_names[4] = DEFAULT_KERNEL_FILE;
-	while (i < num)
+	while (files[i])
 	{
-		source_buf[i] = get_source_buf(ft_strjoin(dir, file_names[i]));
+		source_buf[i] = get_source_buf(ft_strjoin(dir, files[i]));
 		i++;
 	}
 }
 
-cl_program	create_program(cl_context context)
+cl_program create_program(cl_context context)
 {
-	cl_program	program;
-	char		**source_buf;
-	int			ret;
-	int			NUM_FILES;
+	cl_program program;
+	char **source_buf;
+	int ret;
 
-	NUM_FILES = 5;
-	source_buf = (char**)malloc(sizeof(char*) * NUM_FILES);
-	create_source(source_buf, NUM_FILES);
-	program = clCreateProgramWithSource(context, NUM_FILES,
-			(const char**)source_buf, NULL, &ret);
+	source_buf = (char **)malloc(sizeof(char *) * num_files);
+	create_source(source_buf);
+	program = clCreateProgramWithSource(context, num_files - 1,
+										(const char **)source_buf, NULL, &ret);
 	ft_clerror(ret);
 	free(source_buf);
 	return (program);

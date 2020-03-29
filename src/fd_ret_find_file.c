@@ -1,6 +1,6 @@
 #include "rt.h"
 
-void	unable_to_read_file(char *file_name)
+void unable_to_read_file(char *file_name)
 {
 	ft_putstr_fd("unable to read file: \'./", 2);
 	ft_putstr_fd(file_name, 2);
@@ -8,9 +8,9 @@ void	unable_to_read_file(char *file_name)
 	exit(1);
 }
 
-int		fd_return(char *file_name)
+int fd_return(char *file_name)
 {
-	int		fd;
+	int fd;
 
 	if ((fd = open(file_name, O_RDONLY)) < 0)
 	{
@@ -22,12 +22,12 @@ int		fd_return(char *file_name)
 	return (fd);
 }
 
-char	*find_file_name(char *str)
+char *find_file_name(char *str)
 {
-	char	*name;
-	int		first;
-	int		last;
-	int		i;
+	char *name;
+	int first;
+	int last;
+	int i;
 
 	i = 0;
 	first = 0;

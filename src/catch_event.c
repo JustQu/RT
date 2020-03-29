@@ -1,6 +1,18 @@
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   catch_event.c                                      :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: dmelessa <dmelessa@student.42.fr>          +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2020/03/15 23:21:28 by dmelessa          #+#    #+#             */
+/*   Updated: 2020/03/18 15:36:04 by dmelessa         ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
 #include "rt.h"
 
-int catch_event()
+int catch_event(t_rt *rt)
 {
 	SDL_Event event;
 
@@ -36,7 +48,11 @@ int catch_event()
 		if (event.type == SDL_KEYDOWN)
 		{
 			if (event.key.keysym.sym == SDLK_ESCAPE)
-				exit(0);
+				return 1;
+			else if (event.key.keysym.sym == SDLK_p)
+			{
+				rt->options.shadows = !rt->options.shadows;
+			}
 		}
 		if (event.type == SDL_KEYUP)
 		{
@@ -50,6 +66,7 @@ int catch_event()
 		}
 		//check input
 		//switch kernel here?
+		return -1;
 	}
 	return 0;
 }
