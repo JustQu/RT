@@ -88,14 +88,14 @@ void init_triangle(char *line, t_scene *scene)
 
 	obj = &scene->triangles[scene->ntriangles];
 
-	// find_parentheses(line, "vertex1", &first, &last);
-	// obj->vertex1 = get_vector(&first, &last, line);
+	find_parentheses(line, "vertex1", &first, &last);
+	obj->vertex1 = get_vector(&first, &last, line);
 
-	// find_parentheses(line, "vertex2", &first, &last);
-	// obj->vertex2 = get_vector(&first, &last, line);
+	find_parentheses(line, "vertex2", &first, &last);
+	obj->vertex2 = get_vector(&first, &last, line);
 
-	// find_parentheses(line, "vertex3", &first, &last);
-	// obj->vertex3 = get_vector(&first, &last, line);
+	find_parentheses(line, "vertex3", &first, &last);
+	obj->vertex3 = get_vector(&first, &last, line);
 
 	// if (find_parentheses(line, "color", &first, &last))
 	// 	obj->material.color = get_vector(&first, &last, line);

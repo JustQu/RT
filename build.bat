@@ -3,7 +3,7 @@ rem build rt on windows using nvidia opencl lib
 
 mkdir .\build
 pushd .\build
-cl ..\src\main.c ..\src\*.c^
+cl -FC -Zi ..\src\main.c ..\src\*.c^
 					-I ../include ^
 					-I ../Libs/libft/includes ^
 					-I ../Libs/libft ^

@@ -29,6 +29,7 @@
 # include "libft.h"
 # include "world.h"
 # include "bool.h"
+# include "sampler_manager.h"
 
 # ifdef _WIN64
 #  define DEFAULT_KERNEL_FILE "main_kernel.cl"
@@ -48,13 +49,8 @@
 #	define DEFAULT_KERNEL_DIR "./src/cl/"
 # endif
 
-typedef struct	s_sampler
-{
-	t_sampler_info	info;
-	cl_float3		*hemisphere_samples;
-	cl_float2		*samples;
-	cl_float2		*disk_samples;
-}			t_sampler;
+#define SUCCESS 0
+#define ERROR -1
 
 /**
 ** @brief
@@ -99,7 +95,10 @@ struct					s_cl_program
 	cl_mem				objects;
 	cl_mem				triangles;
 	cl_mem				lights;
+	cl_mem				samplers;
 	cl_mem				samples;
+	cl_mem				disk_samples;
+	cl_mem				hemisphere_samples;
 	size_t				work_size;
 	size_t				work_group_size;
 };
@@ -131,7 +130,7 @@ typedef struct	s_rt
 	t_cl_program		program;
 	t_window			window;
 	t_scene				scene;
-	t_sampler			sampler;
+	t_sampler_manager	sampler_manager;
 	t_render_options	options;
 }				t_rt;
 
@@ -144,21 +143,27 @@ void		init_object(char *line, t_scene *scene, int type);
 void		init_triangle(char *line, t_scene *scene);
 char		*find_file_name(char *str);
 int			fd_return(char *file_name);
-void read_file(t_scene *scene, char *scene_file);
+void		read_file(t_scene *scene, char *scene_file);
 
-	// cl_program	create_program(cl_context context);
-	int init_window(t_window *window);
-int 		init_rt(t_rt *rt, const char *scene_file);
+/* program initialization */
+int			init_window(t_window *window);
+int			init_rt(t_rt *rt, const char *scene_file);
+int			init_sampler_manager(t_sampler_manager *sampler_manager);
 cl_program	create_program(cl_context context);
 
+void		read_data(t_scene *scene, t_sampler_manager *sampler_manager, char *scene_file);
+
+	/* events */
 int			catch_event(t_rt *rt);
 
+/* errors */
 void		cl_error(t_cl_program *program, t_clp *clp, int code);
+void		ft_clerror(cl_int ret);
 
-void		init_sampler(t_sampler *sampler);
-
-cl_float2	*generate_samples(t_sampler_info options);
-
+	/* utils */
 float		rand_float();
+int			rand_int();
+void		swap_int(int *a, int *b);
+void		swap_float2(cl_float2 *a, cl_float2 *b);
 
 #endif

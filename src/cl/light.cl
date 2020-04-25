@@ -1,8 +1,7 @@
 // #include "world.h"
 // #include "cl_rt.h"
 
-t_color
-lambertian_f(float kd, t_color color)
+t_color	lambertian_f(float kd, t_color color)
 {
 	return (float_color_multi(kd * (float)M_1_PI, color));
 }

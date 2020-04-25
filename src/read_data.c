@@ -7,10 +7,11 @@ static const t_camera default_camera = {
 		.pixel_size = 1.0f,
 		.width = DEFAULT_WIDTH,
 		.height = DEFAULT_HEIGHT},
-	.origin = {.x = 0.0f, .y = 1.0f, .z = -3.0f, .w = 0.0f},
+	.type = perspective,
+	.origin = {.x = 0.0f, .y = 1.0f, .z = 0.0f, .w = 0.0f},
 	.direction = {.x = 0.0f, .y = 0.0f, .z = 1.0f, .w = 0.0f},
 	.up = {.x = 0.0f, .y = 1.0f, .z = 0.0f, .w = 0.0f},
-	.d = 1.0f,
+	.d = 500.0f,
 	.zoom = 1.0f,
 
 	.ratio = (float)DEFAULT_WIDTH / (float)DEFAULT_HEIGHT,
@@ -18,6 +19,24 @@ static const t_camera default_camera = {
 	.inv_h = 1.0f / DEFAULT_HEIGHT,
 	.angle = 1.7320508757,
 	.fov = 120};
+
+static const t_camera default_thin_lens_camera = {
+	.viewplane = {
+		.pixel_size = 1.0f,
+		.width = DEFAULT_WIDTH,
+		.height = DEFAULT_HEIGHT,
+	},
+	.type = thin_lens,
+	.origin = {.x = 0.0f, .y = 1.0f, .z = 0.0f, .w = 0.0f},
+	.direction = {.x = 0.0f, .y = 0.0f, .z = 1.0f, .w = 0.0f},
+	.up = {.x = 0.0f, .y = 1.0f, .z = 0.0f, .w = 0.0f},
+	.d = 1.0f,
+	.zoom = 1.0f,
+	.ratio = (float)DEFAULT_WIDTH / DEFAULT_HEIGHT,
+
+	.lens_radius = 1.0f,
+	.f = 1.0f
+};
 
 static const t_material default_matte_material = {
 	.type = matte,
@@ -118,7 +137,7 @@ static const t_triangle default_triangle = {
 	.vertex1 = {
 		.x = -3.0f,
 		.y = 1.0f,
-		.z = 5.0f,
+		.z = -5.0f,
 		.w = 0.0f},
 	.vertex2 = {.x = -1.0f, .y = 1.0f, .z = 5.0f, .w = 0.0f},
 	.vertex3 = {.x = -2.0f, .y = 3.0f, .z = 5.0f, .w = 0.0f},
@@ -246,9 +265,13 @@ void	read_file(t_scene *scene, char *scene_file)
 	close(fd);
 }
 
-void	init_default_scene(t_scene *scene)
+void	init_default_scene(t_scene *scene, t_sampler_manager *sampler_manager)
 {
-	scene->camera = default_camera;
+	// scene->camera = default_camera;
+
+	scene->camera = default_thin_lens_camera;
+
+	scene->camera.sampler_id = new_sampler(sampler_manager, pure_random, 64, 83);
 	compute_uvw(&scene->camera);
 
 	scene->nobjects = 10;
@@ -259,7 +282,7 @@ void	init_default_scene(t_scene *scene)
 	scene->lights = (t_light *)malloc(sizeof(t_light) * (scene->nlights + 10));
 
 	//default_scene
-#if 1
+#if 0
 	scene->objects[0] = default_plane;
 
 	scene->objects[0] = default_sphere;
@@ -399,10 +422,15 @@ void	init_default_scene(t_scene *scene)
 	//
 
 #else
+	scene->camera.viewplane.pixel_size = 0.05;
+	scene->camera.d = 40;
+	scene->camera.f = 40;
+	scene->camera.lens_radius = 2.0f;
+
 	scene->objects[0] = default_plane;
 	scene->objects[0].origin.x = 0.0f;
 	scene->objects[0].origin.y = 0.0f;
-	scene->objects[0].origin.z = -100.0f;
+	scene->objects[0].origin.z = 0.0f;
 	scene->objects[0].direction.x = 0.0f;
 	scene->objects[0].direction.y = 0.0f;
 	scene->objects[0].direction.z = 1.0f;
@@ -415,23 +443,34 @@ void	init_default_scene(t_scene *scene)
 
 	scene->objects[1] = default_sphere;
 	scene->objects[1].origin.x = 0.0f;
-	scene->objects[1].origin.y = 0.0f;
-	scene->objects[1].origin.z = 0.0f;
+	scene->objects[1].origin.y = -10.0f;
+	scene->objects[1].origin.z = 50.0f;
 	scene->objects[1].r = 10;
 	scene->objects[1].r2 = 100;
 
 	scene->objects[2] = default_cylinder;
-	scene->objects[2].origin.x = 70.0f;
-	scene->objects[2].origin.y = 0.0f;
-	scene->objects[2].origin.z = 0.0f;
-	scene->objects[2].maxm = 150.0f;
-	scene->objects[2].r = 20.0f;
-	scene->objects[2].r2 = 400.0f;
+	scene->objects[2].origin.x = 40.0f;
+	scene->objects[2].origin.y = -10.0f;
+	scene->objects[2].origin.z = 70.0f;
+	scene->objects[2].maxm = 15.0f;
+	scene->objects[2].r = 10.0f;
+	scene->objects[2].r2 = 100.0f;
+	scene->objects[2].material.color.value = 0x0026E600;
 
 	scene->objects[3] = default_plane;
-	scene->objects[3].origin.y = -360;
-	scene->objects[3].direction.y = 0.8f;
-	scene->objects[3].direction.z = sqrtf(1.0f - 0.8f * 0.8f);
+	scene->objects[3].origin.y = -100;
+	scene->objects[3].direction.y = 0.99f;
+	scene->objects[3].direction.z = -sqrtf(1.0f - 0.99f * 0.99f);
+
+	scene->objects[4] = default_sphere;
+	scene->objects[4].r = 10;
+	scene->objects[4].r2 = 100;
+	scene->objects[4].origin.x = -25.0f;
+	scene->objects[4].origin.y = -10.0f;
+	scene->objects[4].origin.z = 40.0f;
+	scene->objects[4].material.color.value = 0x00B00B69;
+
+	scene->nobjects = 5;
 
 	scene->lights[0] = default_point_light;
 	scene->lights[0].direction.x = -1.0f;
@@ -439,16 +478,17 @@ void	init_default_scene(t_scene *scene)
 	scene->lights[0].direction.z = 0.0f;
 	scene->lights[0].origin.x = 0.0f;
 	scene->lights[0].origin.y = 500.0f;
-	scene->lights[0].origin.z = 0.0f;
-	scene->lights[0].ls = 4.0f;
-	// scene->lights[0].origin.x = -INFINITY;
-	// scene->lights[0].origin.y = -INFINITY;
-	// scene->lights[0].origin.z = -INFINITY;
-	// scene->lights[0].origin.w = -INFINITY;
+	scene->lights[0].origin.z = 50.0f;
+	scene->lights[0].ls = 2.0f;
 
 	scene->lights[1] = default_point_light;
 	scene->lights[1].origin = default_camera.origin;
-	scene->lights[1].origin.z = -100.0f;
+	scene->lights[1].origin.z = 50.0f;
+	scene->lights[1].origin.y = -20.0f;
+	scene->lights[1].origin.x = 40.0f;
+	scene->lights[1].ls = 0.5f;
+
+	scene->nlights = 2;
 
 	scene->triangles[0] = default_triangle;
 
@@ -469,7 +509,7 @@ void	init_default_scene(t_scene *scene)
 ** @param scene, file
 ** @return ** void
 */
-void	read_data(t_scene *scene, char *scene_file)
+void	read_data(t_scene *scene, t_sampler_manager *sampler_manager, char *scene_file)
 {
 	if (scene_file != NULL)
 	{
@@ -482,5 +522,5 @@ void	read_data(t_scene *scene, char *scene_file)
 		read_file(scene, scene_file);
 	}
 	else
-		init_default_scene(scene);
+		init_default_scene(scene, sampler_manager);
 }

@@ -1,3 +1,15 @@
+int		random(uint2 *seed)
+{
+	enum { A=4294883355U };
+	uint x = (*seed).x, c = (*seed).y;  // Unpack the state
+	uint res = x^c;                     // Calculate the result
+	uint hi = mul_hi(x, A);              // Step the RNG
+	x = x * A + c;
+	c = hi + (x < c);
+	*seed = (uint2)(x, c);               // Pack the state back up
+	return res;                       // Return the next result
+}
+
 float get_random(unsigned int *seed0, unsigned int *seed1) {
 
 	/* hash the seeds using bitwise AND operations and bitshifts */

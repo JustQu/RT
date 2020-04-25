@@ -6,7 +6,7 @@
 /*   By: dmelessa <dmelessa@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2020/02/16 18:10:45 by dmelessa          #+#    #+#             */
-/*   Updated: 2020/03/29 21:36:02 by dmelessa         ###   ########.fr       */
+/*   Updated: 2020/04/12 14:37:14 by dmelessa         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -110,24 +110,23 @@ void cl_error(t_cl_program *program, t_clp *clp, int code)
 {
 	if (code != CL_SUCCESS)
 	{
+		printf("%d:", code);
 		// Determine the size of the log
-		printf("1\n");
 		size_t log_size;
 		clGetProgramBuildInfo(program->program, clp->de_id, CL_PROGRAM_BUILD_LOG, 0,
 							  NULL, &log_size);
-		printf("2\n");
 
 		// Allocate memory for the log
-		char *log = (char *)malloc(log_size);
+		char *log;
+		log = (char *)malloc(log_size);
 		if (!log)
 		{
 			ft_putendl("malloc error");
-			exit (0);
+			// exit (0);
 		}
 		// Get the log
 		clGetProgramBuildInfo(program->program, clp->de_id, CL_PROGRAM_BUILD_LOG,
 							  log_size, log, NULL);
-		printf("3\n");
 
 		// Print the log
 		printf("%s\n", log);

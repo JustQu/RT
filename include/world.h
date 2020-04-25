@@ -6,17 +6,23 @@
 /*   By: dmelessa <dmelessa@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2020/02/10 19:36:22 by dmelessa          #+#    #+#             */
-/*   Updated: 2020/03/29 21:49:52 by dmelessa         ###   ########.fr       */
+/*   Updated: 2020/04/25 11:56:08 by dmelessa         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #ifndef WORLD_H
 # define WORLD_H
 
-# define DEFAULT_WIDTH 896
-# define DEFAULT_HEIGHT 896
+# define DEFAULT_WIDTH 1280
+# define DEFAULT_HEIGHT 800
 # define DEFAULT_FOV 90
 # define WORK_GROUP_SIZE 128
+
+/*
+** we should specify the same number of samples for everything
+** to avoid artifacts
+*/
+#define NUM_SAMPLES 25
 
 //# define BOUNCES 5
 //# define SAMPLES 100
@@ -43,7 +49,27 @@
 #  define cl_bool bool
 # endif
 
-typedef union s_color t_color;
+typedef union s_color			t_color;
+
+typedef enum e_sampler_type		t_sampler_type;
+typedef struct s_sampler		t_sampler;
+
+typedef struct s_render_options	t_render_options;
+
+typedef enum e_material_type	t_material_type;
+typedef struct s_material		t_material;
+
+typedef enum e_types			t_type;
+typedef enum e_light_types		t_light_type;
+typedef struct s_obj			t_obj;
+typedef struct s_light			t_light;
+typedef struct s_triangle		t_triangle;
+typedef struct s_bbox			t_bbox;
+
+typedef enum e_camera_type		t_camera_type;
+typedef struct s_camera			t_camera;
+typedef struct s_viewplane		t_viewplane;
+
 union s_color {
 	cl_int value;
 	struct
@@ -55,39 +81,60 @@ union s_color {
 	};
 };
 
-typedef enum e_sampler_type
+enum	e_sampler_type
 {
-	none,
-	regular_grid,
-	jitter,
-	rand_jitter,
-}			t_sampler_type;
+		none, //maybe we can replace it with regular grid where is onlu one sample per pixel
+		regular_grid,
+		jitter,
+		rand_jitter,
+		pure_random,
+		nrooks
+};
 
-typedef struct	s_sampler_info
+/*
+** Sample types flags
+*/
+
+#define DEFAULT_SAMPLES		1 << 0
+#define DISK_SAMPLES		1 << 1
+#define HEMISPHERE_SAMPLES	1 << 2
+
+# ifdef _WIN64
+__declspec(align(8))
+# endif
+struct				s_sampler
 {
 	t_sampler_type	type;
 	cl_int			num_samples; /* the number of sample points in a pattern */
 	cl_int			num_sets;	/* the number of sample sets(patterns) stores */
 	cl_int			count;		/* the currenct numer of sample points used */
 	cl_int			jump;		// random index jump
-}				t_sampler_info;
+	cl_int			samples_type; // default / disk / hemisphere
 
+	cl_int			shuffled_indicies[NUM_SAMPLES];
+
+	cl_int			offset;
+	cl_int			disk_samples_offset;
+	cl_int			hemisphere_samples_offset;
+};
+
+# ifdef _WIN64
+__declspec(align(8))
+# endif
 struct s_render_options
 {
 	cl_int			depth;
 	cl_int			shadows;
 	t_color			backgorund_color;
+	cl_int			sampler_id;
 };
-typedef struct s_render_options	t_render_options;
 
 enum e_material_type
 {
 	matte, //kd, ka
 	phong
 };
-typedef enum e_material_type t_material_type;
 
-typedef struct s_material	t_material;
 # ifdef _WIN64
 __declspec(align(8))
 # endif
@@ -112,7 +159,6 @@ enum	e_types
 	torus,
 	triangle
 };
-typedef enum e_types	t_type;
 
 //NOTE: some types will be removed from that list
 enum	e_light_types
@@ -124,8 +170,10 @@ enum	e_light_types
 	area,
 	enviromental
 };
-typedef enum e_light_types	t_light_type;
 
+# ifdef _WIN64
+__declspec(align(8))
+# endif
 struct	s_light
 {
 	cl_float4		origin;
@@ -134,13 +182,11 @@ struct	s_light
 	cl_float		ls; //radiance scaling factor [0, inf)
 	t_light_type	type;
 };
-typedef struct s_light t_light;
 
 /**
 ** @brief
 ** axis-aligned bounding box for object
 */
-typedef struct s_bbox	t_bbox;
 #ifdef _WIN64
 __declspec(align(8))
 #endif
@@ -150,7 +196,6 @@ struct					s_bbox
 	cl_float4			max;
 };
 
-typedef struct s_obj	t_obj;
 # ifdef _WIN64
 __declspec(align(8))
 # endif
@@ -169,7 +214,6 @@ struct					s_obj
 	cl_bool				shadows;
 };
 
-typedef struct s_triangle	t_triangle;
 # ifdef _WIN64
 __declspec(align(8))
 # endif
@@ -184,28 +228,30 @@ struct	s_triangle
 	cl_float4	normal;
 };
 
-typedef enum	e_camera_type
+enum	e_camera_type
 {
-	orthographic,
-	perspective,
-	thin_lens,
-	fisheye,
-	spherical,
-	stereo
-}				t_camera_type;
+		orthographic,
+		perspective,
+		thin_lens,
+		fisheye,
+		spherical,
+		stereo
+};
 
-typedef struct	s_viewplane
+# ifdef _WIN64
+__declspec(align(8))
+# endif
+struct	s_viewplane
 {
 	cl_float	pixel_size;
 	cl_int		width;
 	cl_int		height;
-}				t_viewplane;
+};
 
 /**
 ** @TODO: make transformation matrix
-** TODO: singularity §9.9
+** TODO: singularity ยง9.9
 */
-typedef struct s_camera	t_camera;
 # ifdef _WIN64
 __declspec(align(8))
 # endif
@@ -221,10 +267,13 @@ struct s_camera
 	cl_float			d; //the view-plane distance
 	cl_float			zoom; //zoom factor
 	cl_float			exposure_time; //using somewhere later
+	t_camera_type		type;
+	cl_int				sampler_id; //thin_camera
 
 	//thin-lens camera
 	cl_float			lens_radius; //lens radius
 	cl_float			f; //focal plane distance
+
 //note: prob not needed
 	cl_float			ratio;
 	cl_float			inv_w;

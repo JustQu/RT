@@ -6,7 +6,7 @@
 /*   By: dmelessa <dmelessa@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2020/01/28 15:18:45 by dmelessa          #+#    #+#             */
-/*   Updated: 2020/03/29 21:36:23 by dmelessa         ###   ########.fr       */
+/*   Updated: 2020/04/25 22:25:04 by dmelessa         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -54,37 +54,44 @@ void	display_image(t_window *w)
 	SDL_RenderPresent(w->renderer);
 }
 
+void	write_buffers(t_rt rt)
+{
+	clEnqueueWriteBuffer(rt.program.clp.queue, rt.program.samplers,
+		CL_FALSE, 0, sizeof(t_sampler) * rt.sampler_manager.count,
+		rt.sampler_manager.samplers, 0, 0, 0);
+}
+
+void	set_kernel_args(t_rt rt)
+{
+	cl_kernel	k;
+
+	k = rt.program.kernel;
+	// write_buffers(rt);
+	clSetKernelArg(k, 0, sizeof(cl_mem), &rt.program.output_image);
+	clSetKernelArg(k, 1, sizeof(cl_mem), &rt.program.objects);
+	clSetKernelArg(k, 2, sizeof(cl_int), &rt.scene.nobjects);
+	clSetKernelArg(k, 3, sizeof(cl_mem), &rt.program.triangles);
+	clSetKernelArg(k, 4, sizeof(cl_int), &rt.scene.ntriangles);
+	clSetKernelArg(k, 5, sizeof(cl_mem), &rt.program.lights);
+	clSetKernelArg(k, 6, sizeof(cl_int), &rt.scene.nlights);
+	clSetKernelArg(k, 7, sizeof(t_camera), &rt.scene.camera);
+	clSetKernelArg(k, 8, sizeof(t_light), &rt.scene.ambient_light);
+	clSetKernelArg(k, 9, sizeof(t_render_options), &rt.options);
+	clSetKernelArg(k, 10, sizeof(cl_mem), &rt.program.samplers);
+	clSetKernelArg(k, 11, sizeof(cl_mem), &rt.program.samples);
+	clSetKernelArg(k, 12, sizeof(cl_mem), &rt.program.disk_samples);
+	clSetKernelArg(k, 13, sizeof(cl_mem), &rt.program.hemisphere_samples);
+}
+
 void	start_render_kernel(t_rt rt)
 {
 	int			err_code;
 
 	err_code = 0;
-	clSetKernelArg(rt.program.kernel, 0, sizeof(cl_mem),
-													&rt.program.output_image);
-	clSetKernelArg(rt.program.kernel, 1, sizeof(cl_mem),
-													&rt.program.objects);
-	clSetKernelArg(rt.program.kernel, 2, sizeof(cl_int),
-													&rt.scene.nobjects);
-	clSetKernelArg(rt.program.kernel, 3, sizeof(cl_mem),
-													&rt.program.triangles);
-	clSetKernelArg(rt.program.kernel, 4, sizeof(cl_int),
-													&rt.scene.ntriangles);
-	clSetKernelArg(rt.program.kernel, 5, sizeof(cl_mem),
-													&rt.program.lights);
-	clSetKernelArg(rt.program.kernel, 6, sizeof(cl_int),
-													&rt.scene.nlights);
-	clSetKernelArg(rt.program.kernel, 7, sizeof(t_camera),
-													&rt.scene.camera);
-	clSetKernelArg(rt.program.kernel, 8, sizeof(t_light),
-													&rt.scene.ambient_light);
-	clSetKernelArg(rt.program.kernel, 9, sizeof(t_render_options),
-													&rt.options);
-	clSetKernelArg(rt.program.kernel, 10, sizeof(t_sampler_info),
-													&rt.sampler.info);
-	clSetKernelArg(rt.program.kernel, 11, sizeof(cl_mem),
-													&rt.program.samples);
+	set_kernel_args(rt);
 	err_code = clEnqueueNDRangeKernel(rt.program.clp.queue, rt.program.kernel,
 		1, NULL, &rt.program.work_size, &rt.program.work_group_size, 0, NULL, NULL);
+	// printf("%d\n", err_code);
 	assert(!err_code);
 	err_code = clEnqueueReadBuffer(rt.program.clp.queue,
 		rt.program.output_image, CL_TRUE, 0, rt.program.work_size *
@@ -93,12 +100,33 @@ void	start_render_kernel(t_rt rt)
 	assert(!err_code);
 }
 
+void cleanup(t_rt rt)
+{
+	clReleaseKernel(rt.program.kernel);
+	clReleaseProgram(rt.program.program);
+	// clReleaseMemObject(rt.program.disk_samples);
+	clReleaseMemObject(rt.program.samplers);
+	// clReleaseMemObject(rt.program.hemisphere_samples);
+	clReleaseMemObject(rt.program.samples);
+	clReleaseMemObject(rt.program.lights);
+	clReleaseMemObject(rt.program.objects);
+	clReleaseMemObject(rt.program.output_image);
+	clReleaseMemObject(rt.program.triangles);
+	clReleaseCommandQueue(rt.program.clp.queue);
+	clReleaseContext(rt.program.clp.context);
+	free(rt.scene.triangles);
+	free(rt.scene.lights);
+	free(rt.scene.objects);
+	free(rt.window.image);
+}
+// #include "windows.h"
+
 int		main(int ac, char **av)
 {
 	t_rt	rt;
 	int		value;
-
-	init_rt(&rt, av[1]);
+	// Sleep(1000);
+	ac == 1 ? init_rt(&rt, NULL) : init_rt(&rt, av[1]);
 	while (1)
 	{
 		value = catch_event(&rt);
@@ -110,6 +138,7 @@ int		main(int ac, char **av)
 			display_image(&rt.window);
 		}
 	}
+	cleanup(rt);
 	exit_program(rt.window);
 	return (0);
 }

@@ -1,18 +1,22 @@
-#include "world.h"
+// #include "world.h"
 
 bool	sphere_intersection(t_ray ray, t_obj sphere, float *tr)
 {
 #if 1 // geometric solution
+	float4	L;
+	float	tca;
+	float	thc;
+	float	t;
 
-	float4 L = sphere.origin - ray.origin;
-	float tca = dot(L, ray.direction);
+	L = sphere.origin - ray.origin;
+	tca = dot(L, ray.direction);
 	if (tca < 0.0f)
 		return false;
-	float d2 = dot(L, L) - tca * tca;
-	if (d2 > sphere.r2) //r^2 should be precomputed
+	t = dot(L, L) - tca * tca;
+	if (t > sphere.r2) //r^2 should be precomputed
 		return false;
-	float thc = sqrt(sphere.r2 - d2);
-	float t = tca - thc;
+	thc = sqrt(sphere.r2 - t);
+	t = tca - thc;
 	if (t < 0.0f)
 	{
 		t = tca + thc;

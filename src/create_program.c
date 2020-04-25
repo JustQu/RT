@@ -1,8 +1,8 @@
 #include "rt.h"
-#define BUFF_SIZE 32
+#define BUFF_SIZE 128
 
 /**
-** @TODO(dmelessa): rewrite this one
+** @TODO(dmelessa): rewrite this one?
 ** @brief Get the source buf object
 **
 ** @param file_name
@@ -38,32 +38,43 @@ char		*get_source_buf(char *file_name)
 }
 
 static const char const *files[] = {
+	"world.h",
 	"cl_rt.h",
 	"utils.cl",
 	"solver.cl",
 	"random.cl",
 	"color.cl",
 	"sampler.cl",
+	"sampler_manager.cl",
 	"camera.cl",
 	"intersection.cl",
 	"normal.cl",
 	"light.cl",
 	"ray_tracer.cl",
 	"path_tracer.cl",
-	"main_kernel.cl",
-	NULL};
-static const int num_files = sizeof(files) / sizeof(char *);
+	"main_kernel.cl"
+};
+int num_files = sizeof(files) / sizeof(char *);
 
 void create_source(char **source_buf)
 {
 	char *dir;
 	int i;
+	char	*s;
 
 	i = 0;
 	dir = DEFAULT_KERNEL_DIR;
-	while (files[i])
+	while (i < num_files)
 	{
-		source_buf[i] = get_source_buf(ft_strjoin(dir, files[i]));
+		s = ft_strjoin(dir, files[i]);
+		source_buf[i] = get_source_buf(s);
+		free(s);
+		if (source_buf[i] == NULL)
+		{
+			s = ft_strjoin("./include/", files[i]);
+			source_buf[i] = get_source_buf(s);
+			free(s);
+		}
 		i++;
 	}
 }
@@ -76,9 +87,15 @@ cl_program create_program(cl_context context)
 
 	source_buf = (char **)malloc(sizeof(char *) * num_files);
 	create_source(source_buf);
-	program = clCreateProgramWithSource(context, num_files - 1,
+	printf("HERE\n");
+	program = clCreateProgramWithSource(context, num_files,
 										(const char **)source_buf, NULL, &ret);
+	printf("STEP2\n");
+	// p->program = program;
+	// assert(!ret);
+	// cl_error(p, &p->clp, ret);
 	ft_clerror(ret);
-	free(source_buf);
+	// a = ret;
+	free(source_buf);//memory leak!
 	return (program);
 }
