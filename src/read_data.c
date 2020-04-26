@@ -271,7 +271,7 @@ void	init_default_scene(t_scene *scene, t_sampler_manager *sampler_manager)
 
 	scene->camera = default_thin_lens_camera;
 
-	scene->camera.sampler_id = new_sampler(sampler_manager, pure_random, NUM_SAMPLES, DISK_SAMPLES);
+	scene->camera.sampler_id = new_sampler(sampler_manager, rand_jitter, NUM_SAMPLES, DISK_SAMPLES);
 	compute_uvw(&scene->camera);
 
 	scene->nobjects = 10;
@@ -424,8 +424,8 @@ void	init_default_scene(t_scene *scene, t_sampler_manager *sampler_manager)
 #else
 	scene->camera.viewplane.pixel_size = 0.05;
 	scene->camera.d = 40;
-	scene->camera.f = 70;
-	scene->camera.lens_radius = 3.0f;
+	scene->camera.f = 50;
+	scene->camera.lens_radius = 2.0f;
 
 	scene->objects[0] = default_plane;
 	scene->objects[0].origin.x = 0.0f;

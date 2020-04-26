@@ -48,6 +48,7 @@ static const char const *files[] = {
 	"sampler_manager.cl",
 	"camera.cl",
 	"intersection.cl",
+
 	"normal.cl",
 	"light.cl",
 	"ray_tracer.cl",

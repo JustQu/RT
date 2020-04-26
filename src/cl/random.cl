@@ -1,4 +1,4 @@
-int		random(uint2 *seed)
+uint		random(uint2 *seed)
 {
 	enum { A=4294883355U };
 	uint x = (*seed).x, c = (*seed).y;  // Unpack the state

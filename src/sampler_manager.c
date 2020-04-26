@@ -6,7 +6,7 @@
 /*   By: dmelessa <dmelessa@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2020/04/03 19:14:37 by dmelessa          #+#    #+#             */
-/*   Updated: 2020/04/25 23:13:04 by dmelessa         ###   ########.fr       */
+/*   Updated: 2020/04/26 20:39:47 by dmelessa         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -90,6 +90,7 @@ t_sampler	init_sampler(t_sampler_type sampler_type, int num_samples)
 	}
 	return sampler;
 }
+
 #if 0
 int		random_shuffle(void *array, size_t nelems, size_t elem_size)
 {
@@ -121,7 +122,7 @@ void	setup_shuffled_indices(t_sampler *sampler)
 
 	random_shuffle(sampler->shuffled_indices, NUM_SAMPLES, sizeof(*sampler->shuffled_indices));
 }
-#endif 
+#endif
 
 /**
 ** @todo
@@ -139,7 +140,7 @@ int		new_sampler(t_sampler_manager *sampler_manager,
 
 	sampler = init_sampler(sampler_type, num_samples);
 	sampler_manager->count++;
-	number = sampler_manager->samples_size + sampler.num_samples * NUM_SETS;
+	number = sampler_manager->samples_size + sampler.num_samples * sampler.num_sets;
 
 	if (number >= sampler_manager->samples_malloc_size)
 		realloc_sampler_manager(sampler_manager, 2 *number);

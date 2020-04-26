@@ -1,14 +1,12 @@
-
-
 /**
 **@brief
 ** получить цвет пикселя в позиции x,y экрана, используя камеру camera
 ** и объекты сцены
 */
 int		get_pixel_color(int x, int y,
-						const t_scene scene,
-						const t_render_options options,
-						const t_sampler_manager sampler_manager,
+						t_scene scene,
+						t_render_options options,
+						t_sampler_manager sampler_manager,
 						uint2 *seed)
 {
 	t_ray			ray;
@@ -19,6 +17,12 @@ int		get_pixel_color(int x, int y,
 
 	color.value = 0;
 	ao_sampler = get_sampler(sampler_manager, options.sampler_id);
+	// ao_sampler.type = none;
+	if (scene.camera.type == thin_lens)
+	{
+		camera_sampler = get_sampler(sampler_manager, scene.camera.sampler_id);
+		camera_sampler.count = get_global_id(0) * camera_sampler.num_samples;
+	}
 	if (0) //path tracing
 	{
 		ray = cast_camera_ray(scene.camera, x, y, sampler_manager, 0, seed);
@@ -30,27 +34,25 @@ int		get_pixel_color(int x, int y,
 	}
 	else if (ao_sampler.type == none) //без антиалиасинга
 	{
-		ray = cast_camera_ray(scene.camera, x, y, sampler_manager, 0, seed);
+		ray = cast_camera_ray(scene.camera, x, y, sampler_manager, &camera_sampler, seed);
 		color = ray_trace(ray, scene, options);
 	}
 	else //антиалиасинг сгенерированный заранее на цпу
 	{
-		ao_sampler.count = get_global_id(0) * ao_sampler.num_samples * ao_sampler.num_sets;
-		if (scene.camera.type == thin_lens)
-		{
-			camera_sampler = get_sampler(sampler_manager, scene.camera.sampler_id);
-			camera_sampler.count = get_global_id(0) * camera_sampler.num_samples * camera_sampler.num_sets;
-			// camera_sampler.jump = (random(seed) % camera_sampler.num_sets) * camera_sampler.num_samples;
-		}
+		ao_sampler.count = get_global_id(0) * ao_sampler.num_samples;
+		float2	sp = sample_unit_square(&ao_sampler, sampler_manager.samples, seed);
+		float	dx = x + sp.x;
+		float	dy = y + sp.y;
+
 
 		for (int j = 0; j < ao_sampler.num_samples; j++)
 		{
-			float2	sp = sample_unit_square(&ao_sampler, sampler_manager.samples, seed);
-			float	dx = x + sp.x;
-			float	dy = y + sp.y;
+			sp = sample_unit_square(&ao_sampler, sampler_manager.samples, seed);
+			dx = x + sp.x;
+			dy = y + sp.y;
 
 			ray = cast_camera_ray(scene.camera, dx, dy, sampler_manager, &camera_sampler, seed);
-			color = ray_trace(ray, scene,options);
+			color = ray_trace(ray, scene, options);
 
 			/* accumulate color */
 			test.x += color.r;
@@ -119,8 +121,11 @@ __kernel void main(
 	global_id = get_global_id(0);
 	x = global_id % camera.viewplane.width;
 	y = global_id / camera.viewplane.height;
-	seed.x = global_id + 69;
-	seed.y = get_local_id(0) + 420;
+	seed.x = global_id;
+	seed.y = get_local_id(0);
+
+	seed.y = random(&seed);
+
 
 	init_scene(&scene, objects, nobjects, triangles, ntriangles, lights, nlights, camera, ambient_light);
 	init_sampler_manager(&sampler_manager, samplers, samples, disk_samples, hemisphere_samples);

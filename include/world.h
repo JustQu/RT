@@ -6,7 +6,7 @@
 /*   By: dmelessa <dmelessa@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2020/02/10 19:36:22 by dmelessa          #+#    #+#             */
-/*   Updated: 2020/04/26 00:01:45 by dmelessa         ###   ########.fr       */
+/*   Updated: 2020/04/26 21:25:16 by dmelessa         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,7 +16,7 @@
 # define DEFAULT_WIDTH 1280
 # define DEFAULT_HEIGHT 800
 # define DEFAULT_FOV 90
-# define WORK_GROUP_SIZE 128
+# define WORK_GROUP_SIZE 256
 
 //# define BOUNCES 5
 //# define SAMPLES 100
@@ -41,6 +41,7 @@
 #  define cl_char char
 #  define cl_uchar uchar
 #  define cl_bool bool
+#  define cl_uint unsigned int
 # endif
 
 typedef union s_color			t_color;
@@ -101,7 +102,7 @@ struct				s_sampler
 	t_sampler_type	type;
 	cl_int			num_samples; /* the number of sample points in a pattern */
 	cl_int			num_sets;	/* the number of sample sets(patterns) stores */
-	cl_int			count;		/* the currenct numer of sample points used */
+	cl_uint			count;		/* the currenct numer of sample points used */
 	cl_int			jump;		// random index jump
 	cl_int			samples_type; // default / disk / hemisphere
 

@@ -6,7 +6,7 @@
 /*   By: dmelessa <dmelessa@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2020/01/28 15:18:45 by dmelessa          #+#    #+#             */
-/*   Updated: 2020/04/26 14:45:42 by dmelessa         ###   ########.fr       */
+/*   Updated: 2020/04/26 21:23:23 by dmelessa         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -96,7 +96,7 @@ void	start_render_kernel(t_rt rt)
 	// printf("%d\n", err_code);
 	assert(!err_code);
 	err_code = clEnqueueReadBuffer(rt.program.clp.queue,
-		rt.program.output_image, CL_TRUE, 0, rt.program.work_size *
+		rt.program.output_image, CL_FALSE, 0, rt.program.work_size *
 		sizeof(uint32_t), rt.window.image, 0, NULL, NULL);
 	cl_error(&rt.program, &rt.program.clp, err_code);
 	assert(!err_code);
