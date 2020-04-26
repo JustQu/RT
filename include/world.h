@@ -6,7 +6,7 @@
 /*   By: dmelessa <dmelessa@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2020/02/10 19:36:22 by dmelessa          #+#    #+#             */
-/*   Updated: 2020/04/25 11:56:08 by dmelessa         ###   ########.fr       */
+/*   Updated: 2020/04/26 00:01:45 by dmelessa         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -17,12 +17,6 @@
 # define DEFAULT_HEIGHT 800
 # define DEFAULT_FOV 90
 # define WORK_GROUP_SIZE 128
-
-/*
-** we should specify the same number of samples for everything
-** to avoid artifacts
-*/
-#define NUM_SAMPLES 25
 
 //# define BOUNCES 5
 //# define SAMPLES 100
@@ -111,7 +105,7 @@ struct				s_sampler
 	cl_int			jump;		// random index jump
 	cl_int			samples_type; // default / disk / hemisphere
 
-	cl_int			shuffled_indicies[NUM_SAMPLES];
+	// cl_int			shuffled_indices[NUM_SAMPLES * NUM_SETS];
 
 	cl_int			offset;
 	cl_int			disk_samples_offset;

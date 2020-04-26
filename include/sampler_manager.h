@@ -6,7 +6,7 @@
 /*   By: dmelessa <dmelessa@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2020/04/23 15:26:15 by dmelessa          #+#    #+#             */
-/*   Updated: 2020/04/23 15:29:01 by dmelessa         ###   ########.fr       */
+/*   Updated: 2020/04/26 00:28:54 by dmelessa         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -20,6 +20,13 @@
 #   include "CL/cl.h"
 #  endif
 # endif
+
+/*
+** we should specify the same number of samples for everything
+** to avoid artifacts
+*/
+#define NUM_SAMPLES 256
+#define NUM_SETS 83
 
 typedef struct	s_sampler_manager //only on cpu ?
 {

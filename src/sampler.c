@@ -15,8 +15,8 @@ cl_float2	*generate_rand_jitter_samples(t_sampler sampler, cl_float2 *samples)
 		{
 			for (index[2] = 0; index[2] < n; index[2]++)
 			{
-				sp[pepa].x = (index[1] + rand_float()) / n;
-				sp[pepa].y = (index[2] + rand_float()) / n;
+				sp[pepa].x = (index[2] + rand_float()) / n;
+				sp[pepa].y = (index[1] + rand_float()) / n;
 				pepa++;
 			}
 		}
@@ -40,8 +40,8 @@ cl_float2	*generate_regular_samples(t_sampler sampler, cl_float2 *samples)
 		while (++index[1] < n && (index[2] = -1))
 			while (++index[2] < n)
 			{
-				sp[pepa].x = (index[1]) / (float)n;
-				sp[pepa].y = (index[2]) / (float)n;
+				sp[pepa].x = (index[2]) / (float)n;
+				sp[pepa].y = (index[1]) / (float)n;
 				pepa++;
 			}
 	return (sp);
@@ -56,17 +56,15 @@ cl_float2	*generate_pure_random_samples(t_sampler sampler, cl_float2 *samples)
 
 	index[0] = -1;
 	index[1] = -1;
-	index[2] = -1;
 	pepa = 0;
 	sp = samples;
 	while (++index[0] < sampler.num_sets && (index[1] = -1))
-		while (++index[1] < n && (index[2] = -1))
-			while (++index[2] < n)
-			{
-				sp[pepa].x = rand_float();
-				sp[pepa].y = rand_float();
-				pepa++;
-			}
+		while (++index[1] < sampler.num_samples)
+		{
+			sp[pepa].x = rand_float();
+			sp[pepa].y = rand_float();
+			pepa++;
+		}
 	return (sp);
 }
 

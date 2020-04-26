@@ -6,15 +6,13 @@
 /*   By: dmelessa <dmelessa@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2020/04/03 19:14:37 by dmelessa          #+#    #+#             */
-/*   Updated: 2020/04/25 22:24:27 by dmelessa         ###   ########.fr       */
+/*   Updated: 2020/04/25 23:13:04 by dmelessa         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "rt.h"
 
 //TODO: make error system
-
-#define NUM_SETS 83
 
 int		init_sampler_manager(t_sampler_manager *sampler_manager)
 {
@@ -92,7 +90,7 @@ t_sampler	init_sampler(t_sampler_type sampler_type, int num_samples)
 	}
 	return sampler;
 }
-
+#if 0
 int		random_shuffle(void *array, size_t nelems, size_t elem_size)
 {
 	unsigned char	*p_arr;
@@ -119,10 +117,11 @@ int		random_shuffle(void *array, size_t nelems, size_t elem_size)
 void	setup_shuffled_indices(t_sampler *sampler)
 {
 	for (int i = 0; i < NUM_SAMPLES; i++) //fill shuffled_indicies array
-		sampler->shuffled_indicies[i] = i;
+		sampler->shuffled_indices[i] = i;
 
-	random_shuffle(sampler->shuffled_indicies, NUM_SAMPLES, sizeof(*sampler->shuffled_indicies));
+	random_shuffle(sampler->shuffled_indices, NUM_SAMPLES, sizeof(*sampler->shuffled_indices));
 }
+#endif 
 
 /**
 ** @todo
@@ -153,7 +152,7 @@ int		new_sampler(t_sampler_manager *sampler_manager,
 					sampler_manager->hemisphere_samples + sampler_manager->samples_size);
 
 	sampler_manager->samples_size += sampler.num_sets * sampler.num_samples;
-	setup_shuffled_indices(&sampler);
+	// setup_shuffled_indices(&sampler);
 	sampler_manager->samplers[sampler_manager->count - 1] = sampler;
 	return (sampler_manager->count - 1);
 }

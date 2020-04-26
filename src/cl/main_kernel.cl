@@ -1,3 +1,5 @@
+
+
 /**
 **@brief
 ** получить цвет пикселя в позиции x,y экрана, используя камеру camera
@@ -9,86 +11,59 @@ int		get_pixel_color(int x, int y,
 						const t_sampler_manager sampler_manager,
 						uint2 *seed)
 {
-#if 0
 	t_ray			ray;
 	t_color			color;
 	float3			test = (float3)(0.0f, 0.0f, 0.0f);
 	t_sampler		ao_sampler;
-
-	ray = cast_camera_ray(scene.camera, x, y, sampler_manager, seed);
-	color = ray_trace(ray, scene, options);
-
-	return (color.value);
-
-#elif 1
-	t_ray			ray;
-	t_color			color;
-	float3			test = (float3)(0.0f, 0.0f, 0.0f);
-	t_sampler		ao_sampler;
+	t_sampler		camera_sampler;
 
 	color.value = 0;
 	ao_sampler = get_sampler(sampler_manager, options.sampler_id);
-	// ao_sampler.type = none;
 	if (0) //path tracing
 	{
-		ray = cast_camera_ray(scene.camera, x, y, sampler_manager, seed);
+		ray = cast_camera_ray(scene.camera, x, y, sampler_manager, 0, seed);
 		for (int i = 0; i < SAMPLES; i++)
-		{
 			test += path_tracing(ray, scene, options, &x, &y);
-		}
 		color.r = test.x / SAMPLES * 255;
 		color.g = test.y / SAMPLES * 255;
 		color.b = test.z / SAMPLES * 255;
 	}
-	else if (ao_sampler.type == jitter)//антиалиасинг, сделанный Бориславом
-	{
-		float jitterMatrix[4 * 2] = {
-			-1.0/4.0,  3.0/4.0,
-	 		3.0/4.0,  1.0/3.0,
-			-3.0/4.0, -1.0/4.0,
-	 		1.0/4.0, -3.0/4.0,
-		};
-		for (int sample = 0; sample < 4; ++sample)
-		{
-			float dx = (x + jitterMatrix[2 * sample]);
-			float dy = (y + jitterMatrix[2 * sample + 1]);
-			ray = cast_camera_ray(scene.camera, dx, dy, sampler_manager, seed);
-			color = ray_trace(ray, scene, options);
-			test.x += color.r;
-			test.y += color.g;
-			test.z += color.b;
-		}
-		color.r = test.x / ao_sampler.num_samples;
-		color.g = test.y / ao_sampler.num_samples;
-		color.b = test.z / ao_sampler.num_samples;
-	}
 	else if (ao_sampler.type == none) //без антиалиасинга
 	{
-		ray = cast_camera_ray(scene.camera, x, y, sampler_manager, seed);
+		ray = cast_camera_ray(scene.camera, x, y, sampler_manager, 0, seed);
 		color = ray_trace(ray, scene, options);
 	}
 	else //антиалиасинг сгенерированный заранее на цпу
 	{
-		// ao_sampler.count = get_global_id(0) / ao_sampler.num_sets; //???
+		ao_sampler.count = get_global_id(0) * ao_sampler.num_samples * ao_sampler.num_sets;
+		if (scene.camera.type == thin_lens)
+		{
+			camera_sampler = get_sampler(sampler_manager, scene.camera.sampler_id);
+			camera_sampler.count = get_global_id(0) * camera_sampler.num_samples * camera_sampler.num_sets;
+			// camera_sampler.jump = (random(seed) % camera_sampler.num_sets) * camera_sampler.num_samples;
+		}
+
 		for (int j = 0; j < ao_sampler.num_samples; j++)
 		{
 			float2	sp = sample_unit_square(&ao_sampler, sampler_manager.samples, seed);
 			float	dx = x + sp.x;
 			float	dy = y + sp.y;
 
-			ray = cast_camera_ray(scene.camera, dx, dy, sampler_manager, seed);
+			ray = cast_camera_ray(scene.camera, dx, dy, sampler_manager, &camera_sampler, seed);
 			color = ray_trace(ray, scene,options);
 
+			/* accumulate color */
 			test.x += color.r;
 			test.y += color.g;
 			test.z += color.b;
 		}
+
+		/* normalize accumulated color */
 		color.r = test.x / ao_sampler.num_samples;
 		color.g = test.y / ao_sampler.num_samples;
 		color.b = test.z / ao_sampler.num_samples;
 	}
 	return (color.value);
-#endif
 }
 
 void	init_scene(t_scene *scene, __constant t_obj *objects, int nobjects,
@@ -144,9 +119,8 @@ __kernel void main(
 	global_id = get_global_id(0);
 	x = global_id % camera.viewplane.width;
 	y = global_id / camera.viewplane.height;
-
-	seed.x = global_id + 1;
-	seed.y = get_local_id(0) + 1;
+	seed.x = global_id + 69;
+	seed.y = get_local_id(0) + 420;
 
 	init_scene(&scene, objects, nobjects, triangles, ntriangles, lights, nlights, camera, ambient_light);
 	init_sampler_manager(&sampler_manager, samplers, samples, disk_samples, hemisphere_samples);

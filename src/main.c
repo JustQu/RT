@@ -6,7 +6,7 @@
 /*   By: dmelessa <dmelessa@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2020/01/28 15:18:45 by dmelessa          #+#    #+#             */
-/*   Updated: 2020/04/25 22:25:04 by dmelessa         ###   ########.fr       */
+/*   Updated: 2020/04/26 14:45:42 by dmelessa         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -64,6 +64,7 @@ void	write_buffers(t_rt rt)
 void	set_kernel_args(t_rt rt)
 {
 	cl_kernel	k;
+	int			err_code;
 
 	k = rt.program.kernel;
 	// write_buffers(rt);
@@ -81,6 +82,7 @@ void	set_kernel_args(t_rt rt)
 	clSetKernelArg(k, 11, sizeof(cl_mem), &rt.program.samples);
 	clSetKernelArg(k, 12, sizeof(cl_mem), &rt.program.disk_samples);
 	clSetKernelArg(k, 13, sizeof(cl_mem), &rt.program.hemisphere_samples);
+
 }
 
 void	start_render_kernel(t_rt rt)
@@ -126,6 +128,7 @@ int		main(int ac, char **av)
 	t_rt	rt;
 	int		value;
 	// Sleep(1000);
+	srand(999);
 	ac == 1 ? init_rt(&rt, NULL) : init_rt(&rt, av[1]);
 	while (1)
 	{

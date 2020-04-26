@@ -1,8 +1,8 @@
 
 // #include "cl_rt.h"
 
-t_ray cast_camera_ray(t_camera camera, float x, float y,
-					t_sampler_manager sampler_manager, uint2 *seed)
+t_ray cast_camera_ray(t_camera camera, float x, float y, t_sampler_manager sampler_manager,
+					t_sampler *camera_sampler, uint2 *seed)
 {
 	t_ray	ray;
 	float	px;
@@ -34,15 +34,12 @@ t_ray cast_camera_ray(t_camera camera, float x, float y,
 	}
 	else if (camera.type == thin_lens)
 	{
-		t_sampler sampler = get_sampler(sampler_manager, camera.sampler_id);
-		sampler.count = 0;
-
 		px =  camera.viewplane.pixel_size * (x - 0.5f * DEFAULT_WIDTH) ;
 		py = -camera.viewplane.pixel_size * (y - 0.5f * DEFAULT_HEIGHT) / camera.viewplane.width * camera.viewplane.height;
 		// px = pixel_size * ((2.0f * x / DEFAULT_WIDTH) - 1.0f) * camera.ratio;
 		// py = pixel_size * (1.0f - 2.0f * y / DEFAULT_HEIGHT);
 
-		float2 dp = sample_unit_disk(&sampler, sampler_manager.disk_samples, seed);
+		float2 dp = sample_unit_disk(camera_sampler, sampler_manager.disk_samples, seed);
 
 		float2 lp = dp * camera.lens_radius; //lens_point
 
