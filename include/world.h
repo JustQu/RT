@@ -6,7 +6,7 @@
 /*   By: dmelessa <dmelessa@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2020/02/10 19:36:22 by dmelessa          #+#    #+#             */
-/*   Updated: 2020/05/04 16:53:14 by dmelessa         ###   ########.fr       */
+/*   Updated: 2020/05/04 23:34:52 by dmelessa         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -120,7 +120,7 @@ struct s_render_options
 {
 	cl_int			depth;
 	cl_int			shadows;
-	t_color			backgorund_color;
+	t_color			background_color;
 	cl_int			sampler_id;
 };
 

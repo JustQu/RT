@@ -8,14 +8,13 @@ static const t_camera default_camera = {
 		.width = DEFAULT_WIDTH,
 		.height = DEFAULT_HEIGHT},
 	.type = perspective,
-	.origin = {.x = 0.0f, .y = 2.0f, .z = -2.0f, .w = 0.0f},
+	.origin = {.x = 0.0f, .y = 2.0f, .z = 0.0f, .w = 0.0f},
 	.direction = {.x = 0.0f, .y = 0.0f, .z = 1.0f, .w = 0.0f},
 	.up = {.x = 0.0f, .y = 1.0f, .z = 0.0f, .w = 0.0f},
-	.d = 1.0f,
+	.d = DEFAULT_WIDTH / 4,
 	.zoom = 1.0f,
 	.ratio = (float)DEFAULT_WIDTH / (float)DEFAULT_HEIGHT,
-	.normalized = FALSE
-};
+	.normalized = FALSE};
 
 static const t_camera default_thin_lens_camera = {
 	.viewplane = {
@@ -27,7 +26,7 @@ static const t_camera default_thin_lens_camera = {
 	.origin = {.x = 0.0f, .y = 1.0f, .z = 0.0f, .w = 0.0f},
 	.direction = {.x = 0.0f, .y = 0.0f, .z = 1.0f, .w = 0.0f},
 	.up = {.x = 0.0f, .y = 1.0f, .z = 0.0f, .w = 0.0f},
-	.d = DEFAULT_WIDTH / 2,
+	.d = DEFAULT_WIDTH / 4,
 	.zoom = 1.0f,
 	.ratio = (float)DEFAULT_WIDTH / DEFAULT_HEIGHT,
 	.normalized = FALSE,
@@ -36,22 +35,22 @@ static const t_camera default_thin_lens_camera = {
 	.f = 5.0f
 };
 
-static const t_camera deafult_fisheye_camera = {
+static const t_camera default_fisheye_camera = {
 	.viewplane = {
 		.pixel_size = 1.0f,
 		.width = DEFAULT_WIDTH,
 		.height = DEFAULT_HEIGHT,
 	},
 	.type = fisheye,
-	.origin = { .x = 0.0f, .y = 1.0f, .z = 0.0f, .w = 0.0f },
+	.origin = { .x = 0.0f, .y = 2.0f, .z = 0.0f, .w = 0.0f },
 	.direction = { .x = 0.0f, .y = 0.0f, .z = 1.0f, .w = 0.0f },
 	.up = {.x = 0.0f, .y = 1.0f, .z = 0.0f, .w = 0.0f},
-	.d = DEFAULT_WIDTH / 1,
+	.d = DEFAULT_WIDTH / 2,
 	.zoom = 1.0f,
 	.ratio = (float)(DEFAULT_WIDTH) / DEFAULT_HEIGHT,
-	.normalized = FALSE,
+	.normalized = TRUE,
 
-	.f = 360.0f
+	.f = 360.0 / 2.0f
 };
 
 static const t_material default_matte_material = {
@@ -285,7 +284,8 @@ void	init_default_scene(t_scene *scene, t_sampler_manager *sampler_manager)
 {
 	// scene->camera = default_camera;
 
-	scene->camera = default_thin_lens_camera;
+	// scene->camera = default_thin_lens_camera;
+	scene->camera = default_fisheye_camera;
 	scene->camera.sampler_id = new_sampler(sampler_manager, rand_jitter, NUM_SAMPLES, DISK_SAMPLES);
 
 	compute_uvw(&scene->camera);
@@ -301,9 +301,9 @@ void	init_default_scene(t_scene *scene, t_sampler_manager *sampler_manager)
 #if 1
 	scene->objects[0] = default_plane;
 
-	scene->objects[0] = default_sphere;
+	// scene->objects[0] = default_sphere;
 	scene->objects[0].origin.x = 0.0f;
-	scene->objects[0].origin.y = 0.0f;
+	scene->objects[0].origin.y = -3.0f;
 	scene->objects[0].origin.z = 0.0f;
 	scene->objects[0].r = 0.1f;
 	scene->objects[0].r2 = 0.01f;
@@ -351,9 +351,9 @@ void	init_default_scene(t_scene *scene, t_sampler_manager *sampler_manager)
 	scene->objects[3].material.color.value = 0x00af0f00;
 
 	scene->objects[4] = default_sphere;
-	scene->objects[4].origin.x = 2.0f;
-	scene->objects[4].origin.y = 4.0f;
-	scene->objects[4].origin.z = 0.0f;
+	scene->objects[4].origin.x = 0.0f;
+	scene->objects[4].origin.y = 2.0f;
+	scene->objects[4].origin.z = 4.5f;
 	scene->objects[4].r = 1.0f;
 	scene->objects[4].r2 = 1.0f;
 	scene->objects[4].material.color.value = 0x003846b0;

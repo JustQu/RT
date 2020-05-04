@@ -137,7 +137,7 @@ t_color	ray_trace(t_ray ray, t_scene scene, t_render_options options)
 	t_shade_rec	shade_rec;
 	t_color		color;
 
-	color.value = 0x000000af;
+	color.value = options.background_color.value;
 	if (scene_intersection(ray, &shade_rec, scene))
 	{
 		/* save ray for specular reflection */

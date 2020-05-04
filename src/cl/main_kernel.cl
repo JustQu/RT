@@ -130,7 +130,7 @@ __kernel void	test(__global float3 *image,
 	/* init some variables */
 	global_id = get_global_id(0);
 	x = global_id % camera.viewplane.width;
-	y = global_id / camera.viewplane.height;
+	y = global_id / camera.viewplane.width;
 	seed.x = global_id;
 	seed.y = get_local_id(0) + get_group_id(0);
 	seed.y = random(&seed);

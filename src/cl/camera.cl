@@ -13,12 +13,12 @@ t_ray cast_camera_ray(t_camera camera, float x, float y, t_sampler_manager sampl
 	if (camera.normalized == true)
 	{
 		px = pixel_size * ((2.0f * x / camera.viewplane.width) - 1.0f);
-		py = pixel_size * (1.0f - 2.0f * y / DEFAULT_HEIGHT) / camera.viewplane.width * camera.viewplane.height;
+		py = pixel_size * (1.0f - 2.0f * y / camera.viewplane.height);
 	}
 	else
 	{
 		px = pixel_size * (x - 0.5f * camera.viewplane.width);
-		py = pixel_size * (0.5f * camera.viewplane.height - y) / camera.ratio;
+		py = pixel_size * (0.5f * camera.viewplane.height - y) ;
 	}
 
 	if (camera.type == perspective)
@@ -39,7 +39,22 @@ t_ray cast_camera_ray(t_camera camera, float x, float y, t_sampler_manager sampl
 	}
 	else if (camera.type == fisheye)
 	{
-		float2 sp = sample_unit_square(camera_sampler, sampler_manager.samplers, seed);
+		ray.origin = camera.origin;
+
+		float	r_squared = px * px + py * py;
+		if (r_squared <= 1.0f)
+		{
+			float r = sqrt(r_squared);
+			float psi = r * camera.f * 0.0174532925199432957; // PI / 180 todo: make define
+			float sin_psi = sin(psi);
+			float cos_psi = cos(psi);
+			float sin_alpha = py / r;
+			float cos_alpha = px / r;
+
+			ray.direction = sin_psi * cos_alpha * camera.u + sin_psi * sin_alpha * camera.v - cos_psi * camera.w;
+		}
+		else
+			ray.direction = (float4)(0.0f, 0.0f, 0.0f, 0.0f);
 	}
 	return (ray);
 }
