@@ -8,17 +8,14 @@ static const t_camera default_camera = {
 		.width = DEFAULT_WIDTH,
 		.height = DEFAULT_HEIGHT},
 	.type = perspective,
-	.origin = {.x = 0.0f, .y = 1.0f, .z = 0.0f, .w = 0.0f},
+	.origin = {.x = 0.0f, .y = 2.0f, .z = -2.0f, .w = 0.0f},
 	.direction = {.x = 0.0f, .y = 0.0f, .z = 1.0f, .w = 0.0f},
 	.up = {.x = 0.0f, .y = 1.0f, .z = 0.0f, .w = 0.0f},
-	.d = 500.0f,
+	.d = 1.0f,
 	.zoom = 1.0f,
-
 	.ratio = (float)DEFAULT_WIDTH / (float)DEFAULT_HEIGHT,
-	.inv_w = 1.0f / DEFAULT_WIDTH,
-	.inv_h = 1.0f / DEFAULT_HEIGHT,
-	.angle = 1.7320508757,
-	.fov = 120};
+	.normalized = FALSE
+};
 
 static const t_camera default_thin_lens_camera = {
 	.viewplane = {
@@ -30,12 +27,31 @@ static const t_camera default_thin_lens_camera = {
 	.origin = {.x = 0.0f, .y = 1.0f, .z = 0.0f, .w = 0.0f},
 	.direction = {.x = 0.0f, .y = 0.0f, .z = 1.0f, .w = 0.0f},
 	.up = {.x = 0.0f, .y = 1.0f, .z = 0.0f, .w = 0.0f},
-	.d = 1.0f,
+	.d = DEFAULT_WIDTH / 2,
 	.zoom = 1.0f,
 	.ratio = (float)DEFAULT_WIDTH / DEFAULT_HEIGHT,
+	.normalized = FALSE,
 
-	.lens_radius = 1.0f,
-	.f = 1.0f
+	.lens_radius = 0.5f,
+	.f = 5.0f
+};
+
+static const t_camera deafult_fisheye_camera = {
+	.viewplane = {
+		.pixel_size = 1.0f,
+		.width = DEFAULT_WIDTH,
+		.height = DEFAULT_HEIGHT,
+	},
+	.type = fisheye,
+	.origin = { .x = 0.0f, .y = 1.0f, .z = 0.0f, .w = 0.0f },
+	.direction = { .x = 0.0f, .y = 0.0f, .z = 1.0f, .w = 0.0f },
+	.up = {.x = 0.0f, .y = 1.0f, .z = 0.0f, .w = 0.0f},
+	.d = DEFAULT_WIDTH / 1,
+	.zoom = 1.0f,
+	.ratio = (float)(DEFAULT_WIDTH) / DEFAULT_HEIGHT,
+	.normalized = FALSE,
+
+	.f = 360.0f
 };
 
 static const t_material default_matte_material = {
@@ -270,11 +286,11 @@ void	init_default_scene(t_scene *scene, t_sampler_manager *sampler_manager)
 	// scene->camera = default_camera;
 
 	scene->camera = default_thin_lens_camera;
-
 	scene->camera.sampler_id = new_sampler(sampler_manager, rand_jitter, NUM_SAMPLES, DISK_SAMPLES);
+
 	compute_uvw(&scene->camera);
 
-	scene->nobjects = 10;
+	scene->nobjects = 9;
 	scene->ntriangles = 1;
 	scene->objects = (t_obj *)malloc(sizeof(t_obj) * (scene->nobjects + 10));
 	scene->triangles = (t_triangle *)malloc(sizeof(t_triangle) * (scene->ntriangles + 10));
@@ -282,7 +298,7 @@ void	init_default_scene(t_scene *scene, t_sampler_manager *sampler_manager)
 	scene->lights = (t_light *)malloc(sizeof(t_light) * (scene->nlights + 10));
 
 	//default_scene
-#if 0
+#if 1
 	scene->objects[0] = default_plane;
 
 	scene->objects[0] = default_sphere;
@@ -425,7 +441,7 @@ void	init_default_scene(t_scene *scene, t_sampler_manager *sampler_manager)
 	scene->camera.viewplane.pixel_size = 0.05;
 	scene->camera.d = 40;
 	scene->camera.f = 50;
-	scene->camera.lens_radius = 2.0f;
+	scene->camera.lens_radius = 5.0f;
 
 	scene->objects[0] = default_plane;
 	scene->objects[0].origin.x = 0.0f;

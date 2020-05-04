@@ -6,7 +6,7 @@
 /*   By: dmelessa <dmelessa@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2020/02/10 19:36:22 by dmelessa          #+#    #+#             */
-/*   Updated: 2020/04/26 21:25:16 by dmelessa         ###   ########.fr       */
+/*   Updated: 2020/05/04 16:53:14 by dmelessa         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -86,6 +86,7 @@ enum	e_sampler_type
 		nrooks
 };
 
+
 /*
 ** Sample types flags
 */
@@ -95,7 +96,7 @@ enum	e_sampler_type
 #define HEMISPHERE_SAMPLES	1 << 2
 
 # ifdef _WIN64
-__declspec(align(8))
+__declspec(align(4))
 # endif
 struct				s_sampler
 {
@@ -105,7 +106,6 @@ struct				s_sampler
 	cl_uint			count;		/* the currenct numer of sample points used */
 	cl_int			jump;		// random index jump
 	cl_int			samples_type; // default / disk / hemisphere
-
 	// cl_int			shuffled_indices[NUM_SAMPLES * NUM_SETS];
 
 	cl_int			offset;
@@ -114,7 +114,7 @@ struct				s_sampler
 };
 
 # ifdef _WIN64
-__declspec(align(8))
+__declspec(align(4))
 # endif
 struct s_render_options
 {
@@ -131,7 +131,7 @@ enum e_material_type
 };
 
 # ifdef _WIN64
-__declspec(align(8))
+__declspec(align(4))
 # endif
 struct					s_material //kd + ks < 1.0
 {
@@ -167,7 +167,7 @@ enum	e_light_types
 };
 
 # ifdef _WIN64
-__declspec(align(8))
+__declspec(align(4))
 # endif
 struct	s_light
 {
@@ -183,7 +183,7 @@ struct	s_light
 ** axis-aligned bounding box for object
 */
 #ifdef _WIN64
-__declspec(align(8))
+__declspec(align(4))
 #endif
 struct					s_bbox
 {
@@ -192,7 +192,7 @@ struct					s_bbox
 };
 
 # ifdef _WIN64
-__declspec(align(8))
+__declspec(align(4))
 # endif
 struct					s_obj
 {
@@ -210,7 +210,7 @@ struct					s_obj
 };
 
 # ifdef _WIN64
-__declspec(align(8))
+__declspec(align(4))
 # endif
 struct	s_triangle
 {
@@ -234,7 +234,7 @@ enum	e_camera_type
 };
 
 # ifdef _WIN64
-__declspec(align(8))
+__declspec(align(4))
 # endif
 struct	s_viewplane
 {
@@ -245,10 +245,10 @@ struct	s_viewplane
 
 /**
 ** @TODO: make transformation matrix
-** TODO: singularity ยง9.9
+** TODO: singularity paragraph 9.9
 */
 # ifdef _WIN64
-__declspec(align(8))
+__declspec(align(4))
 # endif
 struct s_camera
 {
@@ -257,17 +257,17 @@ struct s_camera
 	cl_float4			direction; // lookat - eye
 	cl_float4			up; // (0, 1, 0)
 	cl_float4			u;
-	cl_float4			v; // actually we need only  th3 vectors. the up vector could be hardcodeded and w = -derction
+	cl_float4			v; // actually we need only th3 vectors. the up vector could be hardcodeded and w = -direction
 	cl_float4			w;
 	cl_float			d; //the view-plane distance
 	cl_float			zoom; //zoom factor
 	cl_float			exposure_time; //using somewhere later
 	t_camera_type		type;
 	cl_int				sampler_id; //thin_camera
-
+	cl_int				normalized;
 	//thin-lens camera
 	cl_float			lens_radius; //lens radius
-	cl_float			f; //focal plane distance
+	cl_float			f; //focal plane distance or psi_max in fisheye
 
 //note: prob not needed
 	cl_float			ratio;

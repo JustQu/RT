@@ -6,7 +6,7 @@
 #    By: dmelessa <dmelessa@student.42.fr>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2020/02/10 14:33:34 by dmelessa          #+#    #+#              #
-#    Updated: 2020/02/16 19:19:53 by dmelessa         ###   ########.fr        #
+#    Updated: 2020/04/28 18:28:35 by dmelessa         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -29,6 +29,7 @@ CFLAGS = -I$(INCDIR)\
 		 -Werror\
 		 -Wextra
 ifeq ($(SYSTEM), $(MACOS))
+
 	LDLIBS = -lm\
 			 -lft\
 			 -framework SDL2\
@@ -37,35 +38,38 @@ ifeq ($(SYSTEM), $(MACOS))
 	LDFLAGS = -L$(LIBFTDIR)\
 			  -F $(LIBSDIR)\
 			  -rpath $(LIBSDIR)
+
 else ifeq ($(SYSTEM), $(LINUX))
+
 	LDLIBS = -lm\
 			 -l SDL2\
 			 -l OpenCL
 
 	LDFLAGS	= $(LIBFT)
+
 endif
 
 
 LIBSDIR = $(CURRENTDIR)/Libs
 
 LIBFT = $(LIBFTDIR)/libft.a
-LIBFTDIR = $(LIBSDIR)/libft/
+LIBFTDIR = $(LIBSDIR)/libft
 LIBFTINC = $(LIBFTDIR)
-LIBFTHEAD = $(LIBFTINC)libft.h $(LIBFTINC)get_next_line.h
+LIBFTHEAD = $(LIBFTINC)/libft.h $(LIBFTINC)/get_next_line.h
 
 #MACOS
 SDL2DIR = $(LIBSDIR)/SDL2.framework
 SDL2INC = $(SDL2DIR)/Headers
 
-INCDIR = $(CURRENTDIR)/include/
+INCDIR = $(CURRENTDIR)/include
 INCS = rt.h world.h
-INCS := $(addprefix $(INCDIR), $(INCS))
+INCS := $(addprefix $(INCDIR)/, $(INCS))
 
 SRCSDIR	= ./src/
-SRCS =	main.c init.c init_window.c catch_event.c\
-		read_data.c create_program.c error_handling.c\
-		Fd_ret_Find_file.c objects_initialization.c\
-		read_number.c
+SRCS =	main.c init.c init_window.c create_program.c read_data.c camera.c \
+		fd_ret_find_file.c read_number.c objects_initialization.c sampler.c \
+		sampler_manager.c catch_event.c swap.c error_handling.c random.c \
+
 
 OBJSDIR = ./obj/
 OBJS = $(addprefix $(OBJSDIR), $(SRCS:.c=.o))

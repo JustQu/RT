@@ -11,7 +11,6 @@ t_sampler	get_sampler(t_sampler_manager sampler_manager, int sampler_id)
 		offset += tmp.num_sets * tmp.num_samples;
 	}
 	tmp = sampler_manager.samplers[i];
-
 	tmp.offset = offset;
 	return (tmp);
 }

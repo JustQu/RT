@@ -6,7 +6,7 @@
 /*   By: dmelessa <dmelessa@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2020/02/10 17:43:55 by dmelessa          #+#    #+#             */
-/*   Updated: 2020/04/26 20:25:11 by dmelessa         ###   ########.fr       */
+/*   Updated: 2020/05/04 16:54:49 by dmelessa         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -20,7 +20,7 @@
 ** @param clp
 ** @return ** int
 */
-int		init_cl(t_clp *clp)
+int init_cl(t_clp *clp)
 {
 	if (clp == NULL)
 		return (1);
@@ -30,10 +30,9 @@ int		init_cl(t_clp *clp)
 	ft_clerror(clp->ret);
 	clp->ret = clGetDeviceIDs(clp->pl_id, CL_DEVICE_TYPE_ALL, 1, &(clp->de_id),
 							  &(clp->ret_num_devices));
-	printf("%d\n", clp->ret);
 	assert(!clp->ret);
 	clp->context = clCreateContext(NULL, 1, &(clp->de_id), NULL, NULL,
-		&(clp->ret));
+								   &(clp->ret));
 	assert(!clp->ret);
 	clp->queue = clCreateCommandQueue(clp->context, clp->de_id, 0, &(clp->ret));
 	ft_clerror(clp->ret);
@@ -42,57 +41,43 @@ int		init_cl(t_clp *clp)
 
 //NOTE: deal with case when there is no objects
 //TODO: mem manager like sampler_manager but for scene
-void	init_buffers(t_cl_program *program, t_scene *scene,
-	t_sampler_manager *sampler_manager)
+void init_buffers(t_cl_program *program, t_scene *scene,
+				  t_sampler_manager *sampler_manager)
 {
-	int			ret;
-	int			ro;
-	cl_context	cntx;
+	int ret;
+	int ro;
+	cl_context cntx;
 
 	ro = CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR;
 	cntx = program->clp.context;
+	program->rgb_image = clCreateBuffer(cntx, CL_MEM_READ_WRITE, sizeof(cl_float3) * program->work_size, NULL, &ret);
+	cl_error(program, &program->clp, ret);
 	program->output_image = clCreateBuffer(cntx, CL_MEM_READ_WRITE,
-		sizeof(uint32_t) * program->work_size, NULL, &ret);
+										   sizeof(uint32_t) * program->work_size, NULL, &ret);
 	cl_error(program, &program->clp, ret);
 
 	program->objects = clCreateBuffer(cntx, ro,
-		sizeof(t_obj) * scene->nobjects, scene->objects, &ret);
+									  sizeof(t_obj) * scene->nobjects, scene->objects, &ret);
 	cl_error(program, &program->clp, ret);
 
 	program->triangles = clCreateBuffer(cntx, ro,
-		sizeof(t_triangle) * scene->ntriangles, scene->triangles, &ret);
+										sizeof(t_triangle) * scene->ntriangles, scene->triangles, &ret);
 	cl_error(program, &program->clp, ret);
 
-	program->lights = clCreateBuffer(cntx, ro, sizeof(t_light) *
-		scene->nlights, scene->lights, &ret);
+	program->lights = clCreateBuffer(cntx, ro, sizeof(t_light) * scene->nlights, scene->lights, &ret);
 	cl_error(program, &program->clp, ret);
 
-	program->samplers = clCreateBuffer(cntx, ro, sizeof(t_sampler) *
-		sampler_manager->count, sampler_manager->samplers, &ret);
+	program->samplers = clCreateBuffer(cntx, ro, sizeof(t_sampler) * sampler_manager->count, sampler_manager->samplers, &ret);
 	cl_error(program, &program->clp, ret);
 
-	program->samples = clCreateBuffer(cntx, ro, sizeof(cl_float2) *
-		sampler_manager->samples_size, sampler_manager->samples, &ret);
+	program->samples = clCreateBuffer(cntx, ro, sizeof(cl_float2) * sampler_manager->samples_size, sampler_manager->samples, &ret);
 	cl_error(program, &program->clp, ret);
 
-	program->disk_samples = clCreateBuffer(cntx, ro, sizeof(cl_float2) *
-		sampler_manager->samples_size, sampler_manager->disk_samples, &ret);
+	program->disk_samples = clCreateBuffer(cntx, ro, sizeof(cl_float2) * sampler_manager->samples_size, sampler_manager->disk_samples, &ret);
 	cl_error(program, &program->clp, ret);
 
-	program->hemisphere_samples = clCreateBuffer(cntx, ro, sizeof(cl_float3) *
-		sampler_manager->samples_size, sampler_manager->hemisphere_samples, &ret);
-	// program->samples = clCreateBuffer(program->clp.context,
-	// 	CL_MEM_READ_WRITE | CL_MEM_COPY_HOST_PTR, sizeof(cl_float2) *
-	// 	sampler->info.num_sets * sampler->info.num_samples,
-	// 	sampler->samples, &ret);
-	// program->disk_samples = clCreateBuffer(program->clp.context,
-	// 	CL_MEM_READ_WRITE | CL_MEM_COPY_HOST_PTR, sizeof(cl_float2) *
-	// 	sampler->info.num_samples * sampler->info.num_sets,
-	// 	sampler->disk_samples, &ret);
-	// program->hemisphere_samples = clCreateBuffer(program->clp.context,
-	// 	CL_MEM_READ_WRITE | CL_MEM_COPY_HOST_PTR, sizeof(cl_float3) *
-	// 	sampler->info.num_samples * sampler->info.num_sets,
-	// 	sampler->hemisphere_samples, &ret);
+	program->hemisphere_samples = clCreateBuffer(cntx, ro, sizeof(cl_float3) * sampler_manager->samples_size, sampler_manager->hemisphere_samples, &ret);
+
 	cl_error(program, &program->clp, ret);
 }
 
@@ -101,7 +86,7 @@ void init_options(t_render_options *options, t_sampler_manager *sampler_manager)
 	options->shadows = TRUE;
 	options->backgorund_color.value = 0x000000af;
 	options->depth = 5;
-	options->sampler_id = new_sampler(sampler_manager, pure_random, NUM_SAMPLES, DEFAULT_SAMPLES); //Anti-aliasing
+	options->sampler_id = new_sampler(sampler_manager, rand_jitter, NUM_SAMPLES, DEFAULT_SAMPLES); //Anti-aliasing
 }
 
 /**
@@ -111,9 +96,9 @@ void init_options(t_render_options *options, t_sampler_manager *sampler_manager)
 ** @param cl_program
 ** @return ** int
 */
-int		init_kernel(t_cl_program *program, t_scene *scene, t_sampler_manager *sampler_manager)
+int init_kernel(t_cl_program *program, t_scene *scene, t_sampler_manager *sampler_manager)
 {
-	int		ret = 0;
+	int ret = 0;
 
 	/*init buffers for kernel*/
 	init_buffers(program, scene, sampler_manager);
@@ -121,11 +106,15 @@ int		init_kernel(t_cl_program *program, t_scene *scene, t_sampler_manager *sampl
 	program->program = create_program(program->clp.context);
 	/* build kernel program */
 	ret = clBuildProgram(program->program, 1, &program->clp.de_id,
-		DEFAULT_KERNEL_INCLUDE, NULL, NULL);
+						 DEFAULT_KERNEL_INCLUDE, NULL, NULL);
 	cl_error(program, &program->clp, ret);
 	/* create kernel */
 	program->kernel = clCreateKernel(program->program, DEFAULT_KERNEL_NAME,
-		&ret);
+									 &ret);
+	cl_error(program, &program->clp, ret);
+	program->new_kernel = clCreateKernel(program->program, "test", &ret);
+	cl_error(program, &program->clp, ret);
+	program->help_kernel = clCreateKernel(program->program, "translate_image", &ret);
 	cl_error(program, &program->clp, ret);
 	ft_clerror(program->clp.ret);
 	return (0);
@@ -138,7 +127,7 @@ int		init_kernel(t_cl_program *program, t_scene *scene, t_sampler_manager *sampl
 ** @param cl_program
 ** @return ** int
 */
-int		init_rt(t_rt *rt, char *scene_file)
+int init_rt(t_rt *rt, char *scene_file)
 {
 	init_cl(&rt->program.clp);
 	init_sampler_manager(&rt->sampler_manager);

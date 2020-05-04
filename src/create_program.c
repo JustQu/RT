@@ -48,12 +48,12 @@ static const char const *files[] = {
 	"sampler_manager.cl",
 	"camera.cl",
 	"intersection.cl",
-
 	"normal.cl",
 	"light.cl",
 	"ray_tracer.cl",
 	"path_tracer.cl",
-	"main_kernel.cl"
+	"main_kernel.cl",
+	"util_kernels.cl"
 };
 int num_files = sizeof(files) / sizeof(char *);
 
@@ -88,10 +88,8 @@ cl_program create_program(cl_context context)
 
 	source_buf = (char **)malloc(sizeof(char *) * num_files);
 	create_source(source_buf);
-	printf("HERE\n");
 	program = clCreateProgramWithSource(context, num_files,
 										(const char **)source_buf, NULL, &ret);
-	printf("STEP2\n");
 	// p->program = program;
 	// assert(!ret);
 	// cl_error(p, &p->clp, ret);

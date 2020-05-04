@@ -3,9 +3,12 @@
 */
 float2	sample_unit_square(t_sampler *sampler, __global float2 *samples, uint2 *seed)
 {
-	if (sampler->count % sampler->num_samples == 0)
+	if (sampler->count % sampler->num_samples == 0) // start of a new pixel
 		sampler->jump = (random(seed) % sampler->num_sets) * sampler->num_samples;
-	// printf("%d'", sampler->jump);
+
+	if (get_global_id(0) == 69)
+		printf("ao: %d\n", sampler->jump);
+
 	return ((samples + sampler->offset)[sampler->jump + sampler->count++ % sampler->num_samples]);
 
 	// return (samples[sampler->jump + sampler->shuffled_indices[sampler->jump + sampler->count++ % sampler->num_samples]]);
@@ -20,6 +23,8 @@ float2	sample_unit_disk(t_sampler *sampler, __global float2 *disk_samples, uint2
 {
 	if (sampler->count % sampler->num_samples == 0)
 		sampler->jump = (random(seed) % sampler->num_sets) * sampler->num_samples;
-	// printf("here %d ", sampler->jump);
+
+	if (get_global_id(0) == 420)
+		printf("cs: %d\n", sampler->jump);
 	return ((disk_samples + sampler->offset)[sampler->jump + sampler->count++ % sampler->num_samples]);
 }

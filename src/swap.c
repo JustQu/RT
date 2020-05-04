@@ -6,11 +6,11 @@
 /*   By: dmelessa <dmelessa@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2020/04/25 11:32:22 by dmelessa          #+#    #+#             */
-/*   Updated: 2020/04/25 11:35:33 by dmelessa         ###   ########.fr       */
+/*   Updated: 2020/04/28 18:27:13 by dmelessa         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "CL\cl.h"
+#include "CL/cl.h"
 
 void	swap_int(int *a, int *b)
 {

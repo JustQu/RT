@@ -118,7 +118,7 @@ cl_float2	*generate_nrooks_samples(t_sampler info, cl_float2 *samples)
 ** @param sampler
 ** @return ** cl_float2*
 */
-cl_float2	*map_samples_to_unit_disk(t_sampler sampler, cl_float2 *samples, cl_float2 *disk_samples)
+void	map_samples_to_unit_disk(t_sampler sampler, cl_float2 *samples, cl_float2 *disk_samples)
 {
 	float		r;
 	float		phi;

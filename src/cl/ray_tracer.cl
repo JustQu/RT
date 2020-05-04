@@ -89,7 +89,6 @@ t_color		shade_object(t_material material, t_shade_rec shade_rec, t_scene scene,
 				/* compute how much light the point receives depends on angle between the normal at this point and light direction */
 				color_tmp = float_color_multi(scene.lights[i].ls * (dirdotn), color_tmp);
 				color = color_sum(color_tmp, color);
-
 			}
 		}
 	}

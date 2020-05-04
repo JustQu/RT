@@ -19,11 +19,12 @@
 # include <fcntl.h>
 # include <math.h>
 
+# include <assert.h>
+
 # ifdef __unix__
-# include "SDL2/SDL.h"
+#  include "SDL2/SDL.h"
 # else
-# include "SDL.h"
-# include "assert.h"
+#  include "SDL.h"
 # endif
 
 # include "libft.h"
@@ -77,6 +78,7 @@ typedef struct			s_window
 	SDL_Renderer		*renderer;
 	SDL_Texture			*texture;
 	uint32_t			*image; // TODO(dmelessa): change to cl_image later
+	cl_float3			*rgb_image;
 	int					width;
 	int					height;
 }						t_window;
@@ -89,8 +91,14 @@ typedef struct s_cl_program	t_cl_program;
 struct					s_cl_program
 {
 	t_clp				clp;
+
 	cl_program			program;
+
 	cl_kernel			kernel;
+	cl_kernel			new_kernel;
+	cl_kernel			help_kernel;
+
+	cl_mem				rgb_image;
 	cl_mem				output_image;
 	cl_mem				objects;
 	cl_mem				triangles;
@@ -99,6 +107,7 @@ struct					s_cl_program
 	cl_mem				samples;
 	cl_mem				disk_samples;
 	cl_mem				hemisphere_samples;
+
 	size_t				work_size;
 	size_t				work_group_size;
 };
@@ -147,7 +156,7 @@ void		read_file(t_scene *scene, char *scene_file);
 
 /* program initialization */
 int			init_window(t_window *window);
-int			init_rt(t_rt *rt, const char *scene_file);
+int			init_rt(t_rt *rt, char *scene_file);
 int			init_sampler_manager(t_sampler_manager *sampler_manager);
 cl_program	create_program(cl_context context);
 
