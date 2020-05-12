@@ -6,7 +6,7 @@
 /*   By: dmelessa <dmelessa@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2020/01/28 15:18:45 by dmelessa          #+#    #+#             */
-/*   Updated: 2020/05/04 17:00:02 by dmelessa         ###   ########.fr       */
+/*   Updated: 2020/05/07 22:06:21 by dmelessa         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -185,7 +185,6 @@ void	render_cycle(t_rt rt)
 	assert(!err_code);
 }
 
-#include "time.h"
 int		main(int ac, char **av)
 {
 	t_rt	rt;

@@ -50,8 +50,11 @@ t_color		shade_object(t_material material, t_shade_rec shade_rec, t_scene scene,
 	shade_rec.ray.direction = -shade_rec.ray.direction;
 
 	/* compute ambient light using ka coefficent of the materail */
-	color = float_color_multi(scene.ambient_light.ls,
-					lambertian_rho(material.ka, material.color));
+	color = lambertian_rho(material.ka, material.color);
+	color_tmp = get_light_radiance(scene.ambient_light);
+	color = color_multi(color, color_tmp);
+	// color = float_color_multi(scene.ambient_light.ls,
+					// lambertian_rho(material.ka, material.color));
 
 	/* compute sahding for each light source */
 	for (int i = 0; i < scene.nlights; i++)
@@ -75,19 +78,20 @@ t_color		shade_object(t_material material, t_shade_rec shade_rec, t_scene scene,
 			/* if angle > 0 then hit point is receivingl light */
 			if (dirdotn > 0.0f)
 			{
-				// printf("dirdotn > 0\n"); //!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
 				/* compute glossy_specular coefficient */
 				float a = glossy_specular_f(shade_rec.ray.direction, shade_rec.normal, light_direction, material.ks, material.exp) ;
 
-				/* compute lambertian color */
+				/* compute diffuse color */
 				color_tmp = lambertian_f(material.kd, material.color);
 
 				/* sum lambertian color and glossy specular color */
-				color_tmp = color_sum(color_tmp, float_color_multi(a, (t_color){.value=0x00ffffff}));
+				color_tmp = color_sum(color_tmp, float_color_multi(a, scene.lights[i].color));
 
 				/* compute how much light the point receives depends on angle between the normal at this point and light direction */
-				color_tmp = float_color_multi(scene.lights[i].ls * (dirdotn), color_tmp);
+
+				color_tmp.r = clamp(scene.lights[i].ls * scene.lights[i].color.r * color_tmp.r / 255.0f * dirdotn, 0.0f, 255.0f);
+				color_tmp.b = clamp(scene.lights[i].ls * scene.lights[i].color.b * color_tmp.b / 255.0f * dirdotn, 0.0f, 255.0f);
+				color_tmp.g = clamp(scene.lights[i].ls * scene.lights[i].color.g * color_tmp.g / 255.0f * dirdotn, 0.0f, 255.0f);
 				color = color_sum(color_tmp, color);
 			}
 		}

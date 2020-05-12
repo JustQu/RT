@@ -50,6 +50,7 @@ static const char const *files[] = {
 	"intersection.cl",
 	"normal.cl",
 	"light.cl",
+	"brdf.cl",
 	"ray_tracer.cl",
 	"path_tracer.cl",
 	"main_kernel.cl",

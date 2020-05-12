@@ -134,11 +134,10 @@ __kernel void	test(__global float3 *image,
 	seed.x = global_id;
 	seed.y = get_local_id(0) + get_group_id(0);
 	seed.y = random(&seed);
-	// seed = seeds[global_id];
 	init_scene(&scene, objects, nobjects, triangles, ntriangles, lights, nlights, camera, ambient_light);
 	init_sampler_manager(&sampler_manager, samplers, samples, disk_samples, hemisphere_samples);
-	ao_sampler = get_sampler(sampler_manager, options.sampler_id);
 
+	ao_sampler = get_sampler(sampler_manager, options.sampler_id);
 	ao_sampler.count = global_id * ao_sampler.num_samples + step;
 
 	if (step != 0)

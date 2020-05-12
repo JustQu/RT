@@ -14,7 +14,8 @@ static const t_camera default_camera = {
 	.d = DEFAULT_WIDTH / 4,
 	.zoom = 1.0f,
 	.ratio = (float)DEFAULT_WIDTH / (float)DEFAULT_HEIGHT,
-	.normalized = FALSE};
+	.normalized = FALSE
+};
 
 static const t_camera default_thin_lens_camera = {
 	.viewplane = {
@@ -26,12 +27,12 @@ static const t_camera default_thin_lens_camera = {
 	.origin = {.x = 0.0f, .y = 1.0f, .z = 0.0f, .w = 0.0f},
 	.direction = {.x = 0.0f, .y = 0.0f, .z = 1.0f, .w = 0.0f},
 	.up = {.x = 0.0f, .y = 1.0f, .z = 0.0f, .w = 0.0f},
-	.d = DEFAULT_WIDTH / 4,
+	.d = DEFAULT_WIDTH / 2,
 	.zoom = 1.0f,
 	.ratio = (float)DEFAULT_WIDTH / DEFAULT_HEIGHT,
 	.normalized = FALSE,
 
-	.lens_radius = 0.5f,
+	.l = 0.5f,
 	.f = 5.0f
 };
 
@@ -42,7 +43,7 @@ static const t_camera default_fisheye_camera = {
 		.height = DEFAULT_HEIGHT,
 	},
 	.type = fisheye,
-	.origin = { .x = 0.0f, .y = 2.0f, .z = 0.0f, .w = 0.0f },
+	.origin = { .x = 0.0f, .y = 1.0f, .z = 0.0f, .w = 0.0f },
 	.direction = { .x = 0.0f, .y = 0.0f, .z = 1.0f, .w = 0.0f },
 	.up = {.x = 0.0f, .y = 1.0f, .z = 0.0f, .w = 0.0f},
 	.d = DEFAULT_WIDTH / 2,
@@ -50,7 +51,48 @@ static const t_camera default_fisheye_camera = {
 	.ratio = (float)(DEFAULT_WIDTH) / DEFAULT_HEIGHT,
 	.normalized = TRUE,
 
-	.f = 360.0 / 2.0f
+	.f = 180.0 / 2.0f
+};
+
+static const t_camera default_stereo_camera = {
+	.viewplane = {
+		.pixel_size = 1.0f,
+		.width = DEFAULT_WIDTH,
+		.height = DEFAULT_HEIGHT,
+	},
+	.type = stereo,
+	.origin = {.x = 0.0f, .y = 0.0f, .z = 0.0f, .w = 0.0f },
+	.direction = { .x = 0.0f, .y = 0.0f, .z = 1.0f, .w = 0.0f },
+	.up = {.x = 0.0f, .y = 1.0f, .z = 0.0f, .w = 0.0f },
+	.d = DEFAULT_WIDTH / 2,
+	.zoom = 1.0f,
+	.ratio = (float)DEFAULT_WIDTH / DEFAULT_HEIGHT,
+	.normalized = FALSE,
+
+	.f = 2.0f,
+	.l = 10.0f,
+};
+
+/**
+** NOTE: images rendered with a spherical camera must have their aspect ration equal to lambda / phi,
+** otherwise images will be distorted
+*/
+static const t_camera default_spherical_camera = {
+	.viewplane = {
+		.pixel_size = 1.0f,
+		.width = DEFAULT_WIDTH,
+		.height = DEFAULT_HEIGHT,
+	},
+	.type = spherical,
+	.origin = {.x = 0.0f, .y = 1.0f, .z = 0.0f, .w = 0.0f},
+	.direction = {.x = 0.0f, .y = 0.0f, .z = 1.0f, .w = 0.0f},
+	.up = {.x = 0.0f, .y = 1.0f, .z = 0.0f, .w = 0.0f},
+	.d = DEFAULT_WIDTH / 2,
+	.zoom = 1.0f,
+	.ratio = (float)DEFAULT_WIDTH / DEFAULT_HEIGHT,
+	.normalized = TRUE,
+	.l = 360.0f / 2,
+	.f = 180.0f / 2,
 };
 
 static const t_material default_matte_material = {
@@ -59,8 +101,9 @@ static const t_material default_matte_material = {
 		.value = 0x0000afff},
 	.kd = 0.5f,
 	.ka = 0.1f,
-	.ks = 0.5f,
-	.exp = 0.25f};
+	.ks = 0.0f,
+	.exp = 0.0f
+};
 
 static const t_obj default_sphere = {
 	.type = sphere,
@@ -71,7 +114,7 @@ static const t_obj default_sphere = {
 		.w = 0.0f},
 	.r = 1.0f,
 	.r2 = 1.0f,
-	.material = {.type = phong, .color = {.value = 0x000000ff}, .kd = 0.5f, .ka = 0.25f, .ks = 0.5, .exp = 10},
+	.material = {.type = phong, .color = {.value = 0x000000ff}, .kd = 0.5f, .ka = 0.1f, .ks = 0.5, .exp = 10},
 	.shadows = CL_TRUE};
 
 static const t_obj default_plane = {
@@ -82,7 +125,7 @@ static const t_obj default_plane = {
 		.z = 0.0f,
 		.w = 0.0f},
 	.direction = {.x = 0.0f, .y = -1.0f, .z = 0.0f, .w = 0.0f},
-	.material = {.type = phong, .color = {.value = 0x00aaaaaa}, .kd = 0.8f, .ka = 0.25f, .ks = 0.05f, .exp = 10.0f},
+	.material = {.type = phong, .color = {.value = 0x00aaaaaa}, .kd = 0.8f, .ka = 0.1f, .ks = 0.05f, .exp = 10.0f},
 	.shadows = CL_TRUE};
 
 static const t_obj default_cylinder = {
@@ -96,7 +139,7 @@ static const t_obj default_cylinder = {
 	.r = 1.0f,
 	.r2 = 1.0f,
 	.maxm = 5.0f, //max height of cylinder
-	.material = {.type = phong, .color = {.value = 0x001002af}, .kd = 0.6f, .ka = 0.25f, .ks = 0.2, .exp = 5},
+	.material = {.type = phong, .color = {.value = 0x001002af}, .kd = 0.6f, .ka = 0.1f, .ks = 0.2, .exp = 5},
 	.shadows = CL_TRUE};
 
 static const t_obj default_cone = {
@@ -118,7 +161,7 @@ static const t_obj default_cone = {
 	.r2 = 1.33333333333, //tan(angle / 2) + 1
 	.maxm = 3.0f,
 	.minm = -3.0f,
-	.material = {.type = phong, .color = {.value = 0x00ffaf}, .kd = 0.6f, .ka = 0.25f, .ks = 0.2f, .exp = 50.0f},
+	.material = {.type = phong, .color = {.value = 0x00ffaf}, .kd = 0.6f, .ka = 0.1f, .ks = 0.2f, .exp = 50.0f},
 	.shadows = CL_TRUE};
 
 static const t_obj default_paraboloid = {
@@ -132,7 +175,7 @@ static const t_obj default_paraboloid = {
 	.r = 0.3f,
 	.minm = 0.0f,
 	.maxm = 2.0f,
-	.material = {.type = phong, .color = {.value = 0x05f000f}, .kd = 0.6f, .ka = 0.25f, .ks = 0.2f, .exp = 50.0f},
+	.material = {.type = phong, .color = {.value = 0x05f000f}, .kd = 0.6f, .ka = 0.1f, .ks = 0.2f, .exp = 50.0f},
 	.shadows = CL_TRUE};
 
 static const t_obj default_torus = {
@@ -145,7 +188,7 @@ static const t_obj default_torus = {
 	.direction = {.x = 0.0f, .y = 0.7071067118f, .z = 0.7071067118f, .w = 0.0f},
 	.r = 2.0f,
 	.r2 = 0.4f,
-	.material = {.type = phong, .color = {.value = 0x00bf8f0f}, .kd = 0.6f, .ka = 0.25f, .ks = 0.2f, .exp = 50.0f},
+	.material = {.type = phong, .color = {.value = 0x00bf8f0f}, .kd = 0.6f, .ka = 0.1f, .ks = 0.2f, .exp = 50.0f},
 	.shadows = CL_TRUE};
 
 static const t_triangle default_triangle = {
@@ -284,8 +327,10 @@ void	init_default_scene(t_scene *scene, t_sampler_manager *sampler_manager)
 {
 	// scene->camera = default_camera;
 
-	// scene->camera = default_thin_lens_camera;
-	scene->camera = default_fisheye_camera;
+	scene->camera = default_thin_lens_camera;
+	// scene->camera = default_fisheye_camera;
+	// scene->camera = default_spherical_camera;
+	// scene->camera = default_stereo_camera;
 	scene->camera.sampler_id = new_sampler(sampler_manager, rand_jitter, NUM_SAMPLES, DISK_SAMPLES);
 
 	compute_uvw(&scene->camera);
@@ -420,7 +465,7 @@ void	init_default_scene(t_scene *scene, t_sampler_manager *sampler_manager)
 
 	scene->ambient_light = (t_light){
 		.type = ambient,
-		.ls = 0.0f,
+		.ls = 1.0f,
 		.color = {
 			.value = 0x00ffffff}};
 	scene->lights[0] = default_point_light;
@@ -434,14 +479,15 @@ void	init_default_scene(t_scene *scene, t_sampler_manager *sampler_manager)
 	scene->lights[2] = default_point_light;
 	scene->lights[2].origin.x = -2.0f;
 	scene->lights[2].origin.y = 5.0f;
-	scene->lights[2].ls = 1.0f;
+	scene->lights[2].ls = 0.0f;
+
 	//
 
 #else
-	scene->camera.viewplane.pixel_size = 0.05;
-	scene->camera.d = 40;
-	scene->camera.f = 50;
-	scene->camera.lens_radius = 5.0f;
+	// scene->camera.viewplane.pixel_size = 0.05;
+	// scene->camera.d = 40;
+	// scene->camera.f = 50;
+	// scene->camera.lens_radius = 5.0f;
 
 	scene->objects[0] = default_plane;
 	scene->objects[0].origin.x = 0.0f;

@@ -30,7 +30,7 @@ t_ray cast_camera_ray(t_camera camera, float x, float y, t_sampler_manager sampl
 	else if (camera.type == thin_lens)
 	{
 		float2 dp = sample_unit_disk(camera_sampler, sampler_manager.disk_samples, seed);
-		float2 lp = dp * camera.lens_radius; //lens_point
+		float2 lp = dp * camera.l; //lens_point
 		ray.origin = camera.origin + camera.u * lp.x + camera.v * lp.y;
 		px = px * camera.f / camera.d;
 		py = py * camera.f / camera.d;
@@ -55,6 +55,51 @@ t_ray cast_camera_ray(t_camera camera, float x, float y, t_sampler_manager sampl
 		}
 		else
 			ray.direction = (float4)(0.0f, 0.0f, 0.0f, 0.0f);
+	}
+	else if (camera.type == spherical)
+	{
+		ray.origin = camera.origin;
+
+		//compute the angles lambda and phi in radians
+		float	lambda = px * camera.l * 0.0174532925199432957;
+		float	psi = py * camera.f * 0.0174532925199432957;
+
+		//compute the spherical azimuth and polar angles
+
+		float	phi = M_PI - lambda;
+		float	theta = 0.5f * M_PI - psi;
+
+		float	sin_phi = sin(phi);
+		float	cos_phi = cos(phi);
+		float	sin_theta = sin(theta);
+		float	cos_theta = cos(theta);
+
+		ray.direction = sin_theta * sin_phi * camera.u + cos_theta * camera.v + sin_theta * cos_phi * camera.w;
+	}
+	else if (camera.type == stereo) //todo: rewrite paragraph 12
+	{
+		float r = 10;
+		float xx = r * tan(0.5f * camera.f * 0.0174532925199432957);
+
+		if (x < (camera.viewplane.width) / 2.0f - camera.l) //right eye
+		{
+			px = px + camera.viewplane.width / 4;
+			ray.origin = camera.origin + xx * camera.u;
+			px = px - xx;
+		}
+		else if (x > (camera.viewplane.width) / 2.0f + camera.l) //left eye
+		{
+			px = px - camera.viewplane.width / 4;
+			ray.origin = camera.origin - xx * camera.u;
+			px = px + xx;
+		}
+		else
+		{
+			ray.direction = (float4)(0.0f, 0.0f, 0.0f, 0.0f);
+			return (ray);
+		}
+		ray.direction = px * camera.u + py  * camera.v - camera.d * camera.w; // camera coordinates
+		ray.direction = normalize(ray.direction);
 	}
 	return (ray);
 }

@@ -6,17 +6,17 @@
 /*   By: dmelessa <dmelessa@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2020/02/10 19:36:22 by dmelessa          #+#    #+#             */
-/*   Updated: 2020/05/04 23:34:52 by dmelessa         ###   ########.fr       */
+/*   Updated: 2020/05/11 00:26:29 by dmelessa         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #ifndef WORLD_H
 # define WORLD_H
 
-# define DEFAULT_WIDTH 1280
-# define DEFAULT_HEIGHT 800
+# define DEFAULT_WIDTH 1200
+# define DEFAULT_HEIGHT 600
 # define DEFAULT_FOV 90
-# define WORK_GROUP_SIZE 256
+# define WORK_GROUP_SIZE 128
 
 //# define BOUNCES 5
 //# define SAMPLES 100
@@ -138,8 +138,8 @@ struct					s_material //kd + ks < 1.0
 	t_material_type		type;
 	t_color				color;
 	cl_float			kd; //diffuse reflection coefficient [0, 1]
-	cl_float			ka;
-	cl_float			ks; //coefficient of specularreflection [0, 1]
+	cl_float			ka; //ambient reflection
+	cl_float			ks; //coefficient of specular reflection [0, 1]
 	cl_float			exp;
 	void				*texture;
 };
@@ -266,7 +266,7 @@ struct s_camera
 	cl_int				sampler_id; //thin_camera
 	cl_int				normalized;
 	//thin-lens camera
-	cl_float			lens_radius; //lens radius
+	cl_float			l; //lens radius or lambda
 	cl_float			f; //focal plane distance or psi_max in fisheye
 
 //note: prob not needed

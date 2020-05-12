@@ -6,7 +6,7 @@
 /*   By: dmelessa <dmelessa@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2020/02/10 17:43:55 by dmelessa          #+#    #+#             */
-/*   Updated: 2020/05/04 22:50:13 by dmelessa         ###   ########.fr       */
+/*   Updated: 2020/05/06 11:54:02 by dmelessa         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -85,7 +85,7 @@ void init_options(t_render_options *options, t_sampler_manager *sampler_manager)
 {
 	options->shadows = TRUE;
 	// options->backgorund_color.value = 0x000000af;
-	options->background_color.value = 0x00050505;
+	options->background_color.value = 0x000505af;
 	options->depth = 5;
 	options->sampler_id = new_sampler(sampler_manager, rand_jitter, NUM_SAMPLES, DEFAULT_SAMPLES); //Anti-aliasing
 }
