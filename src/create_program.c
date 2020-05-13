@@ -37,7 +37,7 @@ char		*get_source_buf(char *file_name)
 	return (source);
 }
 
-static const char const *files[] = {
+static const char *files[] = {
 	"world.h",
 	"cl_rt.h",
 	"utils.cl",
@@ -51,6 +51,8 @@ static const char const *files[] = {
 	"normal.cl",
 	"light.cl",
 	"brdf.cl",
+	"ambient_occlusion.cl",
+	"shade.cl",
 	"ray_tracer.cl",
 	"path_tracer.cl",
 	"main_kernel.cl",

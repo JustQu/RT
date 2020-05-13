@@ -34,21 +34,17 @@
 
 # ifdef _WIN64
 #  define DEFAULT_KERNEL_FILE "main_kernel.cl"
+#  define DEFAULT_KERNEL_DIR "./src/cl/"
 # else
 #  define DEFAULT_KERNEL_FILE "main_kernel.cl"
+#  define DEFAULT_KERNEL_DIR "./src/cl/"
 # endif
 
-# define DEFAULT_KERNEL_NAME "main" //NOTE: нельзя сделать кернел с именем 'main'\
-											на встроенной видеокарте intel
+# define DEFAULT_KERNEL_NAME "main" //NOTE: нельзя сделать кернел с именем 'main'
+									//на встроенной видеокарте intel
 
 # define DEFAULT_KERNEL_INCLUDE "-I ./include -I ./src/cl"
 # define DEFAULT_WORK_SIZE DEFAULT_WIDTH * DEFAULT_HEIGHT
-
-# ifdef _WIN64
-#	define DEFAULT_KERNEL_DIR "./src/cl/"
-# else
-#	define DEFAULT_KERNEL_DIR "./src/cl/"
-# endif
 
 #define SUCCESS 0
 #define ERROR -1
@@ -127,6 +123,7 @@ struct					s_scene
 	t_triangle			*triangles;
 	t_light				ambient_light;
 	t_light				*lights;
+	t_ambient_occluder	ambient_occluder;
 	t_camera			camera;
 	int					nobjects;
 	int					nlights;

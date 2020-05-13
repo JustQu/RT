@@ -6,7 +6,7 @@
 /*   By: dmelessa <dmelessa@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2020/02/10 19:36:22 by dmelessa          #+#    #+#             */
-/*   Updated: 2020/05/11 00:26:29 by dmelessa         ###   ########.fr       */
+/*   Updated: 2020/05/13 21:04:53 by dmelessa         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -44,26 +44,27 @@
 #  define cl_uint unsigned int
 # endif
 
-typedef union s_color			t_color;
+typedef union s_color				t_color;
 
-typedef enum e_sampler_type		t_sampler_type;
-typedef struct s_sampler		t_sampler;
+typedef enum e_sampler_type			t_sampler_type;
+typedef struct s_sampler			t_sampler;
 
-typedef struct s_render_options	t_render_options;
+typedef struct s_render_options		t_render_options;
 
-typedef enum e_material_type	t_material_type;
-typedef struct s_material		t_material;
+typedef enum e_material_type		t_material_type;
+typedef struct s_material			t_material;
 
-typedef enum e_types			t_type;
-typedef enum e_light_types		t_light_type;
-typedef struct s_obj			t_obj;
-typedef struct s_light			t_light;
-typedef struct s_triangle		t_triangle;
-typedef struct s_bbox			t_bbox;
+typedef enum e_types				t_type;
+typedef enum e_light_types			t_light_type;
+typedef struct s_obj				t_obj;
+typedef struct s_light				t_light;
+typedef struct s_ambient_occluder	t_ambient_occluder;
+typedef struct s_triangle			t_triangle;
+typedef struct s_bbox				t_bbox;
 
-typedef enum e_camera_type		t_camera_type;
-typedef struct s_camera			t_camera;
-typedef struct s_viewplane		t_viewplane;
+typedef enum e_camera_type			t_camera_type;
+typedef struct s_camera				t_camera;
+typedef struct s_viewplane			t_viewplane;
 
 union s_color {
 	cl_int value;
@@ -109,19 +110,21 @@ struct				s_sampler
 	// cl_int			shuffled_indices[NUM_SAMPLES * NUM_SETS];
 
 	cl_int			offset;
-	cl_int			disk_samples_offset;
-	cl_int			hemisphere_samples_offset;
+	// cl_int			disk_samples_offset;
+	// cl_int			hemisphere_samples_offset;
 };
 
 # ifdef _WIN64
 __declspec(align(4))
 # endif
-struct s_render_options
+struct				s_render_options
 {
+	t_sampler		ambient_occluder_sampler;
 	cl_int			depth;
 	cl_int			shadows;
 	t_color			background_color;
 	cl_int			sampler_id;
+	cl_int			ambient_occlusion;
 };
 
 enum e_material_type
@@ -250,7 +253,7 @@ struct	s_viewplane
 # ifdef _WIN64
 __declspec(align(4))
 # endif
-struct s_camera
+struct	s_camera
 {
 	t_viewplane			viewplane;
 	cl_float4			origin; // eye
@@ -275,6 +278,20 @@ struct s_camera
 	cl_float			inv_h;
 	cl_float			angle;
 	cl_int				fov;
+};
+
+# ifdef _WIN64
+__declspec(align(4))
+# endif
+struct	s_ambient_occluder
+{
+	cl_float4	u;
+	cl_float4	v;
+	cl_float4	w;
+	t_color		color;
+	cl_float	ls; //radiance scaling factor [0, inf)
+	cl_int		sampler_id;
+	t_color		min_amount;
 };
 
 #endif

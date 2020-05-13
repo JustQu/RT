@@ -344,6 +344,12 @@ void	init_default_scene(t_scene *scene, t_sampler_manager *sampler_manager)
 
 	//default_scene
 #if 1
+
+	scene->ambient_occluder.color.value = 0x00ffffff;
+	scene->ambient_occluder.ls = 0.15f;
+	scene->ambient_occluder.min_amount.value = 0.00f;
+	scene->ambient_occluder.sampler_id = new_sampler(sampler_manager, rand_jitter, NUM_SAMPLES, HEMISPHERE_SAMPLES);
+
 	scene->objects[0] = default_plane;
 
 	// scene->objects[0] = default_sphere;

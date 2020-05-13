@@ -23,9 +23,10 @@ struct s_scene
 	__constant t_light		*lights;
 	int						nobjects;
 	int						ntriangles;
-	int						nlights;
+	int						nlights;//36 + 80
 	t_camera				camera;
 	t_light					ambient_light;
+	t_ambient_occluder		ambient_occluder;
 };
 
 struct					s_sampler_manager
