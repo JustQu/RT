@@ -1,7 +1,4 @@
-// #include "world.h"
-// #include "cl_rt.h"
-
- float4	get_light_direction(t_light light, t_shade_rec shade_rec)
+float4	get_light_direction(t_light light, t_shade_rec shade_rec)
 {
 	if (light.type == ambient)
 		return ((float4)(0.0f, 0.0f, 0.0f, 0.0f));
@@ -9,6 +6,10 @@
 		return (normalize(light.origin - shade_rec.hit_point));
 	else if (light.type == directional)
 		return -normalize(light.direction);
+	else if (light.type == area)
+	{
+		;//todo
+	}
 }
 
  t_color	get_light_radiance(t_light light)

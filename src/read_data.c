@@ -8,7 +8,7 @@ static const t_camera default_camera = {
 		.width = DEFAULT_WIDTH,
 		.height = DEFAULT_HEIGHT},
 	.type = perspective,
-	.origin = {.x = 0.0f, .y = 2.0f, .z = 0.0f, .w = 0.0f},
+	.origin = {.x = 1.0f, .y = 1.0f, .z = 0.0f, .w = 0.0f},
 	.direction = {.x = 0.0f, .y = 0.0f, .z = 1.0f, .w = 0.0f},
 	.up = {.x = 0.0f, .y = 1.0f, .z = 0.0f, .w = 0.0f},
 	.d = DEFAULT_WIDTH / 4,
@@ -103,6 +103,14 @@ static const t_material default_matte_material = {
 	.ka = 0.1f,
 	.ks = 0.0f,
 	.exp = 0.0f
+};
+
+static const t_material default_emissive_material = {
+	.type = emissive,
+	.color = {
+		.value = 0x00ffff00
+	},
+	.ka = 1.0f,
 };
 
 static const t_obj default_sphere = {
@@ -209,13 +217,37 @@ static const t_triangle default_triangle = {
 	.normal = {.x = 0.0f, .y = 0.0f, .z = -1.0f, .w = 0.0f},
 	.material = {.color = 0x00af00af, .type = phong, .kd = 0.2, .ka = 0.25, .ks = 0.8, .exp = 10
 }};
-static const t_bbox default_box = {
-	.min = {
-		.x = 0.0f,
+static const t_obj default_box = {
+	.type = box,
+	.bounding_box = {
+		.min = {
+			.x = 1.0f,
+			.y = -1.0f,
+			.z = 3.0f,
+			.w = 0.0f},
+		.max = {.x = 2.0f, .y = 0.0f, .z = 4.0f, .w = 0.0f}
+	},
+	.shadows = CL_TRUE
+};
+
+static const t_obj default_disk = {
+	.type = disk,
+	.origin = {
+		.x = -1.0f,
+		.y = 2.0f,
+		.z = 3.0f,
+		.w = 0.0f
+	},
+	.direction = {
+		.x = 0.707107f,
 		.y = 0.0f,
-		.z = 1.0f,
-		.w = 0.0f},
-	.max = {.x = 1.0f, .y = 1.0f, .z = 2.0f, .w = 0.0f}};
+		.z = 0.707107f,
+		.w = 0.0f
+	},
+	.r = 1.0f,
+	.r2 = 1.0f,
+	.shadows = CL_TRUE
+};
 
 static const t_light default_ambient_light = {
 	.type = ambient,
@@ -245,7 +277,8 @@ static const t_light default_point_light = {
 		.z = 0.0f,
 		.w = 0.0f},
 	.ls = 3.0f,
-	.color = 0x00ffffff};
+	.color = 0x00ffffff
+};
 
 void init_func(t_scene *scene)
 {
@@ -325,9 +358,9 @@ void	read_file(t_scene *scene, char *scene_file)
 
 void	init_default_scene(t_scene *scene, t_sampler_manager *sampler_manager)
 {
-	// scene->camera = default_camera;
+	scene->camera = default_camera;
 
-	scene->camera = default_thin_lens_camera;
+	// scene->camera = default_thin_lens_camera;
 	// scene->camera = default_fisheye_camera;
 	// scene->camera = default_spherical_camera;
 	// scene->camera = default_stereo_camera;
@@ -335,7 +368,7 @@ void	init_default_scene(t_scene *scene, t_sampler_manager *sampler_manager)
 
 	compute_uvw(&scene->camera);
 
-	scene->nobjects = 9;
+	scene->nobjects = 11;
 	scene->ntriangles = 1;
 	scene->objects = (t_obj *)malloc(sizeof(t_obj) * (scene->nobjects + 10));
 	scene->triangles = (t_triangle *)malloc(sizeof(t_triangle) * (scene->ntriangles + 10));
@@ -420,6 +453,8 @@ void	init_default_scene(t_scene *scene, t_sampler_manager *sampler_manager)
 
 	scene->objects[6] = default_cone;
 	scene->objects[6].material.color.value = 0x00ffafff;
+	scene->objects[6].minm = -3.0f;
+	scene->objects[6].maxm = 3.0f;
 
 	scene->objects[7] = default_paraboloid;
 
@@ -445,27 +480,17 @@ void	init_default_scene(t_scene *scene, t_sampler_manager *sampler_manager)
 	scene->objects[8].bounding_box.min.z =
 		scene->objects[8].origin.z - scene->objects[8].r - scene->objects[8].r2;
 
-	scene->objects[9] = default_torus;
-	scene->objects[9].origin.x = -2.0f;
-	scene->objects[9].origin.y = 5.0f;
-	scene->objects[9].origin.z = 4.0f;
-	scene->objects[9].direction.x = 0.86602540378f;
-	scene->objects[9].direction.y = -0.5;
-	scene->objects[9].direction.z = 0;
-	scene->objects[9].r = 1.5f;
-	scene->objects[9].r2 = 0.3f;
-	scene->objects[9].bounding_box.max.x =
-		scene->objects[9].origin.x + scene->objects[9].r + scene->objects[9].r2;
-	scene->objects[9].bounding_box.max.y =
-		scene->objects[9].origin.y + scene->objects[9].r + scene->objects[9].r2;
-	scene->objects[9].bounding_box.max.z =
-		scene->objects[9].origin.z + scene->objects[9].r + scene->objects[9].r2;
-	scene->objects[9].bounding_box.min.x =
-		scene->objects[9].origin.x - scene->objects[9].r - scene->objects[9].r2;
-	scene->objects[9].bounding_box.min.y =
-		scene->objects[9].origin.y - scene->objects[9].r - scene->objects[9].r2;
-	scene->objects[9].bounding_box.min.z =
-		scene->objects[9].origin.z - scene->objects[9].r - scene->objects[9].r2;
+	scene->objects[9] = default_box;
+	scene->objects[9].material.color.value = 0x00ffffff;
+	scene->objects[9].material.ka = 0.1f;
+	scene->objects[9].material.kd = 0.7f;
+	scene->objects[9].material.ks = 0.0f;
+
+	scene->objects[10] = default_disk;
+	scene->objects[10].material.color.value = 0x00aa0a;
+	scene->objects[10].material.ka = 0.0f,
+	scene->objects[10].material.kd = 0.5f,
+	scene->objects[10].material.ks = 0.0f,
 
 	scene->triangles[0] = default_triangle;
 

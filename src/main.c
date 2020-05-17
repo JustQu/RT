@@ -6,14 +6,14 @@
 /*   By: dmelessa <dmelessa@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2020/01/28 15:18:45 by dmelessa          #+#    #+#             */
-/*   Updated: 2020/05/13 22:41:03 by dmelessa         ###   ########.fr       */
+/*   Updated: 2020/05/14 22:13:56 by dmelessa         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #define _CRTDBG_MAP_ALLOC
 # include "rt.h"
 
-
+FILE *f;
 /**
 ** @brief
 ** L1 Cache = Local Memory(OpenCL) = Shared Memory(CUDA)
@@ -73,7 +73,8 @@ void cleanup(t_rt rt)
 	clReleaseMemObject(rt.program.output_image);
 	clReleaseMemObject(rt.program.triangles);
 	clReleaseKernel(rt.program.help_kernel);
-	clReleaseKernel(rt.program.kernel);
+	clReleaseKernel(rt.program.new_kernel);
+	// clReleaseKernel(rt.program.kernel);
 	clReleaseProgram(rt.program.program);
 	clReleaseCommandQueue(rt.program.clp.queue);
 	clReleaseContext(rt.program.clp.context);
@@ -154,6 +155,12 @@ int		main(int ac, char **av)
 	t_rt	rt;
 	int		value;
 
+	f = fopen("ocl", "w");
+	if (f == NULL)
+	{
+		printf("ERROR");
+		exit(0);
+	}
 	ac == 1 ? init_rt(&rt, NULL) : init_rt(&rt, av[1]);
 	while (1)
 	{

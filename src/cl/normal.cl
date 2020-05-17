@@ -51,6 +51,34 @@ float4	get_torus_normal(float4 point, t_obj torus, t_hit_info hit_info)
 	return normalize(point - A - (torus.origin - A) * (m / (torus.r + m)));
 }
 
+float4	get_box_normal(float4 point, t_obj box, t_hit_info hit_info)
+{
+	if (hit_info.m == 0)
+	{
+		return ((float4)(-1.0f, 0.0f, 0.0f, 0.0f));
+	}
+	else if (hit_info.m == 1)
+	{
+		return ((float4)(0.0f, -1.0f, 0.0f, 0.0f));
+	}
+	else if (hit_info.m == 2)
+	{
+		return ((float4)(0.0f, 0.0f, -1.0f, 0.0f));
+	}
+	else if (hit_info.m == 3)
+	{
+		return ((float4)(1.0f, 0.0f, 0.0f, 0.0f));
+	}
+	else if (hit_info.m == 4)
+	{
+		return ((float4)(0.0f, 1.0f, 0.0f, 0.0f));
+	}
+	else if (hit_info.m == 5)
+	{
+		return ((float4)(0.0f, 0.0f, 1.0f, 0.0f));
+	}
+}
+
 float4	get_object_normal(float4 point, t_obj object, t_hit_info hit_info)
 {
 	if (object.type == sphere)
@@ -76,5 +104,13 @@ float4	get_object_normal(float4 point, t_obj object, t_hit_info hit_info)
 	else if (object.type == torus)
 	{
 		return (get_torus_normal(point, object, hit_info));
+	}
+	else if (object.type == box)
+	{
+		return (get_box_normal(point, object, hit_info));
+	}
+	else if (object.type == disk)
+	{
+		return (get_plane_normal(object, hit_info));
 	}
 }

@@ -6,7 +6,7 @@
 /*   By: dmelessa <dmelessa@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2020/02/10 17:43:55 by dmelessa          #+#    #+#             */
-/*   Updated: 2020/05/13 22:45:28 by dmelessa         ###   ########.fr       */
+/*   Updated: 2020/05/13 23:00:27 by dmelessa         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -84,7 +84,7 @@ void init_buffers(t_cl_program *program, t_scene *scene,
 void init_options(t_render_options *options, t_sampler_manager *sampler_manager)
 {
 	options->shadows = TRUE;
-	options->ambient_occlusion = FALSE;
+	options->ambient_occlusion = TRUE;
 	// options->backgorund_color.value = 0x000000af;
 	options->background_color.value = 0x000505af;
 	options->depth = 5;
@@ -111,8 +111,10 @@ int init_kernel(t_cl_program *program, t_scene *scene, t_sampler_manager *sample
 						 DEFAULT_KERNEL_INCLUDE, NULL, NULL);
 	cl_error(program, &program->clp, ret);
 	/* create kernel */
-	// cl_error(program, &program->clp, ret);
-	program->new_kernel = clCreateKernel(program->program, "main_kernel", &ret);
+	program->new_kernel = clCreateKernel(program->program, DEFAULT_KERNEL_NAME,
+									 &ret);
+	cl_error(program, &program->clp, ret);
+	// program->kernel = clCreateKernel(program->program, "del", &ret);
 	cl_error(program, &program->clp, ret);
 	program->help_kernel = clCreateKernel(program->program, "translate_image", &ret);
 	cl_error(program, &program->clp, ret);

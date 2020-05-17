@@ -13,7 +13,7 @@ bool	in_shadow(t_ray shadow_ray, t_scene scene)
 
 	for (int i = 0; i < scene.nobjects; i++)
 	{
-		if (is_intersect(shadow_ray, scene.objects[i], &ht) && ht.t < 5.0f)
+		if (is_intersect(shadow_ray, scene.objects[i], &ht))
 			return (true);
 	}
 	return false;
@@ -25,6 +25,8 @@ t_color	ambient_occlusion_l(t_scene scene,
 							t_shade_rec shade_rec,
 							uint2 *seed)
 {
+	t_color	color;
+
 	scene.ambient_occluder.w = shade_rec.normal;
 	scene.ambient_occluder.v = normalize(cross(scene.ambient_occluder.w, (float4)(0.0072f, 1.0f, 0.0034f, 0.0f)));
 	scene.ambient_occluder.u = cross(scene.ambient_occluder.v, scene.ambient_occluder.w);
@@ -32,13 +34,8 @@ t_color	ambient_occlusion_l(t_scene scene,
 	t_ray shadow_ray;
 	shadow_ray.origin = shade_rec.hit_point;
 	shadow_ray.direction = get_ambient_occluder_direction(scene.ambient_occluder, sampler_manager, sampler, seed);
-
+	color = float_color_multi(scene.ambient_occluder.ls, scene.ambient_occluder.color);
 	if (in_shadow(shadow_ray, scene))
-	{
-		return ((t_color){.value = 0});
-	}
-	else
-	{
-		return (float_color_multi(scene.ambient_occluder.ls, scene.ambient_occluder.color));
-	}
+		color = float_color_multi(0.3, color);
+	return (color);
 }

@@ -12,6 +12,7 @@ bool	bbox_intersection(t_ray ray, t_bbox bbox)
 	float tx_min, ty_min, tz_min;
 	float tx_max, ty_max, tz_max;
 	float a = 1.0f / dx;
+
 	if (a >= 0.0f)
 	{
 		tx_min = (bbox.min.x - ox) * a;
@@ -64,7 +65,110 @@ bool	bbox_intersection(t_ray ray, t_bbox bbox)
 	return (t0 < t1 && t1 > 1e-6);
 }
 
- bool	sphere_intersection(t_ray ray, t_obj sphere, t_hit_info *hit_info)
+bool	box_intersection(t_ray ray, t_obj box, t_hit_info *hit_info)
+{
+	int	face_in;
+	int	face_out;
+
+	float ox = ray.origin.x;
+	float oy = ray.origin.y;
+	float oz = ray.origin.z;
+	float dx = ray.direction.x;
+	float dy = ray.direction.y;
+	float dz = ray.direction.z;
+	float tx_min, ty_min, tz_min;
+	float tx_max, ty_max, tz_max;
+	float a = 1.0f / dx;
+
+	t_bbox bbox = box.bounding_box;
+
+	if (a >= 0.0f)
+	{
+		tx_min = (bbox.min.x - ox) * a;
+		tx_max = (bbox.max.x - ox) * a;
+	}
+	else
+	{
+		tx_min = (bbox.max.x - ox) * a;
+		tx_max = (bbox.min.x - ox) * a;
+	}
+	float b = 1.0 / dy;
+	if (b >= 0.0f)
+	{
+		ty_min = (bbox.min.y - oy) * b;
+		ty_max = (bbox.max.y - oy) * b;
+	}
+	else
+	{
+		ty_min = (bbox.max.y - oy) * b;
+		ty_max = (bbox.min.y - oy) * b;
+	}
+
+	float c = 1.0 / dz;
+	if (c >= 0.0f)
+	{
+		tz_min = (bbox.min.z - oz) * c;
+		tz_max = (bbox.max.z - oz) * c;
+	}
+	else
+	{
+		tz_min = (bbox.max.z - oz) * c;
+		tz_max = (bbox.min.z - oz) * c;
+	}
+
+	float	t0, t1;
+	if (tx_min > ty_min)
+	{
+		t0 = tx_min;
+		face_in = (a >= 0.0f) ? 0 : 3;
+	}
+	else
+	{
+		t0 = ty_min;
+		face_in = (b >= 0.0f) ? 1 : 4;
+	}
+	if (tz_min > t0)
+	{
+		t0 = tz_min;
+		face_in = (c >= 0.0f) ? 2 : 5;
+	}
+
+	if (tx_max < ty_max)
+	{
+		t1 = tx_max;
+		face_out = (a > 0.0f) ? 3 : 0;
+	}
+	else
+	{
+		t1 = ty_max;
+		face_out = (b > 0.0f) ? 4 : 1;
+	}
+	if (tz_max < t1)
+	{
+		t1 = tz_max;
+		face_out = (c > 0.0f) ? 5 : 2;
+	}
+
+	if (t0 < t1 && t1 > EPSILON)
+	{
+		if (t0 > EPSILON)
+		{
+			hit_info->t = t0;
+			hit_info->m = face_in;
+		}
+		else
+		{
+			hit_info->t = t1;
+			hit_info->m = face_out;
+		}
+		return (true);
+	}
+	// printf("here\n");
+	return (false);
+}
+
+
+bool	sphere_intersection(t_ray ray, t_obj sphere, t_hit_info *hit_info)
 {
 #if 1 // geometric solution
 
@@ -134,6 +238,37 @@ bool	bbox_intersection(t_ray ray, t_bbox bbox)
 			{
 				hit_info->dv = denom;
 				ret = true;
+			}
+		}
+	}
+	return (ret);
+}
+
+bool	disk_intersection(t_ray ray, t_obj disk, t_hit_info *hit_info)
+{
+	float4	a;
+	float	t;
+	float	denom;
+	bool	ret;
+
+	ret = false;
+	denom = dot(ray.direction, disk.direction);
+	if (denom != 0)
+	{
+		a = disk.origin - ray.origin;
+		t = dot(a, disk.direction);
+		if (t * denom > 0.0f) //different signes
+		{
+			hit_info->t = t / denom;
+
+			if (hit_info->t >= EPSILON)
+			{
+				float4 point = hit_info->t * ray.direction + ray.origin;
+				if (dot(point - disk.origin, point - disk.origin) < disk.r2)
+				{
+					hit_info->dv = denom;
+					ret = true;
+				}
 			}
 		}
 	}
@@ -394,6 +529,14 @@ bool	is_intersect(t_ray ray, t_obj obj, t_hit_info *hit_info)
 	else if (obj.type == torus)
 	{
 		return torus_intersecion(ray, obj, hit_info);
+	}
+	else if (obj.type == box)
+	{
+		return box_intersection(ray, obj, hit_info);
+	}
+	else if (obj.type == disk)
+	{
+		return (disk_intersection(ray, obj, hit_info));
 	}
 	return (false);
 }

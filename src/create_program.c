@@ -1,6 +1,8 @@
 #include "rt.h"
 #define BUFF_SIZE 128
 
+extern FILE *f;
+
 /**
 ** @TODO(dmelessa): rewrite this one?
 ** @brief Get the source buf object
@@ -80,6 +82,7 @@ void create_source(char **source_buf)
 			free(s);
 		}
 		i++;
+		fprintf(f, "%s", source_buf[i - 1]);
 	}
 }
 
