@@ -275,6 +275,42 @@ bool	disk_intersection(t_ray ray, t_obj disk, t_hit_info *hit_info)
 	return (ret);
 }
 
+bool	rectangle_intersection(t_ray ray, t_obj rectangle, t_hit_info *hit_info)
+{
+	float4	d;
+	float	t;
+	float	denom;
+	bool	ret;
+
+	ret = false;
+	denom = dot(ray.direction, rectangle.normal);
+	if (denom != 0.0f)
+	{
+		d = rectangle.origin - ray.origin;
+		t = dot(d, rectangle.normal);
+		if (t * denom > 0.0f)
+		{
+			hit_info->t = t / denom;
+
+			if (hit_info->t >= EPSILON)
+			{
+				float4 point =  hit_info->t * ray.direction + ray.origin;
+				d = point - rectangle.origin;
+
+				float ddota = dot(d, rectangle.direction);
+				if (ddota < 0.0f || ddota > rectangle.r)
+					return (false);
+
+				float ddotb = dot(d, rectangle.dir2);
+				if (ddotb < 0.0f || ddotb > rectangle.r2)
+					return (false);
+				ret = true;
+			}
+		}
+	}
+	return (ret);
+}
+
 /*
 ** TODO(dmelessa): cap cylinder with discs
 */
@@ -537,6 +573,10 @@ bool	is_intersect(t_ray ray, t_obj obj, t_hit_info *hit_info)
 	else if (obj.type == disk)
 	{
 		return (disk_intersection(ray, obj, hit_info));
+	}
+	else if (obj.type == rectangle)
+	{
+		return (rectangle_intersection(ray, obj, hit_info));
 	}
 	return (false);
 }

@@ -113,4 +113,6 @@ float4	get_object_normal(float4 point, t_obj object, t_hit_info hit_info)
 	{
 		return (get_plane_normal(object, hit_info));
 	}
+	else if (object.type == rectangle)
+		return object.normal;
 }

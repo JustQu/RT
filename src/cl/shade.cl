@@ -150,8 +150,6 @@ t_color		shade_matte(t_material material,
 	return (color);
 }
 
-
-//TODO: area light
 /*
 lights can optionally cast shadows
 objects can optionally cast shadows

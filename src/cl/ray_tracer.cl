@@ -64,7 +64,12 @@ t_color	ray_trace(t_ray ray, t_scene scene, t_render_options options, t_sampler_
 			shade_rec.normal = get_triangle_normal(scene.triangles[shade_rec.id]);
 
 			/* shade triangle */
-			color = shade_object(scene.triangles[shade_rec.id].material, shade_rec, scene, sampler_manager,options, seed);
+			if (options.area_lightning)
+			{
+				color = area_light_shade(scene.triangles[shade_rec.id].material, shade_rec, scene, sampler_manager, options, seed);
+			}
+			else
+				color = shade_object(scene.triangles[shade_rec.id].material, shade_rec, scene, sampler_manager,options, seed);
 		}
 
 		/* shade object if it was not triangle */
@@ -77,7 +82,12 @@ t_color	ray_trace(t_ray ray, t_scene scene, t_render_options options, t_sampler_
 				shade_rec.normal : -shade_rec.normal;
 
 			/* shade object */
-			color = shade_object(scene.objects[shade_rec.id].material, shade_rec, scene, sampler_manager, options, seed);
+			if (options.area_lightning)
+			{
+				color = area_light_shade(scene.objects[shade_rec.id].material, shade_rec, scene, sampler_manager, options, seed);
+			}
+			else
+				color = shade_object(scene.objects[shade_rec.id].material, shade_rec, scene, sampler_manager, options, seed);
 		}
 	}
 	return (color);

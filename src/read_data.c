@@ -249,6 +249,37 @@ static const t_obj default_disk = {
 	.shadows = CL_TRUE
 };
 
+static const t_obj default_rectangle = {
+	.type = rectangle,
+	.origin = {
+		.x = -1.2f,
+		.y = 0.0f,
+		.z = 2.0f,
+		.w = 0.0f
+	},
+	.direction = {
+		.x = 1.0f,
+		.y = 0.0f,
+		.z = 0.0f,
+		.w = 0.0f
+	},
+	.dir2 = {
+		.x = 0.0f,
+		.y = 1.0f,
+		.z = 0.0f,
+		.w = 0.0f
+	},
+	.normal = {
+		.x = 0.0f,
+		.y = 0.0f,
+		.z = 1.0f,
+		.w = 0.0f
+	},
+	.r = 1.0f,
+	.r2 = 1.0f,
+	.shadows = CL_TRUE
+};
+
 static const t_light default_ambient_light = {
 	.type = ambient,
 	.origin = {
@@ -368,7 +399,7 @@ void	init_default_scene(t_scene *scene, t_sampler_manager *sampler_manager)
 
 	compute_uvw(&scene->camera);
 
-	scene->nobjects = 11;
+	scene->nobjects = 12;
 	scene->ntriangles = 1;
 	scene->objects = (t_obj *)malloc(sizeof(t_obj) * (scene->nobjects + 10));
 	scene->triangles = (t_triangle *)malloc(sizeof(t_triangle) * (scene->ntriangles + 10));
@@ -491,6 +522,14 @@ void	init_default_scene(t_scene *scene, t_sampler_manager *sampler_manager)
 	scene->objects[10].material.ka = 0.0f,
 	scene->objects[10].material.kd = 0.5f,
 	scene->objects[10].material.ks = 0.0f,
+
+	scene->objects[11] = default_rectangle;
+	scene->objects[11].material.color.value = 0x000af0aa0;
+	scene->objects[11].material.type = phong;
+	scene->objects[11].material.ka = 0.2f,
+	scene->objects[11].material.kd = 0.7f,
+	scene->objects[11].material.ks = 0.2f,
+	scene->objects[11].material.exp = 1000.0f,
 
 	scene->triangles[0] = default_triangle;
 

@@ -6,7 +6,7 @@
 /*   By: dmelessa <dmelessa@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2020/05/16 00:07:20 by dmelessa          #+#    #+#             */
-/*   Updated: 2020/05/17 22:19:57 by dmelessa         ###   ########.fr       */
+/*   Updated: 2020/05/18 23:25:12 by dmelessa         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -30,7 +30,8 @@ enum	e_types
 	torus,
 	triangle,
 	box,
-	disk
+	disk,
+	rectangle
 };
 
 /**

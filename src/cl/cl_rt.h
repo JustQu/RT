@@ -78,7 +78,13 @@ struct			s_shade_rec
 // float4	get_light_direction(t_light light, t_shade_rec shade_rec);
 // t_color	get_light_radiance(t_light light);
 
-float4	get_reflected_vector(float4 l, float4 n);
+float4 get_reflected_vector(float4 l, float4 n);
+t_color area_light_shade(t_material material,
+						 t_shade_rec shade_rec,
+						 t_scene scene,
+						 t_sampler_manager sampler_manager,
+						 t_render_options render_options,
+						 uint2 *seed);
 
 // bool	is_intersect(t_ray ray, t_obj obj, t_hit_info *hit_info);
 // bool	bbox_intersection(t_ray ray, t_bbox bbox);

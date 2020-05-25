@@ -55,11 +55,11 @@ static const char *files[] = {
 	"brdf.cl",
 	"ambient_occlusion.cl",
 	"shade.cl",
+	"area_light_shade.cl",
 	"ray_tracer.cl",
 	"path_tracer.cl",
 	"main_kernel.cl",
-	"util_kernels.cl"
-};
+	"util_kernels.cl"};
 int num_files = sizeof(files) / sizeof(char *);
 
 void create_source(char **source_buf)

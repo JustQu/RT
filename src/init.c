@@ -6,7 +6,7 @@
 /*   By: dmelessa <dmelessa@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2020/02/10 17:43:55 by dmelessa          #+#    #+#             */
-/*   Updated: 2020/05/13 23:00:27 by dmelessa         ###   ########.fr       */
+/*   Updated: 2020/05/25 13:42:17 by dmelessa         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -85,6 +85,7 @@ void init_options(t_render_options *options, t_sampler_manager *sampler_manager)
 {
 	options->shadows = TRUE;
 	options->ambient_occlusion = TRUE;
+	options->area_lightning = FALSE;
 	// options->backgorund_color.value = 0x000000af;
 	options->background_color.value = 0x000505af;
 	options->depth = 5;
