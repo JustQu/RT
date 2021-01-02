@@ -3,36 +3,36 @@
 /*                                                        :::      ::::::::   */
 /*   ft_atoi.c                                          :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: mfalkrea <marvin@42.fr>                    +#+  +:+       +#+        */
+/*   By: rmaxima <rmaxima@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2019/09/13 18:50:33 by mfalkrea          #+#    #+#             */
-/*   Updated: 2019/09/13 18:50:39 by mfalkrea         ###   ########.fr       */
+/*   Created: 2019/09/12 12:17:38 by rmaxima           #+#    #+#             */
+/*   Updated: 2019/09/19 17:56:54 by rmaxima          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "libft.h"
 
-int		ft_atoi(char const *s)
+int				ft_atoi(const char *str)
 {
-	int		i;
-	int		log;
-	int		n;
+	size_t	i;
+	size_t	nbr;
+	int		sign;
 
 	i = 0;
-	n = 0;
-	log = 1;
-	while ((s[i] >= 9 && s[i] <= 13) || s[i] == 32)
+	sign = 1;
+	nbr = 0;
+	if (!str[i])
+		return (0);
+	while (ft_space(str[i]))
 		i++;
-	if (s[i] == '-' || s[i] == '+')
-	{
-		if (s[i] == '-')
-			log = -1;
-		i++;
-	}
-	while (s[i] >= '0' && s[i] <= '9')
-	{
-		n = n * 10 + s[i] - '0';
-		i++;
-	}
-	return (n * log);
+	if (str[i] == '-' || str[i] == '+')
+		if (str[i++] == '-')
+			sign = -1;
+	while (str[i] >= '0' && str[i] <= '9')
+		nbr = (nbr * 10) + (str[i++] - '0');
+	if (nbr > 9223372036854775808ULL && sign < 0)
+		return (0);
+	if (nbr > 9223372036854775807ULL && sign > 0)
+		return (-1);
+	return ((int)nbr * sign);
 }

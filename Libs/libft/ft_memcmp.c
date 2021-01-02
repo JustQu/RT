@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   ft_memcmp.c                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: mfalkrea <marvin@42.fr>                    +#+  +:+       +#+        */
+/*   By: rmaxima <rmaxima@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2019/09/13 18:54:31 by mfalkrea          #+#    #+#             */
-/*   Updated: 2019/09/13 19:13:18 by mfalkrea         ###   ########.fr       */
+/*   Created: 2019/09/16 14:49:01 by rmaxima           #+#    #+#             */
+/*   Updated: 2019/09/16 15:04:31 by rmaxima          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,19 +14,20 @@
 
 int		ft_memcmp(const void *s1, const void *s2, size_t n)
 {
-	size_t	i;
-	char	*t1;
-	char	*t2;
+	size_t			i;
+	unsigned char	*str1;
+	unsigned char	*str2;
 
+	str1 = (unsigned char*)s1;
+	str2 = (unsigned char*)s2;
+	if ((s1 == NULL && s2 == NULL) || n == 0)
+		return (0);
 	i = 0;
-	t1 = (char*)s1;
-	t2 = (char*)s2;
-	while (i < n)
+	while (str1[i] == str2[i] && i <= n)
 	{
-		if (t1[i] == t2[i])
-			i++;
-		else
-			return ((unsigned char)t1[i] - (unsigned char)t2[i]);
+		i++;
+		if (i == n || (str1 == '\0' && str2 == '\0'))
+			return (0);
 	}
-	return (0);
+	return (str1[i] - str2[i]);
 }

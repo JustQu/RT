@@ -3,32 +3,31 @@
 /*                                                        :::      ::::::::   */
 /*   ft_memccpy.c                                       :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: dmelessa <dmelessa@student.42.fr>          +#+  +:+       +#+        */
+/*   By: dmelessa <cool.3meu@gmail.com>             +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2019/09/13 18:54:01 by mfalkrea          #+#    #+#             */
-/*   Updated: 2020/03/29 21:42:09 by dmelessa         ###   ########.fr       */
+/*   Created: 2019/09/14 19:33:47 by rmaxima           #+#    #+#             */
+/*   Updated: 2020/12/20 20:16:18 by dmelessa         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "libft.h"
 
-void	*ft_memccpy(void *dest, const void *src, int c, size_t n)
+void	*ft_memccpy(void *dst, const void *src, int c, size_t n)
 {
-	unsigned char	*t_dest;
-	unsigned char	*t_src;
 	size_t			i;
+	unsigned char	*str1;
+	unsigned char	*str2;
+	unsigned char	rev;
 
+	str1 = (unsigned char*)dst;
+	str2 = (unsigned char*)src;
+	rev = (unsigned char)c;
 	i = 0;
-	t_src = (unsigned char*)src;
-	t_dest = (unsigned char*)dest;
 	while (i < n)
 	{
-		t_dest[i] = t_src[i];
-		if (t_src[i] == (unsigned char)c)
-		{
-			return ((unsigned char *)dest + i + 1);
-			break ;
-		}
+		str1[i] = str2[i];
+		if (str2[i] == rev)
+			return ((void*)((unsigned char *)dst + i + 1));
 		i++;
 	}
 	return (NULL);

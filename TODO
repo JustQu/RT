@@ -1,7 +1,184 @@
-TODO:
-	1. Починить path tracing
-	2. Оставить color как есть или поменять на значения float
-	3. Почистить код
-	4. Парсер
-	5. Area light
-	...
++ add_parsed_asset function
++- sampler_manager
++camera interface
+-move matrix to instance
++-aabb computation for instances
+	do for triangle
++compute emissive object area
+----------------trace_mouse_ray
+in the future:
+	boolean objects
+	changing objects on flight
+	rebuilding bvh when changing objects
+	add emissive objects: sphere, cylinder,
+	deleting instances. NOTE: need ref counter in this case?
+	multi importance sampling
+	russian roulette
+
++options in path tracing
++-phong in direct lightning
+colors in reflections and transmissions
++free memory
++move image from window
+
+init
+parse
+create_buffers
+
+app_loop: console loop,
+		window loop: gui on/off
+
+16384
+
+scene:
+	camera
+	options
+	objects
+	lights
+
+options:
+	tracer: ray_caster/directional_light/path_tracer
+	background_color:
+	ambient_illumination:
+		constant: coefficient
+		ambient_occlusion: min_amount
+	shadows: true/false
+	depth: int
+	global_illumination: true/false
+
+camera: origin direction/lookat viewplane_distance zoom
+	type:
+		perspective: -
+		thin_lens: focus_distance thickness
+		stereo: todo
+
+objects: origin rotation scaling
+	sphere: radius
+	plane: -
+	cylinder: radius height
+	cone: angle height
+	disk: radius
+	reactangle: vector1 vector2 width length
+	box: nearestRightBottomPoint farestLeftTopPoint
+	paraboloid: radius dist
+	torus: bigRadius smallRadius
+	triangle: 3 vertices
+
+lights: color, ls
+	point: origin
+	directional: direction
+
+materials:
+	matte: diffuse_coefficient
+	emissive: intensity
+	mirror: reflection_coefficient
+	conductor: reflection_coefficient roughness
+	plastic: diffuse_coefficient reflection_coefficient roughness
+	dielectric: transmission coefficient roughness
+
+textures:
+	solid: color
+	checker: color color2
+	perlin: color
+	wave: color
+	turbulance: color
+
+
+materials: ambient_coefficient type
+	matte: diffuse_coefficient
+	emissive: intensity
+	mirror: reflection_coefficient
+	conductor: reflection_coefficient roughness
+	plastic: diffuse_coefficient reflection_coefficient roughness
+	dielectric: transmission_coefficient roughness
+
+material:		//32bytes
+	type	//4
+	ka		//4
+	k1		//4
+	k2		//4
+	exp		//4
+	tex_id	//4
+	free space 8 bytes
+
+instance:		//64
+	type		//4
+	material	//32
+	matrix		//16
+	area		//4
+
+
++++4 базовых объекта
++++установить камеру и направление в любое место
++++Свет
++++Файл описания для сцены
++++Структурированный файл сцены
++++Ambiance light
++++Можно регулировать ambiance light из файла
+Ограниченные объекты:
+	можно разрезать по осям
+	можно выбрать: зазрезать по собственным осям или по мировым
+	пермещение и вращение продолжает работать
+	разрез уникален для каждого объекта
+	можно разрезать плоскость не только по осям
+"Помехи"
+	+++Эффект волны
+	+++шахматная доска
+	+++более сложный алгоритм
+	+++Perlin noise
+Direct light: световой блик https://resources.mpi-inf.mpg.de/lensflareRendering/pdf/flare.pdf
++++parallel light: Свет в одном направлениее(Солнце)
+Отражения и прозрачность
+	+++Эффект зеркала
+	===можно менять % отражения
+	+++Прозрачность работает
+	+++Работает формула преломления
+	===Можно менять % прозрачности
++++Тень более или менее яркая, если объект прозрачный
+---Текстуры:tel
+	---Можно применить текутуру на по крайней мере один из 4 базовых объекта
+	---Можно применить текстуру на 4 базовых объекта
+	---Можно растягивать (или сжимать) текстуру на объекте
+	---Можно сдвигать текстуру на объекте
+	---Использована бибилотека
+---Больше текстур
+	---bump mapping
+	---Текстура может менять в определенных местах прозрачность
+	---Текстура может ограничивать или разрезать обЪект
+	---A texture on a semi-transparant object serve as a slide and is projected on another object
+---Композиция объектов
+---Negative objects
++++Другие объекты
+Вихульные эффекты
+	+++Антиалиасинг
+	эффект мультфильмы
+	моушн блюр
+	цветовой фильтр
+	Стереоскопия
+Технические эффекты
+	===cluster rendering
+	+++многопоток
+	+++Рендеринг очень быстрый
+	+++Можно делать скриншот
+Окружение
+	+++Общий интерфейс: сообщение о загрузке, прогресс бар
+	+++Крутой интерфейс
+	===Можно взаимодейтсвовать со сценой
+	++Возможно автоматически рендерить с модификациями
+Больше объектов
+	perforated cube
+	table cloth
+	+++torus
+	Random equation resolution from a conﬁguration ﬁle
+	More (fractal objects, etc.) as much as implemented up to 5.
+
+A video made from your RT (share the love on the forum)
+- Modelers ﬁles: it's possible to import pov or 3ds ﬁles (for example), and you can render them with your RT.
+
+Using 3D TV technology or OculusRift !
+
+ - Infrequent spot: like a light bulb ﬁlament, the light source is infrequent and shadows don't have sharpness.
+
+ +++The Moebius ribbon
+
+ +++Caustics and/or Global illumination

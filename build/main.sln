@@ -3,12 +3,13 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 16
 VisualStudioVersion = 16.0.29709.97
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{911E67C6-3D85-4FCE-B560-20A9C3E3FF48}") = "main", "main.exe", "{599B8140-5D6F-41CE-869D-C2BA1E1D002F}"
+Project("{911E67C6-3D85-4FCE-B560-20A9C3E3FF48}") = "main", "main.exe", "{DDE8BD9C-184C-4CB4-9A31-583CE3F05D30}"
 	ProjectSection(DebuggerProjectSystem) = preProject
 		PortSupplier = 00000000-0000-0000-0000-000000000000
-		Executable = D:\repos\C\Ray\build\main.exe
+		Executable = D:\repos\C\rt2\build\main.exe
 		RemoteMachine = JUSTQU
-		StartingDirectory = D:\repos\C\Ray
+		StartingDirectory = D:\repos\C\rt2
+		Arguments = -s scenes\1.txt --resolution 800 640
 		Environment = По умолчанию
 		LaunchingEngine = 00000000-0000-0000-0000-000000000000
 		UseLegacyDebugEngines = No
@@ -21,12 +22,12 @@ Global
 		Release|x64 = Release|x64
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{599B8140-5D6F-41CE-869D-C2BA1E1D002F}.Release|x64.ActiveCfg = Release|x64
+		{DDE8BD9C-184C-4CB4-9A31-583CE3F05D30}.Release|x64.ActiveCfg = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
-		SolutionGuid = {0DE4A3A9-DE4C-465C-8FF4-7F646739859C}
+		SolutionGuid = {CAA7B14F-3D6F-481C-975D-1B47868146E3}
 	EndGlobalSection
 EndGlobal

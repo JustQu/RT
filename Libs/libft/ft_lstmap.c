@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   ft_lstmap.c                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: mfalkrea <marvin@42.fr>                    +#+  +:+       +#+        */
+/*   By: rmaxima <rmaxima@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2019/09/23 14:50:33 by mfalkrea          #+#    #+#             */
-/*   Updated: 2019/09/23 14:57:21 by mfalkrea         ###   ########.fr       */
+/*   Created: 2019/09/19 15:27:03 by rmaxima           #+#    #+#             */
+/*   Updated: 2019/09/19 15:38:06 by rmaxima          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,26 +14,24 @@
 
 t_list	*ft_lstmap(t_list *lst, t_list *(*f)(t_list *elem))
 {
-	t_list	*new;
-	t_list	*now;
+	t_list	*cont;
+	t_list	*res;
+	t_list	*tmp;
 
-	if (!lst)
+	if (!lst || !f)
 		return (NULL);
-	if (!(new = (*f)(lst)))
-	{
-		ft_lstdel(&new, &ft_dellist);
+	cont = f(lst);
+	if (!(res = ft_lstnew(cont->content, cont->content_size)))
 		return (NULL);
-	}
-	now = new;
-	while (lst->next)
+	lst = lst->next;
+	tmp = res;
+	while (lst)
 	{
-		lst = lst->next;
-		if (!(now->next = (*f)(lst)))
-		{
-			ft_lstdel(&new, &ft_dellist);
+		cont = f(lst);
+		if (!(res->next = ft_lstnew(cont->content, cont->content_size)))
 			return (NULL);
-		}
-		now = now->next;
+		res = res->next;
+		lst = lst->next;
 	}
-	return (new);
+	return (tmp);
 }

@@ -3,42 +3,67 @@
 #                                                         :::      ::::::::    #
 #    Makefile                                           :+:      :+:    :+:    #
 #                                                     +:+ +:+         +:+      #
-#    By: mfalkrea <marvin@42.fr>                    +#+  +:+       +#+         #
+#    By: user <user@student.42.fr>                  +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
-#    Created: 2019/09/06 12:08:16 by mfalkrea          #+#    #+#              #
-#    Updated: 2019/09/26 14:59:15 by mfalkrea         ###   ########.fr        #
+#    Created: 2020/06/29 17:22:43 by user              #+#    #+#              #
+#    Updated: 2020/06/29 17:22:46 by user             ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
-NAME = libft.a
-C_FLS = ft_abs.c ft_atoi.c ft_atoi_base.c ft_bzero.c ft_intlen.c ft_isalnum.c ft_isalpha.c ft_isascii.c \
-		  ft_isdigit.c ft_isprint.c ft_itoa.c ft_memalloc.c ft_memccpy.c ft_memchr.c ft_memcmp.c \
-		  ft_memcpy.c ft_memdel.c ft_memmove.c ft_memset.c ft_putchar.c ft_putchar_fd.c \
-		  ft_putendl.c ft_putendl_fd.c ft_putnbr.c ft_putnbr_fd.c ft_putstr.c ft_putstr_fd.c \
-		  ft_strcat.c ft_strchr.c ft_strclr.c ft_strcmp.c ft_strcpy.c ft_strdel.c ft_strdup.c \
-		  ft_strequ.c ft_striter.c ft_striteri.c ft_strjoin.c ft_strlcat.c ft_strlen.c ft_strmap.c \
-		  ft_strmapi.c ft_strncat.c ft_strncmp.c ft_strncpy.c ft_strnequ.c ft_strnew.c ft_strnstr.c \
-		  ft_strrchr.c ft_strsplit.c ft_strstr.c ft_strsub.c ft_strtrim.c ft_tolower.c \
-		  ft_toupper.c ft_lstnew.c ft_lstadd.c ft_lstdel.c ft_lstdelone.c ft_lstiter.c ft_lstmap.c \
-		  ft_dellist.c get_next_line.c
-HEAD = libft.h get_next_line.h
-FLAGS = -Wall -Wextra -Werror
-O_FLS = $(C_FLS:%.c=%.o)
+NAME 			:= libft.a
+FLAGS 			:= -g
+CC 				:= gcc
+REMOVE 			:= /bin/rm -rf
+DIR_INCLUDE 	:= ./include
+H_LIBFT			:= libft.h
+HEADERS			:= $(H_LIBFT)
+DIR_BIN 		:= bin/
+DIR_LIBFT		:= .
+
+
+SRC = ft_strlen.c ft_strcmp.c ft_strcpy.c ft_strdup.c ft_strncpy.c ft_atoi.c \
+ft_bzero.c ft_strcat.c ft_strncat.c ft_strlcat.c ft_strchr.c ft_strrchr.c \
+ft_strncmp.c ft_isalpha.c ft_isdigit.c ft_isalnum.c ft_isascii.c \
+ft_isprint.c ft_toupper.c ft_tolower.c ft_memset.c \
+ft_memcpy.c ft_memccpy.c ft_memmove.c ft_memchr.c \
+ft_memalloc.c ft_memdel.c ft_strnew.c ft_strdel.c ft_strclr.c ft_striter.c \
+ft_strstr.c ft_strnstr.c ft_striteri.c ft_strmap.c ft_strmapi.c ft_strequ.c \
+ft_strnequ.c ft_strsub.c ft_strjoin.c ft_putchar.c ft_putstr.c ft_putendl.c \
+ft_putnbr.c ft_putchar_fd.c ft_putstr_fd.c ft_putendl_fd.c ft_putnbr_fd.c \
+ft_strtrim.c ft_itoa.c ft_strsplit.c ft_lstnew.c ft_lstdelone.c ft_lstdel.c \
+ft_lstadd.c ft_lstiter.c ft_lstmap.c ft_strrev.c ft_range.c ft_swap.c \
+ft_printbits.c ft_space.c get_next_line.c ft_strsplit_2.c
+
+SRCS 			:= $(SRC)
+
+DIRS_SRC		:= $(DIR_LIBFT)
+
+OBJS			:= $(SRCS:.c=.o)
+OBJS_BIN		:= $(addprefix $(DIR_BIN), $(OBJS))
+
+vpath %.c $(DIRS_SRC)
+vpath %.h $(DIR_INCLUDE)
+vpath %.o $(DIR_BIN)
 
 all: $(NAME)
 
-$(NAME): $(O_FLS)
-	@ar rcs $(NAME) $(O_FLS)
+$(NAME): $(OBJS)
+	ar crus $@ $(OBJS_BIN)
 
-%.o: %.c $(HEAD)
-	@gcc $(FLAGS) -c $(C_FLS)
+$(OBJS):%.o: %.c $(HEADERS) | $(DIR_BIN)
+	$(CC) $(FLAGS) -c $< -o $(DIR_BIN)$@ $(addprefix -I, $(DIR_INCLUDE)) -pipe
+
+$(DIR_BIN):
+	mkdir -p $@
 
 clean:
-	@rm -f $(O_FLS)
+	$(REMOVE) $(OBJS)
+	$(REMOVE) $(DIR_BIN)
 
 fclean: clean
-	@rm -f $(NAME)
+	$(REMOVE) $(NAME)
 
 re: fclean all
 
-.PHONY: all clean fclean re
+.PHONY:	clean fclean re
+.SILENT: all $(NAME) $(OBJS) $(DIR_BIN) clean fclean re

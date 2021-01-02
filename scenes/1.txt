@@ -1,0 +1,214 @@
+options =
+{
+	background_color = {0.0, 0.0, 0.0};
+	tracer_type = path_tracer
+}
+
+object =
+{
+	type = plane;
+	rotation = {0.0, 0.0, 0.0};
+	origin = {-10.0, -1.0, -10.0};
+	scaling = {1.0, 1.0, 1.0};
+	vector1 = {0.0, 0.0, 0.0};
+	vector2 = {20.0, 0.0, 20.0};
+	texture = {
+		type = checker;
+		even = {0.5, 0.5, 0.5};
+		odd = {0.0, 0.0, 1.0}
+	};
+	material = {
+		type = conductor;
+		reflective = 1;
+		roughness = 0.1
+	}
+}
+#
+object = {
+	type = torus;
+	radius = 1.0;
+	radius2 = 0.5;
+	origin = {1.0, 0.0, 0.0};
+	scaling = {1.0, 1.0, 1.0};
+	texture = {
+		type = solid;
+		color = {1.0, 0.0, 0.0}
+	};
+	material = {
+		type = matte;
+		diffuse = 1.0;
+		diffuse = 0.25;
+		transmission = 1.5;
+		reflective = 1.0
+	}
+}
+#
+object = {
+	type = sphere;
+	radius = 1.0;
+	origin = {0.0, 0.0, 0.0};
+	scaling = {1.0, 4.0, 1.0};
+	rotation = {0.0, 0.0, 45.0};
+	texture = {
+		type = checker;
+		odd = {0.8, 0.3, 0.3};
+		even = {0.5, 0.5, 0.0}
+	};
+	material = {
+		type = phong;
+		specular = 0.2;
+		roughness = 10.0;
+		diffuse = 0.8;
+		ambient = 0.25
+	}
+}
+#
+object = {
+	type = cylinder;
+	radius = 1.0;
+	origin = {-4.5, -1.0, 0.0};
+	rotation = {-30.0, 0.0, 45.0};
+	scaling = {1.0, 4.0, 1.0};
+	texture = {
+		type = solid;
+		color = {0.8, 0.6, 0.2}
+	};
+	material = {
+		type = matte;
+		reflective = 0.95;
+		diffuse = 0.8;
+		specular = 0.1;
+		roughness = 100000.0
+	};
+	minm = 0.0;
+	maxm = 1.0
+}
+#
+object = {
+	type = cone;
+	origin = {-3.0, 2.0, -4.0};
+	rotation = {180.0, 0.0, 0.0};
+	scaling = {1.0, 1.0, 1.0};
+	texture = {
+		type = turbulence_perlin;
+		scale = 0.5
+	};
+	material = {
+		type = matte;
+		reflective = 1.0;
+		transmission = 1.333;
+		diffuse = 2.0;
+		roughness = 0.1
+	};
+	radius2 = 60.0;
+	minm = 0.0;
+	maxm = 1.5
+}
+
+#
+object = {
+	type = sphere;
+	radius = 1.0;
+	origin = {3.0, 1.0, 1.0};
+	rotation = {0.0, 0.0, 0.0};
+	scaling = {2.0, 2.0, 2.0};
+	texture = {
+		type = solid;
+		color = {0.3, 0.2, 0.7}
+	};
+	material = {
+		type = matte;
+		diffuse = 1.0
+	}
+}
+#
+object = {
+	type = sphere;
+	radius = 1.0;
+	origin = {-3.0, 0.0, -4.0};
+	rotation = {0.0, 0.0, 0.0};
+	scaling = {1.0, 1.0, 1.0};
+	texture = {
+		type = turbulence_perlin;
+		scale = 0.5
+	};
+	material = {
+		type = matte;
+		reflective = 1.0;
+		transmission = 1.333;
+		diffuse = 2.0
+	}
+}
+#
+object = {
+	type = sphere;
+	radius = 1.0;
+	origin = {3.0, -0.25, -2.5};
+	rotation = {0.0, 0.0, 0.0};
+	scaling = {0.75, 0.75, 0.75};
+	texture = {
+		type = smooth_perlin;
+		scale = 20.0;
+		type = solid;
+		color = {0.3, 0.2, 0.7}
+	};
+	material = {
+		type = mirror;
+		reflective = 1.0;
+		roughness = 0.1;
+		diffuse = 1.0
+	}
+}
+
+#
+object = {
+	type = sphere;
+	radius = 1.0;
+	origin = {3.0, -0.5, -3.5};
+	rotation = {0.0, 0.0, 0.0};
+	scaling = {0.5, 0.5, 0.5};
+	texture = {
+		type = turbulence_perlin;
+		scale = 3.0;
+		color = {1, 0, 0}
+	};
+	material = {
+		type = matte;
+		diffuse = 1.0;
+	}
+}
+
+object = {
+	type = triangle;
+	origin = {0.0, 0.0, -2.0};
+	vector1 = {1.0, 0.0, 0.0};
+	vector2 = {0.0, 1.0, 0.0};
+	rotation = {0.0, 0.0, 0.0};
+	scaling = {1.0, 1.0, 1.0};
+	texture = {
+		type = solid;
+		color = {1.0, 0.0, 1.0}
+	};
+	material = {
+		type = matte
+	}
+}#
+
+camera = {
+	zoom = 0.5;
+	origin = {0.0, 0, -8};
+}
+
+light = {
+	type = point;
+	ls = 2.5;
+	color = {1.0, 1.0, 1.0};
+	origin = {10.0, 10.0, -10.0}
+}
+
+light = {
+	type = point;
+	ls = 2.5;
+	color = {1.0, 1.0, 1.0};
+	origin = {-10.0, 10.0, 1.0}
+}

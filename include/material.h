@@ -3,40 +3,84 @@
 /*                                                        :::      ::::::::   */
 /*   material.h                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: dmelessa <dmelessa@student.42.fr>          +#+  +:+       +#+        */
+/*   By: aapricot <aapricot@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2020/05/16 00:07:37 by dmelessa          #+#    #+#             */
-/*   Updated: 2020/05/16 20:18:29 by dmelessa         ###   ########.fr       */
+/*   Updated: 2020/12/13 11:49:18 by aapricot         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #ifndef MATERIAL_H
 # define MATERIAL_H
 
-# include "types.h"
-# include "color.h"
+# ifndef __OPENCL_C_VERSION__
+#  include "rt_types.h"
+#  include "color.h"
+# endif
 
 typedef enum e_material_type		t_material_type;
+
+/*
+** 64 bytes
+*/
+
 typedef struct s_material			t_material;
-enum e_material_type
+
+enum	e_material_type
 {
-	matte, //kd, ka
+	mat_none = -2,
+	matte = 0,
 	phong,
-	emissive
+
+	plastic,
+
+	emissive,
+	diffuse_light,
+
+	reflective,
+	mirror,
+	metal,
+	conductor,
+
+	dielectric,
+	rough_dielectric,
 };
 
-# ifdef _WIN64
-__declspec(align(4))
-# endif
-struct					s_material //kd + ks < 1.0
+/*
+** color					//16
+** reflective color 		//16
+** type						//4
+** kd						//4 -- diffuse
+** ka						//4 -- ambient
+** ks						//4 -- specular
+** kr						//4 -- reflective
+** kt						//4 -- tranpsarente
+** exp						//4
+** uchar is_reflective		//1
+** uchar is_transparent		//1
+**
+** uchar gap[8]				//8
+*/
+
+struct	s_material
 {
+	t_color				reflective_color;
 	t_material_type		type;
-	t_color				color;
-	cl_float			kd; //diffuse reflection coefficient [0, 1]
-	cl_float			ka; //ambient reflection
-	cl_float			ks; //coefficient of specular reflection [0, 1]
+	cl_float			kd;
+	cl_float			ka;
+	cl_float			ks;
+	cl_float			kr;
+	cl_float			kt;
 	cl_float			exp;
-	void				*texture;
+	cl_float			ls;
+
+	int					texture_id;
+
+	cl_uchar			is_reflective;
+	cl_uchar			is_transparent;
+	cl_uchar			gap[10];
 };
+
+int		create_material(t_material	type);
 
 #endif

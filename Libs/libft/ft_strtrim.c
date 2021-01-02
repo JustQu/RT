@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   ft_strtrim.c                                       :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: mfalkrea <marvin@42.fr>                    +#+  +:+       +#+        */
+/*   By: rmaxima <rmaxima@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2019/09/13 19:03:50 by mfalkrea          #+#    #+#             */
-/*   Updated: 2019/09/19 12:41:50 by mfalkrea         ###   ########.fr       */
+/*   Created: 2019/09/18 12:39:43 by rmaxima           #+#    #+#             */
+/*   Updated: 2019/09/18 13:06:08 by rmaxima          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,28 +14,20 @@
 
 char	*ft_strtrim(char const *s)
 {
-	int		i;
-	int		j;
-	int		len;
-	char	*new;
+	size_t	i;
+	size_t	j;
+	size_t	size;
 
+	if (s == NULL)
+		return (NULL);
 	i = 0;
-	j = 0;
-	if (!s)
-		return (NULL);
-	len = ft_strlen((char*)s);
-	while (s[i] == ' ' || s[i] == '\n' || s[i] == '\t')
+	while (s[i] != '\0' && (s[i] == ' ' || s[i] == '\n' || s[i] == '\t'))
 		i++;
-	while ((s[len - 1] == ' ' ||
-			s[len - 1] == '\n' || s[len - 1] == '\t') && len > 0)
-		len--;
-	new = ft_strnew((len > i) ? (len - i) : 0);
-	if (!new)
-		return (NULL);
-	while (i < len)
-	{
-		new[j++] = s[i++];
-		new[j] = '\0';
-	}
-	return (new);
+	j = ft_strlen(s);
+	while ((i < j) && (s[j - 1] == ' ' || s[j - 1] == '\n' || s[j - 1] == '\t'))
+		j--;
+	if (i == j)
+		return (ft_strnew(1));
+	size = j - i;
+	return (ft_strsub(s, i, size));
 }

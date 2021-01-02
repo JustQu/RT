@@ -1,0 +1,193 @@
+options = {
+	background_color = {0.01, 0.01, 0.01};
+	ambient_illumination = occluder;
+	ambient_coefficient = 0.5;
+	ambient_occlusion = {1, 1, 1};
+	shadows = true;
+	tracer_type = path_tracer;
+	depth = 5;
+	strategy = 1
+}
+
+camera = {
+	type = perspective;
+	l = 0.05;
+	f = 5;
+	origin = {-2.1, 0, -6.5};
+	direction = {0.32, -0.1, 1.0}
+	d = 900;
+	zoom = 1.0
+}
+
+object = {
+	type = rectangle;
+	origin = {-5, 4.5, 0};
+	radius = 5;
+	radius2 = 5;
+	rotation = {0, 0, 0};
+	vector1 = {1, 0, 0};
+	vector2 = {0, 0, 1};
+	texture = {
+		type = solid;
+		color = {1, 1, 1}
+	};
+	material = {
+		type = emissive;
+		intensity = 5;
+	}
+}
+
+object =
+{
+	type = plane;
+	rotation = {0.0, 0.0, 0.0};
+	origin = {-10.0, -1.0, -10.0};
+	scaling = {1.0, 1.0, 1.0};
+	vector1 = {0.0, 0.0, 0.0};
+	vector2 = {20.0, 0.0, 20.0};
+	texture = {
+		type = checker;
+		even = {0.95, 0.95, 0.95};
+		odd = {0.0, 0.0, 0.0}
+	};
+	material = {
+		type = plastic;
+		reflective = 0.4;
+		roughness = 0.01,
+		diffuse = 0.6
+	}
+}
+
+object =
+{
+	type = plane;
+	rotation = {90.0, 0.0, 0.0};
+	origin = {-10.0, -1.0, 10.0};
+	scaling = {1.0, 1.0, 1.0};
+	vector1 = {0.0, 0.0, 0.0};
+	vector2 = {20.0, 0.0, 20.0};
+	texture = {
+		type = solid;
+		color = {0.1, 0.1, 0.1}
+	};
+	material = {
+		type = matte;
+		reflective = 0.4;
+		roughness = 0.01,
+		diffuse = 0.6
+	}
+}
+
+object =
+{
+	type = plane;
+	rotation = {90.0, 0.0, 0.0};
+	origin = {-10.0, -1.0, -7.0};
+	scaling = {1.0, 1.0, 1.0};
+	vector1 = {0.0, 0.0, 0.0};
+	vector2 = {20.0, 0.0, 20.0};
+	texture = {
+		type = solid;
+		color = {0.1, 0.1, 0.1}
+	};
+	material = {
+		type = matte;
+		reflective = 0.4;
+		roughness = 0.01,
+		diffuse = 0.6
+	}
+}
+
+object =
+{
+	type = plane;
+	rotation = {0.0, 0.0, 90.0};
+	origin = {-10.0, -1.0, -7.0};
+	scaling = {1.0, 1.0, 1.0};
+	vector1 = {0.0, 0.0, 0.0};
+	vector2 = {20.0, 0.0, 20.0};
+	texture = {
+		type = solid;
+		color = {0.1, 0.1, 0.1}
+	};
+	material = {
+		type = matte;
+		reflective = 0.4;
+		roughness = 0.01,
+		diffuse = 0.6
+	}
+}
+
+object =
+{
+	type = plane;
+	rotation = {0.0, 0.0, 90.0};
+	origin = {10.0, -1.0, -7.0};
+	scaling = {1.0, 1.0, 1.0};
+	vector1 = {0.0, 0.0, 0.0};
+	vector2 = {20.0, 0.0, 20.0};
+	texture = {
+		type = solid;
+		color = {0.1, 0.1, 0.1}
+	};
+	material = {
+		type = matte;
+		reflective = 0.4;
+		roughness = 0.01,
+		diffuse = 0.6
+	}
+}
+
+object = {
+	type = sphere;
+	radius = 1.0;
+	origin = {-2.0, -0.25, -1.0};
+	rotation = {0.0, 0.0, 0.0};
+	scaling = {0.75, 0.75, 0.75};
+	texture = {
+		type = solid;
+		color = {0.1, 0.1, 1}
+	};
+	material = {
+		type = mirror;
+		reflective = 0.8;
+		roughness = 0.001,
+		diffuse = 0.5
+	}
+}
+
+object = {
+	type = sphere;
+	radius = 1.0;
+	origin = {0.0, -0.25, -1.0};
+	rotation = {0.0, 0.0, 0.0};
+	scaling = {0.75, 0.75, 0.75};
+	texture = {
+		type = solid;
+		color = {0.1, 1, 0.1}
+	};
+	material = {
+		type = mirror;
+		reflective = 0.8;
+		roughness = 0.001,
+		diffuse = 0.5
+	}
+}
+
+object = {
+	type = sphere;
+	radius = 1.0;
+	origin = {2.0, -0.25, -1.0};
+	rotation = {0.0, 0.0, 0.0};
+	scaling = {0.75, 0.75, 0.75};
+	texture = {
+		type = solid;
+		color = {1.0, 0.1, 0.1}
+	};
+	material = {
+		type = mirror;
+		reflective = 0.8;
+		roughness = 0.001,
+		diffuse = 0.5
+	}
+}

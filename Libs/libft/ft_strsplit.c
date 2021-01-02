@@ -3,99 +3,89 @@
 /*                                                        :::      ::::::::   */
 /*   ft_strsplit.c                                      :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: mfalkrea <marvin@42.fr>                    +#+  +:+       +#+        */
+/*   By: rmaxima <rmaxima@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2019/09/13 19:03:19 by mfalkrea          #+#    #+#             */
-/*   Updated: 2019/09/20 14:33:49 by mfalkrea         ###   ########.fr       */
+/*   Created: 2019/09/18 13:11:01 by rmaxima           #+#    #+#             */
+/*   Updated: 2019/09/18 15:58:25 by rmaxima          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "libft.h"
 
-static int	mlc_size(char const *s, char c)
+static int	is_count_words(char const *s, char c)
 {
-	int		i;
-	int		log;
-	int		mlc;
+	int	i;
 
 	i = 0;
-	log = 0;
-	mlc = 0;
-	while (s[i] != '\0')
+	while (*s)
 	{
-		if (s[i] == c)
+		while (*s == c)
+			s++;
+		if (*s)
 		{
-			if (log == 0)
+			i++;
+			while (*s && *s != c)
+				s++;
+		}
+	}
+	return (i);
+}
+
+static char	*is_word(char *s, char c)
+{
+	char	*str;
+
+	str = s;
+	while (*s && *s != c)
+		s++;
+	*s = '\0';
+	return (ft_strdup(str));
+}
+
+static void	is_free(char **s, size_t i)
+{
+	while (i--)
+		ft_strdel(&(s[i]));
+	free(*s);
+}
+
+static char	**is_words(char *s, char c, size_t count)
+{
+	char	**strs;
+	char	*str;
+	size_t	i;
+
+	i = 0;
+	if ((strs = (char**)ft_memalloc(sizeof(char*) * (count + 1))))
+	{
+		while (i < count)
+		{
+			while (*s == c)
+				s++;
+			if (*s)
 			{
-				mlc++;
-				log = 1;
+				if (!(str = is_word(s, c)))
+				{
+					is_free(strs, i);
+					return (NULL);
+				}
+				strs[i++] = str;
+				s += (ft_strlen(str) + 1);
 			}
 		}
-		else
-			log = 0;
-		i++;
+		strs[i] = NULL;
 	}
-	return (mlc);
-}
-
-static int	join_str(char const *s, struct s_split *r, char **sp)
-{
-	sp[r->mlc] = ft_strsub(s, r->start, r->i - r->start);
-	if (!sp[r->mlc])
-	{
-		r->mlc++;
-		while (--r->mlc)
-		{
-			free(sp[r->mlc]);
-		}
-		return (1);
-	}
-	r->mlc++;
-	return (0);
-}
-
-static int	split(char const *s, char c, char **sp)
-{
-	struct s_split	r;
-	int				before_is_sim;
-
-	before_is_sim = 0;
-	r.i = -1;
-	r.mlc = 0;
-	while (s[++r.i] != '\0')
-	{
-		if (before_is_sim == 0)
-			r.start = r.i;
-		if (s[r.i] != c)
-			before_is_sim = 1;
-		else
-		{
-			if (before_is_sim == 1 && join_str(s, &r, sp))
-				return (1);
-			before_is_sim = 0;
-		}
-	}
-	if (r.i != 0 && s[r.i - 1] != c && join_str(s, &r, sp))
-		return (1);
-	sp[r.mlc] = NULL;
-	return (0);
+	return (strs);
 }
 
 char		**ft_strsplit(char const *s, char c)
 {
-	int		mlc;
-	char	**sp;
+	char	**strs;
+	char	*str;
 
-	if (!s)
+	if (!s || !(str = ft_strdup((char*)s)))
 		return (NULL);
-	mlc = mlc_size(s, c);
-	sp = (char**)malloc(sizeof(char*) * (mlc + 2));
-	if (!sp)
-		return (NULL);
-	if (split(s, c, sp))
-	{
-		free(sp);
-		return (NULL);
-	}
-	return (sp);
+	strs = is_words(str, c, is_count_words(str, c));
+	free(str);
+	return (strs);
 }

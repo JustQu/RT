@@ -3,19 +3,23 @@
 /*                                                        :::      ::::::::   */
 /*   get_next_line.h                                    :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: dmelessa <dmelessa@student.42.fr>          +#+  +:+       +#+        */
+/*   By: dmelessa <cool.3meu@gmail.com>             +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2019/09/26 14:51:16 by mfalkrea          #+#    #+#             */
-/*   Updated: 2020/04/01 21:39:01 by dmelessa         ###   ########.fr       */
+/*   Created: 2019/04/25 18:56:18 by ageorgan          #+#    #+#             */
+/*   Updated: 2020/12/20 21:48:34 by dmelessa         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #ifndef GET_NEXT_LINE_H
 # define GET_NEXT_LINE_H
+# define BUFF_SIZE 512
 
-# include "libft.h"
-# define BUFF_SIZE 128
+# include <string.h>
+# include <sys/types.h>
+# include <sys/stat.h>
+# include <fcntl.h>
+# include <stdio.h>
 
-int		get_next_line(const int fd, char **line);
+int		get_next_line(int fd, char **line);
 
 #endif
